@@ -1,0 +1,173 @@
+{
+  "title": "Horror chapter (first draft, deliberately flawed)",
+  "unit": "min",
+  "metrics": {
+    "duration": 43.0,
+    "beats": 16,
+    "mean_intensity": 5.19,
+    "peak_count": 2,
+    "climax_time": 25.0,
+    "climax_position": 0.581,
+    "climax_intensity": 9.5,
+    "hook_peak": 2.5,
+    "share_high": 0.252,
+    "share_low": 0.279,
+    "pacing_score": 23
+  },
+  "findings": [
+    {
+      "code": "MISSING_HOOK",
+      "severity": "high",
+      "message": "No beat reaches 6/10 in the first 10% of the experience (best is 2.5). Players decide early whether to keep going.",
+      "suggestion": "Open with a short, legible high-interest moment (a promise of the core fantasy, a striking reveal, or a quick win), then dip to teach.",
+      "start": 0.0,
+      "end": 4.3
+    },
+    {
+      "code": "FLAT_ZONE",
+      "severity": "high",
+      "message": "0.0-11.9: intensity stays within ±0.5 around 2.6 for 11.9 units (low and flat: boredom and quit risk).",
+      "suggestion": "Insert a contrast beat: a twist on the current mechanic, a new threat, a reveal, a reward, or a deliberate rest that sets up the next rise.",
+      "start": 0.0,
+      "end": 11.9325
+    },
+    {
+      "code": "EARLY_CLIMAX",
+      "severity": "high",
+      "message": "The strongest moment (9.5, Cornered fight) happens at 58% of the experience; later beats never top it.",
+      "suggestion": "Move or build a climax into the last 30%, or reduce the early peak so the ending is the highest point.",
+      "start": 25.0,
+      "end": 25.0
+    },
+    {
+      "code": "FLAT_ZONE",
+      "severity": "medium",
+      "message": "14.7-23.0: intensity stays within ±0.5 around 8.3 for 8.3 units (high and flat: numbness and fatigue risk).",
+      "suggestion": "Insert a contrast beat: a twist on the current mechanic, a new threat, a reveal, a reward, or a deliberate rest that sets up the next rise.",
+      "start": 14.7275,
+      "end": 23.005
+    },
+    {
+      "code": "SUSTAINED_PEAK",
+      "severity": "medium",
+      "message": "15.1-25.8: intensity stays at or above 8 for 10.8 units (25% of the run).",
+      "suggestion": "Break the plateau into two peaks with a short release between them, or vary the kind of intensity (spatial, cognitive, emotional).",
+      "start": 15.05,
+      "end": 25.8
+    },
+    {
+      "code": "NO_RELIEF",
+      "severity": "medium",
+      "message": "Peak at 19.0 (8.5, Chase continues) is not followed by a drop of 2.5+ within 5.2 units.",
+      "suggestion": "After a peak, give a release beat (safe room, loot, story, shop, short traversal) so the next peak lands harder.",
+      "start": 19.0,
+      "end": 24.16
+    },
+    {
+      "code": "FLAT_ZONE",
+      "severity": "medium",
+      "message": "27.5-37.9: intensity stays within ±0.5 around 4.3 for 10.4 units (flat: interest stops moving).",
+      "suggestion": "Insert a contrast beat: a twist on the current mechanic, a new threat, a reveal, a reward, or a deliberate rest that sets up the next rise.",
+      "start": 27.52,
+      "end": 37.9475
+    }
+  ],
+  "beats": [
+    {
+      "time": 0.0,
+      "intensity": 2.0,
+      "type": "explore",
+      "label": "Wake up in the ward"
+    },
+    {
+      "time": 3.0,
+      "intensity": 2.5,
+      "type": "explore",
+      "label": "Search reception"
+    },
+    {
+      "time": 6.0,
+      "intensity": 3.0,
+      "type": "explore",
+      "label": "Nurse's notes"
+    },
+    {
+      "time": 9.0,
+      "intensity": 2.5,
+      "type": "puzzle",
+      "label": "Fuse box"
+    },
+    {
+      "time": 12.0,
+      "intensity": 3.0,
+      "type": "explore",
+      "label": "Corridor"
+    },
+    {
+      "time": 15.0,
+      "intensity": 8.0,
+      "type": "scare",
+      "label": "Stalker sighting"
+    },
+    {
+      "time": 16.0,
+      "intensity": 8.5,
+      "type": "chase",
+      "label": "Chase through wards"
+    },
+    {
+      "time": 19.0,
+      "intensity": 8.5,
+      "type": "chase",
+      "label": "Chase continues"
+    },
+    {
+      "time": 22.0,
+      "intensity": 8.0,
+      "type": "chase",
+      "label": "Vent escape"
+    },
+    {
+      "time": 25.0,
+      "intensity": 9.5,
+      "type": "boss",
+      "label": "Cornered fight"
+    },
+    {
+      "time": 28.0,
+      "intensity": 4.0,
+      "type": "explore",
+      "label": "Basement"
+    },
+    {
+      "time": 31.0,
+      "intensity": 4.5,
+      "type": "explore",
+      "label": "Archives"
+    },
+    {
+      "time": 34.0,
+      "intensity": 4.0,
+      "type": "explore",
+      "label": "Morgue"
+    },
+    {
+      "time": 37.0,
+      "intensity": 4.5,
+      "type": "puzzle",
+      "label": "Drawer puzzle"
+    },
+    {
+      "time": 40.0,
+      "intensity": 6.0,
+      "type": "scare",
+      "label": "Lights out"
+    },
+    {
+      "time": 43.0,
+      "intensity": 5.0,
+      "type": "story",
+      "label": "Exit door"
+    }
+  ]
+}

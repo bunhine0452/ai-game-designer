@@ -1,0 +1,26 @@
+# title: Roguelite run (20 minutes, two biomes + final boss)
+# unit: min
+# Intensity = felt engagement 0-10.
+time,intensity,type,label
+0.0,4,setup,Choose loadout
+0.5,7,combat,Ambush hook
+1.5,5,combat,First room
+2.5,4,reward,First boon pick
+3.5,6,combat,Elite room
+4.5,7,combat,Mini-gauntlet
+5.5,3,shop,Shop
+6.5,5,explore,Branching path choice
+7.5,6,combat,Combat room
+8.5,8,boss,Mid-boss
+9.5,3,rest,Fountain + story beat
+10.5,5,combat,Biome 2 new enemy
+11.5,6,combat,Combo enemy room
+12.5,4,reward,Rare boon
+13.5,7,combat,Trap gauntlet
+14.5,5,event,Risky event
+15.5,7,combat,Elite pair
+16.5,3,shop,Shop + heal
+17.5,6,combat,Pre-boss room
+18.5,9.5,boss,Final boss phase 1-2
+19.5,10,boss,Final boss phase 3
+20.0,5,reward,Run summary + unlock

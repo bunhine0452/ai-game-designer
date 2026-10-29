@@ -1,0 +1,22 @@
+# Fictional starter set for a creature card game. Three cards are deliberately off-curve.
+name,cost,attack,health,draw,taunt,charge
+Ember Pup,1,1,2,0,0,0
+Moss Sprite,1,2,1,0,0,0
+Quill Imp,1,1,1,0,0,0
+Tide Squire,2,2,3,0,0,0
+Lantern Moth,2,1,2,1,0,0
+Tiny Tactician,2,1,1,1,0,0
+Comet Scout,2,3,2,1,0,1
+Iron Warden,3,2,4,0,1,0
+Dune Racer,3,3,2,0,0,1
+Marsh Witch,3,2,2,1,0,0
+Glass Tyrant,3,6,4,0,0,0
+Bramble Ogre,4,4,5,0,0,0
+Archive Owl,4,3,3,1,0,0
+Ash Sentinel,4,3,5,0,1,0
+Storm Lancer,5,5,4,0,0,1
+Sky Herald,5,4,5,1,0,0
+Rust Golem,5,3,3,0,1,0
+Granite Colossus,6,6,7,0,0,0
+Thorn Bastion,6,4,8,0,1,0
+Reef Hydra,7,7,8,0,0,0

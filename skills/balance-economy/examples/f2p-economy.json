@@ -1,0 +1,104 @@
+{
+  "title": "F2P action RPG economy (first draft)",
+  "players": 2000,
+  "sessions": 60,
+  "seed": 7,
+  "currencies": {
+    "gold": {
+      "start": 200
+    },
+    "gems": {
+      "start": 300
+    }
+  },
+  "archetypes": [
+    {
+      "name": "casual",
+      "share": 0.6,
+      "play_prob": 0.55,
+      "income_mult": 0.8
+    },
+    {
+      "name": "engaged",
+      "share": 0.36,
+      "play_prob": 0.9,
+      "income_mult": 1.0
+    },
+    {
+      "name": "spender",
+      "share": 0.04,
+      "play_prob": 0.95,
+      "income_mult": 1.0,
+      "purchases": [
+        {
+          "currency": "gems",
+          "amount": 980,
+          "every": 7,
+          "price": 14.99
+        }
+      ]
+    }
+  ],
+  "faucets": [
+    {
+      "name": "quest and loot gold",
+      "currency": "gold",
+      "mean": 450,
+      "sd": 140,
+      "growth": 0.07
+    },
+    {
+      "name": "daily login gems",
+      "currency": "gems",
+      "mean": 60,
+      "sd": 0
+    },
+    {
+      "name": "achievement gems",
+      "currency": "gems",
+      "mean": 300,
+      "sd": 50,
+      "prob": 0.06
+    }
+  ],
+  "sinks": [
+    {
+      "name": "gear upgrade",
+      "currency": "gold",
+      "kind": "buy",
+      "cost": 900,
+      "cost_growth": 0.05,
+      "max_per_session": 1,
+      "reserve": 0
+    },
+    {
+      "name": "repairs",
+      "currency": "gold",
+      "kind": "fixed",
+      "amount": 40
+    },
+    {
+      "name": "market tax",
+      "currency": "gold",
+      "kind": "percent",
+      "rate": 0.03
+    }
+  ],
+  "gacha": {
+    "name": "Character banner",
+    "currency": "gems",
+    "cost": 160,
+    "max_pulls_per_session": 10,
+    "reserve": 0,
+    "rates": {
+      "SSR": 0.006,
+      "SR": 0.051
+    },
+    "pity": {
+      "item": "SSR",
+      "hard": 90,
+      "soft_start": 74,
+      "soft_step": 0.06
+    }
+  }
+}

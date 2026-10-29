@@ -1,0 +1,22 @@
+{
+  "title": "Horror chapter (first draft, deliberately flawed)",
+  "unit": "min",
+  "beats": [
+    {"time": 0,  "intensity": 2,   "type": "explore", "label": "Wake up in the ward"},
+    {"time": 3,  "intensity": 2.5, "type": "explore", "label": "Search reception"},
+    {"time": 6,  "intensity": 3,   "type": "explore", "label": "Nurse's notes"},
+    {"time": 9,  "intensity": 2.5, "type": "puzzle",  "label": "Fuse box"},
+    {"time": 12, "intensity": 3,   "type": "explore", "label": "Corridor"},
+    {"time": 15, "intensity": 8,   "type": "scare",   "label": "Stalker sighting"},
+    {"time": 16, "intensity": 8.5, "type": "chase",   "label": "Chase through wards"},
+    {"time": 19, "intensity": 8.5, "type": "chase",   "label": "Chase continues"},
+    {"time": 22, "intensity": 8,   "type": "chase",   "label": "Vent escape"},
+    {"time": 25, "intensity": 9.5, "type": "boss",    "label": "Cornered fight"},
+    {"time": 28, "intensity": 4,   "type": "explore", "label": "Basement"},
+    {"time": 31, "intensity": 4.5, "type": "explore", "label": "Archives"},
+    {"time": 34, "intensity": 4,   "type": "explore", "label": "Morgue"},
+    {"time": 37, "intensity": 4.5, "type": "puzzle",  "label": "Drawer puzzle"},
+    {"time": 40, "intensity": 6,   "type": "scare",   "label": "Lights out"},
+    {"time": 43, "intensity": 5,   "type": "story",   "label": "Exit door"}
+  ]
+}

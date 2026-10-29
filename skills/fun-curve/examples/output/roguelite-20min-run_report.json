@@ -1,0 +1,161 @@
+{
+  "title": "Roguelite run (20 minutes, two biomes + final boss)",
+  "unit": "min",
+  "metrics": {
+    "duration": 20.0,
+    "beats": 22,
+    "mean_intensity": 5.72,
+    "peak_count": 6,
+    "climax_time": 19.5,
+    "climax_position": 0.975,
+    "climax_intensity": 10.0,
+    "hook_peak": 7.0,
+    "share_high": 0.085,
+    "share_low": 0.007,
+    "pacing_score": 92
+  },
+  "findings": [
+    {
+      "code": "NO_RELIEF",
+      "severity": "medium",
+      "message": "Peak at 13.5 (7, Trap gauntlet) is not followed by a drop of 2.5+ within 2.4 units.",
+      "suggestion": "After a peak, give a release beat (safe room, loot, story, shop, short traversal) so the next peak lands harder.",
+      "start": 13.5,
+      "end": 15.9
+    }
+  ],
+  "beats": [
+    {
+      "time": 0.0,
+      "intensity": 4.0,
+      "type": "setup",
+      "label": "Choose loadout"
+    },
+    {
+      "time": 0.5,
+      "intensity": 7.0,
+      "type": "combat",
+      "label": "Ambush hook"
+    },
+    {
+      "time": 1.5,
+      "intensity": 5.0,
+      "type": "combat",
+      "label": "First room"
+    },
+    {
+      "time": 2.5,
+      "intensity": 4.0,
+      "type": "reward",
+      "label": "First boon pick"
+    },
+    {
+      "time": 3.5,
+      "intensity": 6.0,
+      "type": "combat",
+      "label": "Elite room"
+    },
+    {
+      "time": 4.5,
+      "intensity": 7.0,
+      "type": "combat",
+      "label": "Mini-gauntlet"
+    },
+    {
+      "time": 5.5,
+      "intensity": 3.0,
+      "type": "shop",
+      "label": "Shop"
+    },
+    {
+      "time": 6.5,
+      "intensity": 5.0,
+      "type": "explore",
+      "label": "Branching path choice"
+    },
+    {
+      "time": 7.5,
+      "intensity": 6.0,
+      "type": "combat",
+      "label": "Combat room"
+    },
+    {
+      "time": 8.5,
+      "intensity": 8.0,
+      "type": "boss",
+      "label": "Mid-boss"
+    },
+    {
+      "time": 9.5,
+      "intensity": 3.0,
+      "type": "rest",
+      "label": "Fountain + story beat"
+    },
+    {
+      "time": 10.5,
+      "intensity": 5.0,
+      "type": "combat",
+      "label": "Biome 2 new enemy"
+    },
+    {
+      "time": 11.5,
+      "intensity": 6.0,
+      "type": "combat",
+      "label": "Combo enemy room"
+    },
+    {
+      "time": 12.5,
+      "intensity": 4.0,
+      "type": "reward",
+      "label": "Rare boon"
+    },
+    {
+      "time": 13.5,
+      "intensity": 7.0,
+      "type": "combat",
+      "label": "Trap gauntlet"
+    },
+    {
+      "time": 14.5,
+      "intensity": 5.0,
+      "type": "event",
+      "label": "Risky event"
+    },
+    {
+      "time": 15.5,
+      "intensity": 7.0,
+      "type": "combat",
+      "label": "Elite pair"
+    },
+    {
+      "time": 16.5,
+      "intensity": 3.0,
+      "type": "shop",
+      "label": "Shop + heal"
+    },
+    {
+      "time": 17.5,
+      "intensity": 6.0,
+      "type": "combat",
+      "label": "Pre-boss room"
+    },
+    {
+      "time": 18.5,
+      "intensity": 9.5,
+      "type": "boss",
+      "label": "Final boss phase 1-2"
+    },
+    {
+      "time": 19.5,
+      "intensity": 10.0,
+      "type": "boss",
+      "label": "Final boss phase 3"
+    },
+    {
+      "time": 20.0,
+      "intensity": 5.0,
+      "type": "reward",
+      "label": "Run summary + unlock"
+    }
+  ]
+}
