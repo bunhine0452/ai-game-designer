@@ -31,9 +31,10 @@ user can act on.
 
 ## 2. Intake: understand the project first
 
-Before giving design advice, establish the five core facts. Ask only for what the user
-hasn't already given, all in one compact message. Offer a sensible default for each so
-the user can just reply "ok".
+Establish the five core facts. Ask only for what the user hasn't already given, all in one
+compact table with a sensible default for each. **Never stop at questions:** in the same
+reply, assume the defaults and deliver a provisional result (e.g. the design brief in §5),
+labeled as provisional, so the user gets value right away and can correct the assumptions.
 
 | Fact | Why it matters | Default if the user skips |
 |---|---|---|
@@ -46,8 +47,8 @@ the user can just reply "ok".
 Optional when relevant: team size and timeline (scope), business model, reference games
 and what the user likes about them, hard constraints (engine, budget, rating).
 
-If the user wants speed ("just do it"), assume the defaults, list the assumptions in one
-line, and proceed.
+If the user wants speed ("just do it"), skip the question table and list the assumptions in
+one line before the result.
 
 ## 3. Route to the right skill
 
@@ -143,7 +144,7 @@ one-page design, or a review.
   skill atoms, with worked examples.
 - `references/player-motivation.md`: Bartle, Quantic Foundry, SDT/PENS, and how to apply
   them without stereotyping.
-- `references/glossary.md`: 90+ terms in English, Korean, Japanese, Simplified Chinese and Spanish.
+- `references/glossary.md`: 130+ terms in English, Korean, Japanese, Simplified Chinese and Spanish.
 - `examples/design-brief-example.md`: a full brief for an original concept.
 - `examples/intake-session-ko.md`: a Korean-language session showing intake, routing and
   term localization.

@@ -34,8 +34,8 @@ A beat is `time, intensity, type, label`:
 - **label**: what happens.
 
 If the user has a level outline, a script, playtest notes or telemetry instead of a beat
-list, **draft the beat list yourself**, show it as a table, and ask for corrections before
-running the analysis. For telemetry, map observed signals to intensity as explained in
+list, **draft the beat list yourself**, show it as a table, and continue straight into the
+analysis. Invite corrections at the end rather than stopping to ask. For telemetry, map observed signals to intensity as explained in
 `references/measuring-fun.md` (deaths, quit points, input rate, pauses).
 
 ### 3. Run the analysis

@@ -30,7 +30,8 @@ in production, and the **style guide** once a visual target exists.
 ## Workflow
 
 1. **Collect the inputs:** pillars and target aesthetics (from `game-design`), stage, team size
-   and timeline, platform, reference games or images. Ask only for what's missing.
+   and timeline, platform, reference games or images. If anything is missing, list your
+   assumptions in one line and draft anyway. Never reply with questions only.
 2. **Draft from the template.** Fill every field with *decisions*, not placeholders. Where a
    decision isn't made, write `OPEN QUESTION:` with options and a recommendation.
 3. **Make it visual where it matters:** loop diagrams, a map sketch, a flow chart in Mermaid or
