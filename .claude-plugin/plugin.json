@@ -1,0 +1,25 @@
+{
+  "name": "game-designer",
+  "version": "1.0.0",
+  "description": "Research-backed game design skills for every genre: fun curves and pacing diagnostics, 26 genre playbooks, progression/economy/gacha simulators, GDD and art-direction templates, and design reviews with dark-pattern checks. Answers in your language.",
+  "author": {
+    "name": "bunhine0452",
+    "url": "https://github.com/bunhine0452"
+  },
+  "homepage": "https://github.com/bunhine0452/claude-game-designer",
+  "repository": "https://github.com/bunhine0452/claude-game-designer",
+  "license": "MIT",
+  "keywords": [
+    "game-design",
+    "gamedev",
+    "game-balance",
+    "level-design",
+    "pacing",
+    "economy",
+    "gacha",
+    "gdd",
+    "art-direction",
+    "accessibility",
+    "skills"
+  ]
+}
