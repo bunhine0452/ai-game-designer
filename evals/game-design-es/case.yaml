@@ -1,0 +1,25 @@
+schema_version: "1.1"
+name: game-design-es
+description: "Spanish prompt should trigger the game-design skill and be answered in Spanish."
+tags: [trigger, es, game-design]
+execution:
+  prompt: "Tengo una idea de juego cooperativo sobre cocinar en un barco pirata. ¿Me ayudas a definir los pilares de diseño y el bucle principal?"
+  max_turns: 8
+  timeout_seconds: 300
+  allowed_tools: [Skill, Read, Glob, Grep]
+runs: 1
+graders:
+  - type: tool_used
+    name: skill-fired
+    tool: Skill
+    input_match: "game-design"
+    min: 1
+  - type: llm
+    name: answer-language
+    criteria: "The final response is written in Spanish (code, file names and English terms in parentheses are allowed)."
+  - type: llm
+    name: useful-answer
+    criteria: "The response addresses the request with concrete, actionable game-design content (specific mechanics, numbers, steps or fixes), not generic advice."
+  - type: llm
+    name: localized-terms
+    criteria: "The response uses Spanish terminology for game-design concepts, and at least one technical term is shown on first use with its English equivalent in parentheses, for example a localized term followed by (Core Loop), (Interest Curve), (Pity), (Sink), (Silhouette) or (Dark Pattern)."

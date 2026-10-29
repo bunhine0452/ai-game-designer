@@ -1,0 +1,22 @@
+schema_version: "1.1"
+name: balance-economy-en
+description: "English prompt should trigger the balance-economy skill and be answered in English."
+tags: [trigger, en, balance-economy]
+execution:
+  prompt: "Design an XP table for a 30-level action RPG where reaching level 30 takes about 20 hours. Which curve should I use and why?"
+  max_turns: 8
+  timeout_seconds: 300
+  allowed_tools: [Skill, Read, Glob, Grep]
+runs: 1
+graders:
+  - type: tool_used
+    name: skill-fired
+    tool: Skill
+    input_match: "balance-economy"
+    min: 1
+  - type: llm
+    name: answer-language
+    criteria: "The final response is written in English (code, file names and English terms in parentheses are allowed)."
+  - type: llm
+    name: useful-answer
+    criteria: "The response addresses the request with concrete, actionable game-design content (specific mechanics, numbers, steps or fixes), not generic advice."

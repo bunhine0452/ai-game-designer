@@ -1,0 +1,22 @@
+schema_version: "1.1"
+name: fun-curve-en
+description: "English prompt should trigger the fun-curve skill and be answered in English."
+tags: [trigger, en, fun-curve]
+execution:
+  prompt: "My 15-minute dungeon level feels boring in the middle. Beats (minute, intensity 0-10): 0 explore 3, 2 fight 6, 4 explore 3, 6 explore 3, 8 explore 3.5, 10 fight 6, 13 boss 9, 15 loot 4. What's wrong with the pacing and how do I fix it?"
+  max_turns: 8
+  timeout_seconds: 300
+  allowed_tools: [Skill, Read, Glob, Grep]
+runs: 1
+graders:
+  - type: tool_used
+    name: skill-fired
+    tool: Skill
+    input_match: "fun-curve"
+    min: 1
+  - type: llm
+    name: answer-language
+    criteria: "The final response is written in English (code, file names and English terms in parentheses are allowed)."
+  - type: llm
+    name: useful-answer
+    criteria: "The response addresses the request with concrete, actionable game-design content (specific mechanics, numbers, steps or fixes), not generic advice."

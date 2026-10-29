@@ -1,0 +1,25 @@
+schema_version: "1.1"
+name: fun-curve-ko
+description: "Korean prompt should trigger the fun-curve skill and be answered in Korean."
+tags: [trigger, ko, fun-curve]
+execution:
+  prompt: "20분짜리 로그라이트 런의 관심 곡선을 진단해줘. 0분 4, 1분 7(매복), 5분 3(상점), 9분 8(중간 보스), 12분 3(휴식), 18분 9.5(최종 보스), 20분 5(보상)."
+  max_turns: 8
+  timeout_seconds: 300
+  allowed_tools: [Skill, Read, Glob, Grep]
+runs: 1
+graders:
+  - type: tool_used
+    name: skill-fired
+    tool: Skill
+    input_match: "fun-curve"
+    min: 1
+  - type: llm
+    name: answer-language
+    criteria: "The final response is written in Korean (code, file names and English terms in parentheses are allowed)."
+  - type: llm
+    name: useful-answer
+    criteria: "The response addresses the request with concrete, actionable game-design content (specific mechanics, numbers, steps or fixes), not generic advice."
+  - type: llm
+    name: localized-terms
+    criteria: "The response uses Korean terminology for game-design concepts, and at least one technical term is shown on first use with its English equivalent in parentheses, for example a localized term followed by (Core Loop), (Interest Curve), (Pity), (Sink), (Silhouette) or (Dark Pattern)."

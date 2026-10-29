@@ -1,0 +1,25 @@
+schema_version: "1.1"
+name: design-review-ko
+description: "Korean prompt should trigger the design-review skill and be answered in Korean."
+tags: [trigger, ko, design-review]
+execution:
+  prompt: "플레이테스트 노트야: 8명 중 5명이 두 번째 보스에서 포기했고, 3명은 대시 쿨다운이 있는 줄 몰랐대. 문제점이랑 우선순위 정리해줘."
+  max_turns: 8
+  timeout_seconds: 300
+  allowed_tools: [Skill, Read, Glob, Grep]
+runs: 1
+graders:
+  - type: tool_used
+    name: skill-fired
+    tool: Skill
+    input_match: "design-review"
+    min: 1
+  - type: llm
+    name: answer-language
+    criteria: "The final response is written in Korean (code, file names and English terms in parentheses are allowed)."
+  - type: llm
+    name: useful-answer
+    criteria: "The response addresses the request with concrete, actionable game-design content (specific mechanics, numbers, steps or fixes), not generic advice."
+  - type: llm
+    name: localized-terms
+    criteria: "The response uses Korean terminology for game-design concepts, and at least one technical term is shown on first use with its English equivalent in parentheses, for example a localized term followed by (Core Loop), (Interest Curve), (Pity), (Sink), (Silhouette) or (Dark Pattern)."

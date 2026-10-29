@@ -1,0 +1,22 @@
+schema_version: "1.1"
+name: genre-design-en
+description: "English prompt should trigger the genre-design skill and be answered in English."
+tags: [trigger, en, genre-design]
+execution:
+  prompt: "What do players expect from a metroidvania, and how could I make mine stand out?"
+  max_turns: 8
+  timeout_seconds: 300
+  allowed_tools: [Skill, Read, Glob, Grep]
+runs: 1
+graders:
+  - type: tool_used
+    name: skill-fired
+    tool: Skill
+    input_match: "genre-design"
+    min: 1
+  - type: llm
+    name: answer-language
+    criteria: "The final response is written in English (code, file names and English terms in parentheses are allowed)."
+  - type: llm
+    name: useful-answer
+    criteria: "The response addresses the request with concrete, actionable game-design content (specific mechanics, numbers, steps or fixes), not generic advice."

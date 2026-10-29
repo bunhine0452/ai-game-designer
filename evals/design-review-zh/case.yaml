@@ -1,0 +1,25 @@
+schema_version: "1.1"
+name: design-review-zh
+description: "Simplified Chinese prompt should trigger the design-review skill and be answered in Simplified Chinese."
+tags: [trigger, zh, design-review]
+execution:
+  prompt: "请帮我评审这个游戏概念：一个多人生存游戏，玩家死亡会失去所有建筑，而且每天必须登录才能保住基地。"
+  max_turns: 8
+  timeout_seconds: 300
+  allowed_tools: [Skill, Read, Glob, Grep]
+runs: 1
+graders:
+  - type: tool_used
+    name: skill-fired
+    tool: Skill
+    input_match: "design-review"
+    min: 1
+  - type: llm
+    name: answer-language
+    criteria: "The final response is written in Simplified Chinese (code, file names and English terms in parentheses are allowed)."
+  - type: llm
+    name: useful-answer
+    criteria: "The response addresses the request with concrete, actionable game-design content (specific mechanics, numbers, steps or fixes), not generic advice."
+  - type: llm
+    name: localized-terms
+    criteria: "The response uses Simplified Chinese terminology for game-design concepts, and at least one technical term is shown on first use with its English equivalent in parentheses, for example a localized term followed by (Core Loop), (Interest Curve), (Pity), (Sink), (Silhouette) or (Dark Pattern)."

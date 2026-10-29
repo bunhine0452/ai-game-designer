@@ -1,0 +1,25 @@
+schema_version: "1.1"
+name: fun-curve-ja
+description: "Japanese prompt should trigger the fun-curve skill and be answered in Japanese."
+tags: [trigger, ja, fun-curve]
+execution:
+  prompt: "ホラーゲームの1章（40分）の緩急を見てほしい。最初の15分はずっと探索で緊張感が低く、20分あたりから長い追跡シーンが10分続きます。どう直せばいい？"
+  max_turns: 8
+  timeout_seconds: 300
+  allowed_tools: [Skill, Read, Glob, Grep]
+runs: 1
+graders:
+  - type: tool_used
+    name: skill-fired
+    tool: Skill
+    input_match: "fun-curve"
+    min: 1
+  - type: llm
+    name: answer-language
+    criteria: "The final response is written in Japanese (code, file names and English terms in parentheses are allowed)."
+  - type: llm
+    name: useful-answer
+    criteria: "The response addresses the request with concrete, actionable game-design content (specific mechanics, numbers, steps or fixes), not generic advice."
+  - type: llm
+    name: localized-terms
+    criteria: "The response uses Japanese terminology for game-design concepts, and at least one technical term is shown on first use with its English equivalent in parentheses, for example a localized term followed by (Core Loop), (Interest Curve), (Pity), (Sink), (Silhouette) or (Dark Pattern)."

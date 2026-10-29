@@ -1,0 +1,22 @@
+schema_version: "1.1"
+name: game-design-en
+description: "English prompt should trigger the game-design skill and be answered in English."
+tags: [trigger, en, game-design]
+execution:
+  prompt: "I have an idea for a game where you're a lighthouse keeper fighting sea monsters at night. Can you help me turn it into a design brief?"
+  max_turns: 8
+  timeout_seconds: 300
+  allowed_tools: [Skill, Read, Glob, Grep]
+runs: 1
+graders:
+  - type: tool_used
+    name: skill-fired
+    tool: Skill
+    input_match: "game-design"
+    min: 1
+  - type: llm
+    name: answer-language
+    criteria: "The final response is written in English (code, file names and English terms in parentheses are allowed)."
+  - type: llm
+    name: useful-answer
+    criteria: "The response addresses the request with concrete, actionable game-design content (specific mechanics, numbers, steps or fixes), not generic advice."

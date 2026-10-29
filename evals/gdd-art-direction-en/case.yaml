@@ -1,0 +1,22 @@
+schema_version: "1.1"
+name: gdd-art-direction-en
+description: "English prompt should trigger the gdd-art-direction skill and be answered in English."
+tags: [trigger, en, gdd-art-direction]
+execution:
+  prompt: "Write a one-page design document for a cozy fishing game set on a floating island."
+  max_turns: 8
+  timeout_seconds: 300
+  allowed_tools: [Skill, Read, Glob, Grep]
+runs: 1
+graders:
+  - type: tool_used
+    name: skill-fired
+    tool: Skill
+    input_match: "gdd-art-direction"
+    min: 1
+  - type: llm
+    name: answer-language
+    criteria: "The final response is written in English (code, file names and English terms in parentheses are allowed)."
+  - type: llm
+    name: useful-answer
+    criteria: "The response addresses the request with concrete, actionable game-design content (specific mechanics, numbers, steps or fixes), not generic advice."
