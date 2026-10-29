@@ -10,10 +10,15 @@ changes. Work at whatever scale the user cares about. Curves nest: a whole game 
 sessions, sessions of levels or runs, and levels of encounters. Each scale needs its own
 good shape.
 
-**Language:** answer in the user's language. On first use, write each technical term
-localized with the English term in parentheses, e.g. `관심 곡선 (Interest Curve)`. Standard
-terms are in `references/glossary.md` if bundled, or `../game-design/references/glossary.md`.
-Script output is English; translate finding names when summarizing.
+**Language (required):**
+- Answer in the language of the user's latest message.
+- In a non-English answer, write **every** technical term the first time it appears (headings
+  and table headers included) as the localized term plus the English term in parentheses, e.g.
+  `관심 곡선 (Interest Curve)`, `평탄 구간 (Flat Zone)`, `緩急 (Pacing)`, `心流 (Flow)`. After that, use the localized term alone.
+- Standard terms are in `references/glossary.md` if bundled, or
+  `../game-design/references/glossary.md`.
+- Keep code, file names and CLI flags in English. Script output is English; translate it when
+  summarizing.
 
 ## Workflow
 

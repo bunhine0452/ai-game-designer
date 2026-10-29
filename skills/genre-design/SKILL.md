@@ -9,9 +9,15 @@ Genres are bundles of player expectations. Know which expectations to honor (pla
 cheated without them) and which to break (that's where differentiation comes from). Use the
 playbook for the user's genre to ground every recommendation.
 
-**Language:** answer in the user's language. On first use, write each technical term
-localized with the English term in parentheses, e.g. `로그라이트 (Roguelite)`. Terms are in
-`references/glossary.md` if bundled, or `../game-design/references/glossary.md`.
+**Language (required):**
+- Answer in the language of the user's latest message.
+- In a non-English answer, write **every** technical term the first time it appears (headings
+  and table headers included) as the localized term plus the English term in parentheses, e.g.
+  `로그라이트 (Roguelite)`, `코어 루프 (Core Loop)`, `デッキ構築 (Deckbuilder)`, `塔防 (Tower Defense)`. After that, use the localized term alone.
+- Standard terms are in `references/glossary.md` if bundled, or
+  `../game-design/references/glossary.md`.
+- Keep code, file names and CLI flags in English. Script output is English; translate it when
+  summarizing.
 
 ## Workflow
 
@@ -30,6 +36,10 @@ localized with the English term in parentheses, e.g. `로그라이트 (Roguelite
    - *Failure-mode checklist:* the genre's common traps, each marked "at risk / not at risk"
      for this concept, with a reason.
    - *Reference games:* 2–4, each with the one lesson to take (not the one feature to copy).
+   If the user has no concept yet, write the brief for the genre in general, but make it
+   concrete with typical numbers (run length, deck or roster size, offers per reward, session
+   length, difficulty cadence) and one mini-example per failure mode. End with 3 questions
+   that would let you tailor it.
 4. **For hybrids**, follow `references/hybrid-genres.md`: pick a core loop, map how each
    loop feeds the other, find the conflicts (pacing, input, audience), and design the
    "seam".
@@ -83,9 +93,14 @@ Talks and postmortems · Design questions · Sources.**
 - **Scope by genre.** Some genres are content-hungry (RPG, MMO, metroidvania), others are
   systems-hungry (strategy, sim, roguelike). Warn small teams when a genre's appetite
   doesn't fit their size.
-- **State the evidence.** Playbooks note where guidance rests on a designer talk or
-  postmortem and where it's general practice. Racing, battle royale and party games have
-  thinner primary sources (flagged in their files).
+- **Make every line actionable.** Each convention, opportunity and failure mode gets a
+  concrete design move: a number range ("pick 1 of 3", "a new ability every 45–90 min"), a
+  mini-example, or a test the user can run. Label rules of thumb as such.
+- **State the evidence in the user's terms.** Playbooks note where guidance rests on a
+  designer talk or postmortem and where it's general practice. Racing, battle royale and
+  party games have thinner primary sources (flagged in their files). Tell the user in plain
+  words ("this part is a rule of thumb, not a published study") and don't mention internal
+  file notes.
 
 ## Example
 

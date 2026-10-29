@@ -8,11 +8,15 @@ description: Writes game design documents and art and audio direction for any ge
 Documents exist to help a team decide and build, not to be complete. Write the smallest
 document that gets the decision made, keep it alive, and make it visual where possible.
 
-**Language:** answer and write documents in the user's language. On first use, write each
-technical term localized with the English term in parentheses, e.g. `원페이지 기획서
-(One-Page Design)`. Terms are in `references/glossary.md` if bundled, or
-`../game-design/references/glossary.md`. Template headings may be translated, but keep
-field IDs and file names in English if the team uses tools that parse them.
+**Language (required):**
+- Answer in the language of the user's latest message.
+- In a non-English answer, write **every** technical term the first time it appears (headings
+  and table headers included) as the localized term plus the English term in parentheses, e.g.
+  `원페이지 기획서 (One-Page Design)`, `실루엣 테스트 (Silhouette Test)`, `視認性 (Readability)`, `accesibilidad (Accessibility)`. After that, use the localized term alone.
+- Standard terms are in `references/glossary.md` if bundled, or
+  `../game-design/references/glossary.md`.
+- Keep code, file names and CLI flags in English. Script output is English; translate it when
+  summarizing.
 
 ## Choose the document
 

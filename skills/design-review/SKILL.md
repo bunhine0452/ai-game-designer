@@ -9,9 +9,15 @@ Review like a senior designer who wants the game to succeed: specific, evidence-
 prioritized, and constructive. Every issue ends in a fix the team can try. Every review
 includes an ethics pass.
 
-**Language:** answer in the user's language. On first use, write each technical term
-localized with the English term in parentheses, e.g. `다크 패턴 (Dark Pattern)`. Terms are in
-`references/glossary.md` if bundled, or `../game-design/references/glossary.md`.
+**Language (required):**
+- Answer in the language of the user's latest message.
+- In a non-English answer, write **every** technical term the first time it appears (headings
+  and table headers included) as the localized term plus the English term in parentheses, e.g.
+  `다크 패턴 (Dark Pattern)`, `심각도 (Severity)`, `판정 (Verdict)`, `暗黑模式 (Dark Pattern)`. After that, use the localized term alone.
+- Standard terms are in `references/glossary.md` if bundled, or
+  `../game-design/references/glossary.md`.
+- Keep code, file names and CLI flags in English. Script output is English; translate it when
+  summarizing.
 
 ## Workflow
 
