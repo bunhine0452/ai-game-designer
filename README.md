@@ -177,7 +177,9 @@ app, and it pairs well with engine or production plugins. See the competitive sc
 - `claude plugin validate .` passes for both the plugin and the marketplace manifest.
 - Every script runs against the bundled examples (with and without matplotlib).
 - `evals/`: 18 trigger-and-language cases (3 per skill: English, Korean, and Japanese, Chinese or
-  Spanish), run with `claude plugin eval .`.
+  Spanish), run with `claude plugin eval .`. In the v1.0.0 run (Sonnet, 1 run per case), the right
+  skill fired 18/18, the answer was in the user's language 18/18, answers were judged useful 18/18,
+  and terms were localized with the English in parentheses 12/12.
 
 ## Contributing
 

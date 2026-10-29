@@ -171,7 +171,8 @@ Accessibility Guidelines, Xbox Accessibility Guidelines, APX. 모든 내용은 �
 - `claude plugin validate .` 가 플러그인과 마켓플레이스 매니페스트 모두 통과합니다.
 - 모든 스크립트를 동봉된 예제로 실행해 확인했습니다 (matplotlib 유무 모두).
 - `evals/`: 스킬당 3개씩 총 18개의 트리거·언어 테스트 케이스가 있습니다 (영어, 한국어, 그리고 일본어·
-  중국어·스페인어 중 하나). `claude plugin eval .` 로 실행합니다.
+  중국어·스페인어 중 하나). `claude plugin eval .` 로 실행합니다. v1.0.0 실행 결과(Sonnet, 케이스당 1회):
+  올바른 스킬 실행 18/18, 사용자 언어로 답변 18/18, 유용한 답변 18/18, 영어 병기 용어 표기 12/12.
 
 ## 기여
 
