@@ -1,0 +1,19 @@
+id,category,name,description,pillar,priority,count,unit_hours,total_hours,owner,status,notes
+CHR-001,character,Lantern spirit,Player sprite + rig + light-level states,Light is the only resource,must,1,60,60,art,planned,3 brightness states
+ANM-001,animation,Player move set,"idle, drift, dash, strike x3, flare, hit, death, bank",Every room is a readable puzzle-fight,must,11,5,55,art,planned,
+ENM-001,enemy,District 1 enemies,"4 types, each with a 0.4 s readable wind-up",Every room is a readable puzzle-fight,must,4,30,120,art,planned,
+ENM-002,enemy,District 2 enemies,"4 types incl. 2 recolor+behavior variants",Every room is a readable puzzle-fight,should,4,18,72,art,planned,Variants reuse rigs
+BOS-001,enemy,Mid-boss + final keeper,"2 bosses, 3 phases each",Every room is a readable puzzle-fight,must,2,80,160,art+design,planned,
+ENV-001,environment,District tilesets,Drowned market + flooded archive kits,The deep remembers,must,2,70,140,art,planned,
+ENV-002,environment,City above (hub),Relightable district facades,The deep remembers,must,1,90,90,art,planned,8 relight states
+LVL-001,level,Room chunks,Handmade rooms assembled per run,Every room is a readable puzzle-fight,must,30,5,150,design,planned,15 per district
+VFX-001,vfx,Light VFX,"pickups, flare, spend, bank, damage",Light is the only resource,must,12,3,36,art,planned,
+UI-001,ui,HUD + boon offer + hub UI,,Light is the only resource,must,3,25,75,design,planned,
+SFX-001,audio-sfx,Core SFX,"player, enemies, light, UI (round-robin)",Every room is a readable puzzle-fight,must,90,0.6,54,audio,planned,Contractor
+MUS-001,audio-music,Adaptive tracks,"2 districts + hub + 2 bosses, 3 layers",The deep remembers,should,5,24,120,audio,planned,Contractor
+NAR-001,narrative,Hub NPC stories,"6 NPCs x 8 short scenes",The deep remembers,should,48,1.5,72,design,planned,
+COD-001,code-feature,Run generator + boon system,,Every room is a readable puzzle-fight,must,1,120,120,code,planned,
+COD-002,code-feature,Save/profiles/settings,,,must,1,40,40,code,planned,Hidden scope
+COD-003,code-feature,Remapping + accessibility options,"remap, shake/flash toggles, subtitles, assist modes",,must,1,40,40,code,planned,Hidden scope
+COD-004,code-feature,Localization pipeline (EN/KO/JA),,,should,1,30,30,code,planned,Hidden scope
+MKT-001,marketing,Trailer + capsule art + screenshots,,,must,1,60,60,all,planned,Hidden scope

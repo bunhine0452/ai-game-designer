@@ -1,0 +1,13 @@
+id,category,name,description,pillar,priority,count,unit_hours,total_hours,owner,status,notes
+CHR-001,character,Player character,Hero model/sprite + rig,,must,1,40,40,,planned,Includes 3 color variants
+ANM-001,animation,Player move set,"idle, run, jump, dash, attack x3, hit, death",,must,9,4,36,,planned,
+ENM-001,enemy,Basic enemy A,"Model + 6 animations",,must,1,24,24,,planned,
+ENV-001,environment,Biome 1 tileset,Modular kit,,must,1,60,60,,planned,
+PRP-001,prop,Interactables,"doors, chests, switches",,should,6,3,18,,planned,
+VFX-001,vfx,Hit and death effects,,,must,8,2,16,,planned,
+UI-001,ui,HUD,"health, resource, minimap",,must,1,20,20,,planned,
+SFX-001,audio-sfx,Core SFX set,"player, enemies, UI",,must,60,0.5,30,,planned,
+MUS-001,audio-music,Biome 1 music,Adaptive 3-layer track,,should,1,30,30,,planned,
+LVL-001,level,Biome 1 rooms,Handmade room chunks,,must,15,6,90,,planned,
+COD-001,code-feature,Save/load,Profiles + settings,,must,1,30,30,,planned,Hidden scope
+COD-002,code-feature,Input remapping + accessibility options,,,must,1,24,24,,planned,Hidden scope

@@ -1,0 +1,137 @@
+{
+  "title": "Horror chapter (revised after diagnosis)",
+  "unit": "min",
+  "metrics": {
+    "duration": 43.0,
+    "beats": 18,
+    "mean_intensity": 5.81,
+    "peak_count": 4,
+    "climax_time": 41.0,
+    "climax_position": 0.953,
+    "climax_intensity": 9.5,
+    "hook_peak": 6.0,
+    "share_high": 0.057,
+    "share_low": 0.002,
+    "pacing_score": 92
+  },
+  "findings": [
+    {
+      "code": "FLAT_ZONE",
+      "severity": "medium",
+      "message": "4.7-10.2: intensity stays within ±0.5 around 4.5 for 5.5 units (flat: interest stops moving).",
+      "suggestion": "Insert a contrast beat: a twist on the current mechanic, a new threat, a reveal, a reward, or a deliberate rest that sets up the next rise.",
+      "start": 4.73,
+      "end": 10.2125
+    }
+  ],
+  "beats": [
+    {
+      "time": 0.0,
+      "intensity": 3.0,
+      "type": "explore",
+      "label": "Wake up to radio static"
+    },
+    {
+      "time": 1.5,
+      "intensity": 6.0,
+      "type": "scare",
+      "label": "Shape at the end of the hall"
+    },
+    {
+      "time": 4.0,
+      "intensity": 3.5,
+      "type": "explore",
+      "label": "Search reception"
+    },
+    {
+      "time": 6.0,
+      "intensity": 5.0,
+      "type": "puzzle",
+      "label": "Fuse box (stalker sounds nearby)"
+    },
+    {
+      "time": 9.0,
+      "intensity": 4.0,
+      "type": "story",
+      "label": "Nurse's notes reveal"
+    },
+    {
+      "time": 12.0,
+      "intensity": 6.5,
+      "type": "stealth",
+      "label": "Stalker patrol: hide"
+    },
+    {
+      "time": 14.0,
+      "intensity": 8.0,
+      "type": "chase",
+      "label": "Short chase"
+    },
+    {
+      "time": 16.0,
+      "intensity": 3.5,
+      "type": "rest",
+      "label": "Safe room + save"
+    },
+    {
+      "time": 19.0,
+      "intensity": 5.0,
+      "type": "explore",
+      "label": "Basement descent"
+    },
+    {
+      "time": 22.0,
+      "intensity": 6.5,
+      "type": "puzzle",
+      "label": "Archive puzzle under time pressure"
+    },
+    {
+      "time": 25.0,
+      "intensity": 7.5,
+      "type": "scare",
+      "label": "Lights out"
+    },
+    {
+      "time": 27.0,
+      "intensity": 4.0,
+      "type": "rest",
+      "label": "Generator room"
+    },
+    {
+      "time": 30.0,
+      "intensity": 6.0,
+      "type": "stealth",
+      "label": "Morgue stalk"
+    },
+    {
+      "time": 33.0,
+      "intensity": 8.0,
+      "type": "chase",
+      "label": "Chase to the elevator"
+    },
+    {
+      "time": 35.0,
+      "intensity": 4.5,
+      "type": "story",
+      "label": "Elevator reveal"
+    },
+    {
+      "time": 38.0,
+      "intensity": 7.0,
+      "type": "stealth",
+      "label": "Final ward"
+    },
+    {
+      "time": 41.0,
+      "intensity": 9.5,
+      "type": "boss",
+      "label": "Cornered confrontation"
+    },
+    {
+      "time": 43.0,
+      "intensity": 5.0,
+      "type": "story",
+      "label": "Exit door"
+    }
+  ]
+}
