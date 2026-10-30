@@ -58,8 +58,9 @@ python3 scripts/economy_sim.py examples/f2p-economy.json --out ./out
 ```
 The JSON config defines currencies, player archetypes (share, play probability, income
 multiplier, purchases), faucets (mean, sd, growth, probability), sinks (`fixed`, `percent` of
-income, or `buy` with growing cost) and an optional gacha (cost, rates, soft and hard pity).
-The report flags INFLATION, NO_SINK, STARVATION, SLOW_SINK, INEQUALITY (Gini), NO_HARD_PITY,
+income, or `buy` with growing cost) and an optional gacha (cost, rates, soft and hard pity, a
+`featured` rate-up with an optional guarantee after a lost 50/50, and a `spark` exchange).
+The report flags INFLATION, NO_SINK, STARVATION, SLOW_SINK, INEQUALITY (Gini), NO_CEILING,
 RARE_FOR_MOST and DISCLOSURE. It shows the exact pity distribution (mean, p50/p90/p99 pulls,
 consolidated rate) next to the simulation, and the real-money cost per rare item. The format
 is in the script's docstring; start from `examples/f2p-economy.json`.

@@ -25,11 +25,17 @@ Config (JSON):
   "gacha": {"name": "banner", "currency": "gems", "cost": 160,
             "max_pulls_per_session": 10, "reserve": 0,
             "rates": {"SSR": 0.006, "SR": 0.051},
-            "pity": {"item": "SSR", "hard": 90, "soft_start": 74, "soft_step": 0.06}}
+            "pity": {"item": "SSR", "hard": 90, "soft_start": 74, "soft_step": 0.06},
+            "featured": {"share": 0.5, "guarantee_after_loss": true},
+            "spark": 200}
 }
   faucet.growth  per played session (compounding); faucet.prob = chance per session
   sink kinds     fixed (flat drain), percent (share of this session's income in that
                  currency), buy (repeatable purchase whose cost grows per purchase)
+  gacha.featured optional rate-up: share of top-tier hits that are the featured item, and
+                 whether the next hit is guaranteed after a lost 50/50
+  gacha.spark    optional exchange: the featured item is guaranteed at N pulls, counted since
+                 the player last obtained it (caps the worst case)
 
 Outputs: <name>_sessions.csv, <name>_players.csv, <name>_pity.csv (if gacha),
 <name>_report.md, and <name>_economy.png / <name>_pity.png with matplotlib.
@@ -79,8 +85,53 @@ def pity_distribution(base: float, pity: dict | None, limit: int = 2000) -> list
     return rows
 
 
+def featured_distribution(rows, share: float, guarantee: bool, spark: int | None,
+                          limit: int = 4000) -> list[tuple[int, float, float]]:
+    """Exact (k, P(featured item first obtained at pull k), CDF).
+
+    Each top-tier hit is the featured item with probability `share`. With `guarantee`,
+    the hit after a lost 50/50 is always featured. `spark` grants the item at pull N
+    (counted since the last time the item was obtained), which caps the worst case.
+    """
+    hit = [0.0] * (limit + 1)
+    for k, _, mass, _ in rows:
+        if k <= limit:
+            hit[k] = mass
+
+    def convolve(a, b):
+        out = [0.0] * (limit + 1)
+        for i, x in enumerate(a):
+            if x:
+                for j in range(1, limit + 1 - i):
+                    if b[j]:
+                        out[i + j] += x * b[j]
+        return out
+
+    if guarantee:
+        two = convolve(hit, hit)
+        pmf = [share * hit[k] + (1 - share) * two[k] for k in range(limit + 1)]
+    else:  # number of hits needed is geometric: g = share*hit + (1-share)*(hit * g)
+        pmf, term = [0.0] * (limit + 1), hit[:]
+        for _ in range(200):
+            for k in range(limit + 1):
+                pmf[k] += share * term[k]
+            term = [(1 - share) * v for v in convolve(term, hit)]
+            if sum(term) < 1e-9:
+                break
+    if spark:
+        tail = sum(pmf[spark:])
+        pmf = pmf[:spark] + [tail] + [0.0] * (limit - spark)
+    out, cdf = [], 0.0
+    for k in range(1, limit + 1):
+        cdf += pmf[k]
+        out.append((k, pmf[k], cdf))
+        if cdf > 1 - 1e-9:
+            break
+    return out
+
+
 def quantile_from_cdf(rows, q: float) -> int:
-    return next((k for k, _, _, cdf in rows if cdf >= q), rows[-1][0])
+    return next((r[0] for r in rows if r[-1] >= q), rows[-1][0])
 
 
 # ------------------------------------------------------------ simulation ---
@@ -108,6 +159,8 @@ def simulate(cfg: dict) -> dict:
     archetypes = cfg.get("archetypes") or [{"name": "player", "share": 1.0}]
     total_share = sum(a.get("share", 1.0) for a in archetypes)
     gacha = cfg.get("gacha")
+    featured = gacha.get("featured") if gacha else None
+    spark = gacha.get("spark") if gacha else None
 
     players = []
     for i in range(n_players):
@@ -119,7 +172,8 @@ def simulate(cfg: dict) -> dict:
                 break
         players.append({"arch": arch, "bal": {c: float(cfg["currencies"][c].get("start", 0)) for c in currencies},
                         "played": 0, "buys": {}, "pulls": 0, "hits": 0, "since_hit": 0,
-                        "spend": 0.0, "hit_pulls": [], "items": {}})
+                        "spend": 0.0, "hit_pulls": [], "items": {}, "featured": 0, "sparks": 0,
+                        "since_featured": 0, "guaranteed": False})
 
     per_session = []
     for s in range(1, n_sessions + 1):
@@ -184,6 +238,7 @@ def simulate(cfg: dict) -> dict:
                     pulls += 1
                     pl["pulls"] += 1
                     pl["since_hit"] += 1
+                    pl["since_featured"] += 1
                     p = pull_probability(pl["since_hit"], base, pity)
                     roll = rng.random()
                     if roll < p:
@@ -191,6 +246,13 @@ def simulate(cfg: dict) -> dict:
                         pl["hit_pulls"].append(pl["since_hit"])
                         pl["since_hit"] = 0
                         item = hit_item
+                        if featured is not None:
+                            if pl["guaranteed"] or rng.random() < featured.get("share", 0.5):
+                                pl["featured"] += 1
+                                pl["guaranteed"] = False
+                                pl["since_featured"] = 0
+                            else:
+                                pl["guaranteed"] = bool(featured.get("guarantee_after_loss"))
                     else:
                         item, acc = "common", p
                         for name, rate in others:
@@ -199,6 +261,10 @@ def simulate(cfg: dict) -> dict:
                                 item = name
                                 break
                     pl["items"][item] = pl["items"].get(item, 0) + 1
+                    if spark and pl["since_featured"] >= spark:  # exchange: featured item guaranteed
+                        pl["featured"] += 1
+                        pl["sparks"] += 1
+                        pl["since_featured"] = 0
         row = {"session": s, "inflow": inflow, "outflow": outflow, "buys": bought, "stats": {}}
         for c in currencies:
             vals = sorted(pl["bal"][c] for pl in players)
@@ -268,29 +334,54 @@ def analyse(cfg: dict, sim: dict) -> tuple[list[str], list[str], dict | None]:
                      "p99": quantile_from_cdf(rows, 0.99), "max": rows[-1][0] if pity and pity.get("hard") else None,
                      "realised": total_hits / total_pulls if total_pulls else None, "hits": total_hits,
                      "zero_share": sum(pl["hits"] == 0 for pl in sim["players"]) / len(sim["players"])}
+        featured, spark = gacha.get("featured"), gacha.get("spark")
+        target = hit_item
+        if featured or spark:
+            share = featured.get("share", 0.5) if featured else 1.0
+            guarantee = bool(featured and featured.get("guarantee_after_loss"))
+            frows = featured_distribution(rows, share, guarantee, spark)
+            worst = spark or (2 * pity["hard"] if guarantee and pity and pity.get("hard") else None)
+            if worst is None and share >= 1.0 and pity and pity.get("hard"):
+                worst = pity["hard"]
+            target = f"featured {hit_item}"
+            pity_info["featured"] = {
+                "rows": frows, "expected": sum(k * m for k, m, _ in frows), "share": share,
+                "guarantee": guarantee, "spark": spark, "worst": worst,
+                "p50": quantile_from_cdf(frows, 0.5), "p90": quantile_from_cdf(frows, 0.9),
+                "p99": quantile_from_cdf(frows, 0.99),
+                "sim_count": sum(pl["featured"] for pl in sim["players"]),
+                "sim_sparks": sum(pl["sparks"] for pl in sim["players"]),
+                "zero_share": sum(pl["featured"] == 0 for pl in sim["players"]) / len(sim["players"])}
+            pity_info["zero_share"] = pity_info["featured"]["zero_share"]
+            ceiling = worst
+        else:
+            ceiling = pity["hard"] if pity and pity.get("hard") else None
         if pity_info["zero_share"] > 0.5:
             findings.append(f"**[MEDIUM] RARE_FOR_MOST**: {pity_info['zero_share']:.0%} of simulated players never "
-                            f"obtain a {hit_item} in {len(sessions)} sessions. If the {hit_item} is needed to "
-                            "progress, this is a paywall; if it is cosmetic or a side-grade, say so in the UI.")
-        if not pity or not pity.get("hard"):
-            findings.append(f"**[HIGH] NO_HARD_PITY**: {hit_item} has no guaranteed ceiling; the unluckiest 1% need "
-                            f"{pity_info['p99']} pulls. Add a hard pity and disclose it (several jurisdictions "
-                            "require probability disclosure; see references/randomness-and-loot.md).")
+                            f"obtain the {target} in {len(sessions)} sessions. If it is needed to progress, this "
+                            "is a paywall; if it is cosmetic or a side-grade, say so in the UI.")
+        if ceiling is None:
+            p99 = pity_info["featured"]["p99"] if "featured" in pity_info else pity_info["p99"]
+            findings.append(f"**[HIGH] NO_CEILING**: the {target} has no guaranteed ceiling (no hard pity, "
+                            f"guarantee or spark); the unluckiest 1% need {p99} pulls. Add a hard pity, a "
+                            "guarantee after a lost 50/50, or a spark exchange, and disclose it (see "
+                            "references/randomness-and-loot.md).")
         consolidated = 1 / expected
         if consolidated > 1.5 * base:
             findings.append(f"**[INFO] DISCLOSURE**: headline rate {base:.2%} vs consolidated rate "
                             f"{consolidated:.2%} once pity is counted. Disclose both, plus the pity terms.")
         spenders = [pl for pl in sim["players"] if pl["spend"] > 0]
-        if spenders and pity and pity.get("hard"):
+        if spenders and ceiling:
             per_dollar = [pur["amount"] / pur["price"] for a in cfg.get("archetypes", [])
                           for pur in a.get("purchases", []) if pur.get("currency") == gacha["currency"]
                           and pur.get("price")]
             if per_dollar:
-                worst = pity["hard"] * gacha["cost"] / max(per_dollar)
-                avg = expected * gacha["cost"] / max(per_dollar)
+                mean_pulls = pity_info["featured"]["expected"] if "featured" in pity_info else expected
+                worst = ceiling * gacha["cost"] / max(per_dollar)
+                avg = mean_pulls * gacha["cost"] / max(per_dollar)
                 pity_info["money"] = (avg, worst)
-                summary.append(f"\nReal-money cost of one {hit_item} at the best pack rate: "
-                               f"~{avg:,.2f} on average, {worst:,.2f} at hard pity.")
+                summary.append(f"\nReal-money cost of one {target} at the best pack rate: "
+                               f"~{avg:,.2f} on average, {worst:,.2f} at the guaranteed ceiling.")
     return findings, summary, pity_info
 
 
@@ -370,6 +461,11 @@ def plot(cfg, sim, pity_info, out_dir, name) -> list[str]:
             a2.scatter([k], [q], s=64, color=SERIES[0], edgecolors=SURFACE, linewidths=2, zorder=3)
             a2.annotate(f"{label}: {k} pulls", (k, q), xytext=(-8, 6), textcoords="offset points",
                         ha="right", fontsize=8.5, color=INK_2)
+        if "featured" in pity_info:
+            fr = pity_info["featured"]["rows"]
+            a2.plot([k for k, *_ in fr], [c for *_, c in fr], color=SERIES[1], lw=2)
+            a2.text(0.98, 0.04, f"blue: any {pity_info['item']} · orange: featured {pity_info['item']}",
+                    transform=a2.transAxes, ha="right", fontsize=8.5, color=INK_2)
         a2.set_ylim(0, 1.05)
         fig.suptitle(f"{cfg['gacha'].get('name', 'Gacha')}: exact pity distribution "
                      f"(mean {pity_info['expected']:.1f} pulls)", x=0.01, ha="left", color=INK,
@@ -435,9 +531,22 @@ def write_outputs(cfg, sim, findings, summary, pity_info, out_dir, name, charts)
                   "It sits below the consolidated rate when most players stop before reaching soft pity."
                   if pi["realised"] is not None else "- No pulls happened; raise income or sessions.",
                   f"- Players who never obtained one: {pi['zero_share']:.0%}."]
+        if "featured" in pi:
+            fe = pi["featured"]
+            terms = [f"{fe['share']:.0%} featured share" if fe["share"] < 1 else "single target",
+                     "guaranteed after a lost 50/50" if fe["guarantee"] else None,
+                     f"spark at {fe['spark']} pulls" if fe["spark"] else None]
+            lines += ["", f"### Featured {pi['item']} ({', '.join(t for t in terms if t)})", "",
+                      f"- Expected pulls for the featured item **{fe['expected']:.1f}** "
+                      f"(consolidated rate **{1 / fe['expected']:.2%}**).",
+                      f"- Pulls needed: median {fe['p50']}, 90% by {fe['p90']}, 99% by {fe['p99']}"
+                      + (f", guaranteed by {fe['worst']}." if fe["worst"] else " (no guarantee)."),
+                      f"- Simulation: {fe['sim_count']} featured items obtained ({fe['sim_sparks']} via spark); "
+                      f"{fe['zero_share']:.0%} of players never obtained one."]
         if "money" in pi:
-            lines.append(f"- Real money per {pi['item']}: ~{pi['money'][0]:.2f} average, "
-                         f"{pi['money'][1]:.2f} worst case (hard pity).")
+            target = f"featured {pi['item']}" if "featured" in pi else pi["item"]
+            lines.append(f"- Real money per {target}: ~{pi['money'][0]:.2f} average, "
+                         f"{pi['money'][1]:.2f} at the guaranteed ceiling.")
     lines += ["", "_A model, not a forecast: validate archetype assumptions against telemetry._", ""]
     path = os.path.join(out_dir, f"{name}_report.md")
     with open(path, "w", encoding="utf-8") as fh:

@@ -31,12 +31,16 @@ The long tail is what players complain about. Plan for the unlucky 10%, not the 
 | Pseudo-random distribution | Chance grows after each failure, resets on success | Reduces streaks both ways |
 | Deterministic tokens | Each attempt gives tokens; N tokens buy the item | Transparent; turns randomness into progress |
 | Duplicate protection | Remove owned items from the pool or convert them | Reduces frustration with collections |
+| Featured guarantee ("50/50") | A top-tier hit is the featured item with probability q; after a loss, the next hit is guaranteed featured | Doubles the worst case of the tier's hard pity; model with `featured` |
+| Spark / exchange | The featured item can be claimed after N pulls | A hard ceiling on the item itself; model with `spark` |
 
 `economy_sim.py` computes the **exact** distribution of pulls-to-first-hit for any base rate
 plus soft and hard pity: the mean, p50/p90/p99, and the **consolidated rate** (1 / expected
 pulls). With base 0.6%, soft pity from pull 74 (+6% per pull) and hard pity at 90, the mean is
 62.3 pulls (a 1.61% consolidated rate) and the median is 76. Disclose both the base rate and
-the consolidated rate.
+the consolidated rate. With a 50/50 featured share and a guarantee after a loss, the featured item
+takes 93.5 pulls on average (1.5× the tier mean). Adding a spark at 120 lowers that to 84.8 and caps the
+worst case at 120. Both figures are computed exactly by `economy_sim.py` and checked against simulation.
 
 ## Ethics: where randomness meets money
 

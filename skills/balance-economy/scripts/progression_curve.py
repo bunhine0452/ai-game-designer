@@ -241,8 +241,12 @@ def main(argv=None) -> int:
             try:
                 params = solve_shape(fam, a.levels, a, target)
             except ValueError as exc:
-                print(f"error: {exc}", file=sys.stderr)
-                return 2
+                if a.curve != "all":
+                    print(f"error: {exc}", file=sys.stderr)
+                    return 2
+                print(f"warning: skipped {exc}", file=sys.stderr)  # compare the families that can
+                report += [f"## {fam} (skipped)", "", f"- {exc}", ""]
+                continue
         xp = xp_per_level(fam, a.levels, params)
         rows = build_table(xp, a)
         tables[fam] = rows
@@ -256,9 +260,12 @@ def main(argv=None) -> int:
                    f"{rows[-2]['xp_to_next']:,}"]
         report += [f"- {n}" for n in diagnose(fam, rows, a)] + [f"- Table: `{stem}.csv`", ""]
 
-    sample = tables[families[0]]
+    if not tables:
+        print("error: no curve family can reach the target total", file=sys.stderr)
+        return 2
+    sample = tables[next(iter(tables))]
     cols = [c for c in sample[0].keys()]
-    report += [f"## Sample rows ({families[0]})", "", "| " + " | ".join(cols) + " |",
+    report += [f"## Sample rows ({next(iter(tables))})", "", "| " + " | ".join(cols) + " |",
                "|" + "---|" * len(cols)]
     picks = sorted({0, 1, 2, 4, 9, len(sample) // 2, len(sample) - 2, len(sample) - 1})
     report += ["| " + " | ".join(str(sample[i][c]) for c in cols) + " |" for i in picks if i < len(sample)]

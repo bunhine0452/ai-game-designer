@@ -9,7 +9,7 @@
 
 - **[HIGH] INFLATION (gold)**: in the last third, faucets exceed sinks 1.51:1 and the median balance keeps rising (~252/session; about 1.4 sessions of income hoarded). Prices tied to gold lose meaning. Fix: add sinks that scale with progression (consumables, upgrades, trade taxes) or slow late faucets.
 - **[MEDIUM] INEQUALITY (gold)**: Gini 0.62 at the end. Fine for single-player; in shared economies it prices newcomers out. Consider catch-up faucets or progressive sinks.
-- **[MEDIUM] RARE_FOR_MOST**: 87% of simulated players never obtain a SSR in 60 sessions. If the SSR is needed to progress, this is a paywall; if it is cosmetic or a side-grade, say so in the UI.
+- **[MEDIUM] RARE_FOR_MOST**: 87% of simulated players never obtain the SSR in 60 sessions. If it is needed to progress, this is a paywall; if it is cosmetic or a side-grade, say so in the UI.
 - **[INFO] DISCLOSURE**: headline rate 0.60% vs consolidated rate 1.61% once pity is counted. Disclose both, plus the pity terms.
 
 ## Currency flow
@@ -19,7 +19,7 @@
 | gold | 251,299,966 | 184,219,302 | 1.36 | 1.51 | 6,290 | 0.62 |
 | gems | 6,400,712 | 6,840,800 | 0.94 | 1.00 | 80 | 0.33 |
 
-Real-money cost of one SSR at the best pack rate: ~152.46 on average, 220.26 at hard pity.
+Real-money cost of one SSR at the best pack rate: ~152.46 on average, 220.26 at the guaranteed ceiling.
 
 ## Archetypes
 
@@ -35,6 +35,6 @@ Real-money cost of one SSR at the best pack rate: ~152.46 on average, 220.26 at 
 - Pulls needed: median 76, 90% of players by 80, 99% by 83, guaranteed by 90.
 - Realised hit rate in the simulation: 0.65% per pull (276 hits). It sits below the consolidated rate when most players stop before reaching soft pity.
 - Players who never obtained one: 87%.
-- Real money per SSR: ~152.46 average, 220.26 worst case (hard pity).
+- Real money per SSR: ~152.46 average, 220.26 at the guaranteed ceiling.
 
 _A model, not a forecast: validate archetype assumptions against telemetry._
