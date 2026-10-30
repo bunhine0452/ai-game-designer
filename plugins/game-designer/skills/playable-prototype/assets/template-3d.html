@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3D prototype</title>
+<style>
+  html, body { margin:0; height:100%; overflow:hidden; background:#9cc9e8; font:14px/1.4 system-ui,sans-serif; }
+  #hud { position:absolute; left:12px; top:10px; color:#102030; font-weight:700; }
+  #nogl { position:absolute; inset:0; display:none; place-items:center; background:#102030; color:#fff; text-align:center; padding:20px; }
+</style>
+<!-- Pinned three.js build (never an unpinned "latest" URL). This is the prototype's one network dependency. -->
+<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }</script>
+</head>
+<body>
+<div id="hud"></div>
+<div id="nogl">WebGL isn't available here. The logic still runs its self-tests with ?test=1.</div>
+<pre id="selftest" hidden></pre>
+<script type="module">
+import * as THREE from "three";
+
+// ---- Simulation: plain data, fixed timestep, no WebGL. Tests and bots use only this part. ----
+const DATA = { speed: 6, gemRadius: 0.9, arena: 14, gems: [[4, 4], [-6, 2], [2, -7]] };   // source: design doc (placeholder values)
+const fresh = () => ({ x: 0, z: 0, vx: 0, vz: 0, gems: DATA.gems.map(([x, z]) => ({ x, z, got: false })), got: 0, t: 0 });
+let S = fresh();
+const STEP = 1 / 120;
+function step(input) {
+  const ix = (input.right ? 1 : 0) - (input.left ? 1 : 0), iz = (input.down ? 1 : 0) - (input.up ? 1 : 0), len = Math.hypot(ix, iz) || 1;
+  const tx = ix / len * DATA.speed, tz = iz / len * DATA.speed, k = Math.min(1, STEP * 10);
+  S.vx += (tx - S.vx) * k; S.vz += (tz - S.vz) * k;
+  S.x = Math.max(-DATA.arena, Math.min(DATA.arena, S.x + S.vx * STEP)); S.z = Math.max(-DATA.arena, Math.min(DATA.arena, S.z + S.vz * STEP));
+  for (const g of S.gems) if (!g.got && Math.hypot(g.x - S.x, g.z - S.z) < DATA.gemRadius) { g.got = true; S.got++; }
+  S.t += STEP;
+}
+
+// ---- Presentation: meshes mirror the simulation in sync(). ----
+let renderer = null;
+try { renderer = new THREE.WebGLRenderer({ antialias: true }); } catch (e) { document.getElementById("nogl").style.display = "grid"; }
+const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 200);
+scene.background = new THREE.Color(0x9cc9e8); scene.fog = new THREE.Fog(0x9cc9e8, 25, 70);
+scene.add(new THREE.HemisphereLight(0xffffff, 0x557755, 0.9));
+const sun = new THREE.DirectionalLight(0xffffff, 1.2); sun.position.set(8, 14, 6); scene.add(sun);
+const ground = new THREE.Mesh(new THREE.CylinderGeometry(16, 17, 1, 24), new THREE.MeshLambertMaterial({ color: 0x7cc06a, flatShading: true }));
+ground.position.y = -0.5; scene.add(ground);
+const player = new THREE.Mesh(new THREE.IcosahedronGeometry(0.6, 1), new THREE.MeshToonMaterial({ color: 0xf2a541 }));
+scene.add(player);
+const gemMeshes = S.gems.map((g) => { const m = new THREE.Mesh(new THREE.OctahedronGeometry(0.45), new THREE.MeshToonMaterial({ color: 0x41a6f6 })); scene.add(m); return m; });
+function sync() {
+  player.position.set(S.x, 0.6, S.z);
+  S.gems.forEach((g, i) => { gemMeshes[i].visible = !g.got; gemMeshes[i].position.set(g.x, 1 + Math.sin(S.t * 3 + i) * 0.2, g.z); gemMeshes[i].rotation.y = S.t * 2; });
+  const want = new THREE.Vector3(S.x + S.vx * 0.25, 7, S.z + 9 + S.vz * 0.25);      // damped follow with look-ahead
+  camera.position.lerp(want, 0.08); camera.lookAt(S.x, 0.5, S.z);
+  document.getElementById("hud").textContent = "Gems " + S.got + " / " + S.gems.length;
+}
+function fit() { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); if (renderer) renderer.setSize(innerWidth, innerHeight); }
+if (renderer) { renderer.setPixelRatio(Math.min(2, devicePixelRatio)); document.body.appendChild(renderer.domElement); }
+fit(); addEventListener("resize", fit);
+const keys = {};
+addEventListener("keydown", (e) => (keys[e.key] = true)); addEventListener("keyup", (e) => (keys[e.key] = false));
+const input = () => ({ up: keys.w || keys.ArrowUp, down: keys.s || keys.ArrowDown, left: keys.a || keys.ArrowLeft, right: keys.d || keys.ArrowRight });
+
+function selftest() {
+  const out = [], ok = (name, cond, info) => out.push({ name, pass: !!cond, info: info || "" });
+  S = fresh(); for (let i = 0; i < 1200; i++) step({ right: true }); ok("arena edge stops the player", S.x <= DATA.arena + 1e-9, S.x.toFixed(2));
+  // Bot: steer toward the nearest remaining gem with the real step(); must collect all of them.
+  S = fresh(); let n = 0;
+  while (S.got < S.gems.length && n++ < 20000) { const g = S.gems.find((q) => !q.got); step({ right: g.x > S.x + 0.1, left: g.x < S.x - 0.1, down: g.z > S.z + 0.1, up: g.z < S.z - 0.1 }); }
+  ok("bot collects every gem", S.got === S.gems.length, S.got + " gems in " + (n * STEP).toFixed(1) + " s");
+  if (renderer) { sync(); renderer.render(scene, camera); ok("draw calls stay under budget (50)", renderer.info.render.calls <= 50, renderer.info.render.calls + " calls"); }
+  else ok("WebGL unavailable: logic tests only", true, "no renderer");
+  const pass = out.every((o) => o.pass), el = document.getElementById("selftest");
+  el.textContent = JSON.stringify({ game: "3d-template", pass, results: out }, null, 1); el.hidden = false;
+  document.title = "SELFTEST " + (pass ? "PASS" : "FAIL"); S = fresh();
+}
+const params = new URLSearchParams(location.search);
+if (params.has("test")) selftest();
+if (params.has("shot")) { for (let i = 0; i < 240; i++) step({ right: true, up: true }); camera.position.set(S.x, 7, S.z + 9); }
+let acc = 0, last = performance.now();
+(function frame(now) {
+  acc += Math.min(0.1, (now - last) / 1000); last = now;
+  while (acc >= STEP) { step(input()); acc -= STEP; }
+  sync(); if (renderer) renderer.render(scene, camera); requestAnimationFrame(frame);
+})(last);
+</script>
+</body>
+</html>

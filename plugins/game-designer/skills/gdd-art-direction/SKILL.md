@@ -1,6 +1,6 @@
 ---
 name: gdd-art-direction
-description: Writes game design documents and art and audio direction for any genre, from one-page designs and pitch summaries to full living GDDs, feature specs, asset lists with scope estimates, and art or audio style guides with visual pillars, shape language, color scripts, silhouette and readability tests, UI/HUD clarity and accessibility checklists (Game Accessibility Guidelines, Xbox Accessibility Guidelines). Use when the user asks for a GDD, design doc, one-pager, feature spec, asset list, content inventory, scope estimate, art bible, style guide, art direction, audio direction or accessibility review. Also triggers on 기획서, 게임 기획서, 원페이지, 기능 명세서, 에셋 리스트, 아트 디렉션, 스타일 가이드, 접근성; 企画書, 仕様書, ワンページ, アセットリスト, アートディレクション, アクセシビリティ; 策划案, 设计文档, 功能文档, 美术风格, 资源清单, 无障碍; documento de diseño, guía de estilo, accesibilidad.
+description: Writes game design documents and art and audio direction for any genre, from one-page designs and pitch summaries to full living GDDs, feature specs, asset lists with scope estimates, and art or audio style guides with visual pillars, shape language, color scripts, silhouette and readability tests, UI/HUD clarity and accessibility checklists (Game Accessibility Guidelines, Xbox Accessibility Guidelines). Use when the user asks for a GDD, design doc, one-pager, feature spec, asset list, content inventory, scope estimate, art bible, style guide, art direction, audio direction or accessibility review. Covers pixel art and 3D (low poly, toon, PBR) art direction, metrics and cameras. Also triggers on 기획서, 게임 기획서, 원페이지, 기능 명세서, 에셋 리스트, 아트 디렉션, 스타일 가이드, 접근성; 企画書, 仕様書, ワンページ, アセットリスト, アートディレクション, アクセシビリティ; 策划案, 设计文档, 功能文档, 美术风格, 资源清单, 无障碍; documento de diseño, guía de estilo, accesibilidad.
 argument-hint: "[one-pager | gdd | spec | style guide | accessibility] [topic]"
 license: MIT
 compatibility: Any agent that reads SKILL.md folders (Claude Code, Claude apps, Codex, Antigravity, Cursor, Copilot). Scripts need Python 3; matplotlib optional.
@@ -34,6 +34,8 @@ document that gets the decision made, keep it alive, and make it visual where po
 | Specify one feature for building | Feature spec | `references/templates/feature-spec.md` |
 | Plan content and estimate scope | Asset list / content inventory | `references/templates/asset-list.csv` + `references/scope-and-assets.md` |
 | Define the look and sound | Art and audio style guide | `references/templates/style-guide.md` |
+| Pixel art game: canvas, palette, animation rules | Pixel art style block | `references/pixel-art-direction.md` |
+| 3D game: style, budgets, metrics, camera | 3D style, metrics and camera block | `references/3d-art-direction.md` |
 
 Default to the **one-page design** at concept stage, the **living GDD hub plus feature specs**
 in production, and the **style guide** once a visual target exists.
@@ -100,6 +102,8 @@ critical audio cue with a visual one (accessibility).
   information.
 - `references/accessibility.md`: Game Accessibility Guidelines tiers, XAG areas, APX patterns,
   checklist.
+- `references/pixel-art-direction.md`: integer-scaled canvas, palette ramps, clean lines, outlines, animation frames and timing, tiles and bitmap fonts, scope math.
+- `references/3d-art-direction.md`: choosing a finishable 3D style, polygon/texel/draw-call budgets, player metrics, camera rules, landmarks and wayfinding, color scripts.
 - `references/templates/`: one-page design, full GDD, feature spec, asset list (CSV), style guide.
 - `examples/one-page-gdd-example.md`: a complete one-pager for an original concept.
 - `examples/asset-list-example.csv`: an inventory with estimates for the same concept.

@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pixel prototype</title>
+<style>
+  html, body { margin:0; height:100%; background:#0b0b12; overflow:hidden; }
+  canvas#screen { position:absolute; image-rendering:pixelated; image-rendering:crisp-edges; }
+</style>
+</head>
+<body>
+<canvas id="screen" aria-label="Describe what the player sees"></canvas>
+<pre id="selftest" hidden></pre>
+<script>
+"use strict";
+// Pixel pipeline: draw into a 320x180 buffer, then scale it up by the largest integer that fits.
+const VW = 320, VH = 180, TILE = 16;
+const PAL = ["", "#1a1c2c", "#5d275d", "#b13e53", "#ef7d57", "#ffcd75", "#a7f070", "#38b764", "#257179", "#29366f", "#3b5dc9", "#41a6f6", "#73eff7", "#f4f4f4", "#94b0c2", "#566c86"];
+// Sprites are strings of palette indices in hex; '.' is transparent. One palette for everything.
+const SPR = {
+  hero: ["..1111..", ".1dddd1.", "1dd1d1d1", "1dddddd1", ".1bbbb1.", "1bb11bb1", ".1b..b1.", ".11..11."],
+  coin: ["..1111..", ".155551.", "15555551", "15545551", "15545551", "15555551", ".155551.", "..1111.."],
+  wall: ["ffffffff", "f8888888", "f8999998", "f8988898", "f8988898", "f8999998", "f8888888", "88888888"],
+};
+function bake(rows, scale) {
+  const c = document.createElement("canvas"); c.width = rows[0].length * scale; c.height = rows.length * scale;
+  const g = c.getContext("2d");
+  rows.forEach((row, y) => [...row].forEach((ch, x) => { if (ch !== "." && ch !== "0") { g.fillStyle = PAL[parseInt(ch, 16)]; g.fillRect(x * scale, y * scale, scale, scale); } }));
+  return c;
+}
+const IMG = { hero: bake(SPR.hero, 2), coin: bake(SPR.coin, 2), wall: bake(SPR.wall, 2) };
+
+// DATA: the level comes from the design (a source comment belongs here). # wall, o coin, @ start.
+const MAP = [
+  "####################",
+  "#@.....#...........#",
+  "#......#....o......#",
+  "#..o...#...........#",
+  "#......####..#######",
+  "#..................#",
+  "#.....o.......o....#",
+  "#..................#",
+  "#..........#.......#",
+  "#####################".slice(0, 20),
+];
+const solid = (tx, ty) => (MAP[ty] || "")[tx] === "#";
+const fresh = () => { const s = { x: 0, y: 0, coins: [], got: 0, t: 0, flash: 0 };
+  MAP.forEach((row, y) => [...row].forEach((ch, x) => { if (ch === "@") { s.x = x * TILE; s.y = y * TILE; } if (ch === "o") s.coins.push({ x: x * TILE, y: y * TILE }); }));
+  return s; };
+let S = fresh();
+
+// Rules: movement with tile collision; coins collected on overlap.
+function move(dx, dy) {
+  const nx = S.x + dx, ny = S.y + dy, box = (x, y) => [[x + 2, y + 2], [x + 13, y + 2], [x + 2, y + 13], [x + 13, y + 13]];
+  if (!box(nx, S.y).some(([px, py]) => solid(Math.floor(px / TILE), Math.floor(py / TILE)))) S.x = nx;
+  if (!box(S.x, ny).some(([px, py]) => solid(Math.floor(px / TILE), Math.floor(py / TILE)))) S.y = ny;
+  S.coins = S.coins.filter((c) => { const hit = Math.abs(c.x - S.x) < 12 && Math.abs(c.y - S.y) < 12; if (hit) { S.got++; S.flash = 6; } return !hit; });
+}
+
+// Rendering: buffer at VW x VH, integer upscale, positions rounded to whole pixels.
+const buf = document.createElement("canvas"); buf.width = VW; buf.height = VH;
+const b = buf.getContext("2d"), screen = document.getElementById("screen"), sg = screen.getContext("2d");
+function scaleFor(w, h) { return Math.max(1, Math.floor(Math.min(w / VW, h / VH))); }
+function fit() { const k = scaleFor(innerWidth, innerHeight); screen.width = VW * k; screen.height = VH * k;
+  screen.style.left = Math.floor((innerWidth - VW * k) / 2) + "px"; screen.style.top = Math.floor((innerHeight - VH * k) / 2) + "px"; sg.imageSmoothingEnabled = false; }
+function draw() {
+  b.fillStyle = PAL[9]; b.fillRect(0, 0, VW, VH);
+  MAP.forEach((row, y) => [...row].forEach((ch, x) => { if (ch === "#") b.drawImage(IMG.wall, x * TILE, y * TILE); }));
+  const bob = Math.round(Math.sin(S.t * 6));
+  S.coins.forEach((c) => b.drawImage(IMG.coin, Math.round(c.x), Math.round(c.y) + bob));
+  b.drawImage(IMG.hero, Math.round(S.x), Math.round(S.y));
+  if (S.flash > 0) { b.fillStyle = PAL[5]; b.fillRect(0, 0, VW, 2); }
+  b.fillStyle = PAL[13]; b.font = "8px monospace"; b.fillText("COINS " + S.got, 4, VH - 4);
+  sg.drawImage(buf, 0, 0, screen.width, screen.height);
+}
+const keys = {};
+addEventListener("keydown", (e) => (keys[e.key] = true)); addEventListener("keyup", (e) => (keys[e.key] = false));
+addEventListener("resize", fit);
+
+function selftest() {
+  const out = [], ok = (name, cond, info = "") => out.push({ name, pass: !!cond, info });
+  ok("palette stays small (16 colors)", PAL.length - 1 <= 16, PAL.length - 1 + " colors");
+  ok("integer scaling: 1920x1080 gives x6", scaleFor(1920, 1080) === 6);
+  ok("integer scaling never goes below 1", scaleFor(200, 100) === 1);
+  S = fresh(); const x0 = S.x; move(-4, 0); ok("walls block movement", S.x === x0);
+  // Bot: BFS over tiles to the next coin, then walk tile centre to tile centre with the real move().
+  S = fresh(); const total = S.coins.length; let guard = 0;
+  const path = (sx, sy, tx, ty) => { const prev = new Map([[sx + "," + sy, null]]), q = [[sx, sy]];
+    while (q.length) { const [x, y] = q.shift(); if (x === tx && y === ty) break;
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const k = (x + dx) + "," + (y + dy); if (!solid(x + dx, y + dy) && !prev.has(k)) { prev.set(k, [x, y]); q.push([x + dx, y + dy]); } } }
+    const out = []; let c = [tx, ty]; while (c) { out.unshift(c); c = prev.get(c[0] + "," + c[1]); } return out; };
+  while (S.coins.length && guard < 20000) { const c = S.coins[0];
+    for (const [tx, ty] of path(Math.round(S.x / TILE), Math.round(S.y / TILE), Math.round(c.x / TILE), Math.round(c.y / TILE))) {
+      while ((S.x !== tx * TILE || S.y !== ty * TILE) && guard++ < 20000) move(Math.sign(tx * TILE - S.x), Math.sign(ty * TILE - S.y)); } }
+  ok("bot collects every coin", S.got === total, S.got + "/" + total + " in " + guard + " steps");
+  const pass = out.every((o) => o.pass);
+  const el = document.getElementById("selftest"); el.textContent = JSON.stringify({ game: "pixel-template", pass, results: out }, null, 1); el.hidden = false;
+  document.title = "SELFTEST " + (pass ? "PASS" : "FAIL"); S = fresh();
+}
+const params = new URLSearchParams(location.search);
+fit();
+if (params.has("test")) selftest();
+if (params.has("shot")) { move(40, 20); S.t = 0.3; }
+let last = performance.now();
+(function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now; S.t += dt; S.flash = Math.max(0, S.flash - 1);
+  const sp = 70 * dt; move(((keys.ArrowRight || keys.d) ? sp : 0) - ((keys.ArrowLeft || keys.a) ? sp : 0), ((keys.ArrowDown || keys.s) ? sp : 0) - ((keys.ArrowUp || keys.w) ? sp : 0));
+  draw(); requestAnimationFrame(frame);
+})(last);
+</script>
+</body>
+</html>

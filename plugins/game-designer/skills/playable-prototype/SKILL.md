@@ -1,6 +1,6 @@
 ---
 name: playable-prototype
-description: Turns game design documents into playable, testable browser prototypes. Produces a single-file HTML5 game whose numbers come straight from the design (cards, stats, curves, economy), with procedural placeholder art and sound, built-in self-tests (?test=1) including bots that play it start to finish, and automatic screenshots. Use when the user wants to prototype, greybox or make a design playable, build a vertical slice, turn a paper prototype into a digital one, test a core loop, share a playable demo, or build a quick game from a GDD, one-pager, beat list, card list or economy model. Hands production art and engine work to asset or engine tools. Also triggers on 프로토타입, 플레이 가능하게, 그레이박스, 데모 게임 만들기, 빠르게 만들어 보기; プロトタイプ, 遊べる試作, グレーボックス, デモ版; 原型, 可玩原型, 灰盒, 做个试玩版; prototipo jugable, demo jugable.
+description: Turns game design documents into playable, testable browser prototypes. Produces a single-file HTML5 game whose numbers come straight from the design (cards, stats, curves, economy), with procedural placeholder art and sound, built-in self-tests (?test=1) including bots that play it start to finish, and automatic screenshots. Use when the user wants to prototype, greybox or make a design playable, build a vertical slice, turn a paper prototype into a digital one, test a core loop, share a playable demo, or build a quick game from a GDD, one-pager, beat list, card list or economy model. Includes pixel-art and 3D (three.js) templates. Hands production art and engine work to asset or engine tools. Also triggers on 프로토타입, 플레이 가능하게, 그레이박스, 데모 게임 만들기, 빠르게 만들어 보기; プロトタイプ, 遊べる試作, グレーボックス, デモ版; 原型, 可玩原型, 灰盒, 做个试玩版; prototipo jugable, demo jugable.
 argument-hint: "[design document path or one-pager]"
 license: MIT
 compatibility: Any agent that reads SKILL.md folders. Scripts need Python 3; check.py also needs a local Chrome, Chromium or Edge.
@@ -37,7 +37,8 @@ riskiest assumption**, built so the numbers can be trusted and the result can be
    naming the source file and version ("cards: tidecaller-starter-v3.csv"). Never "improve" a
    number silently. If a value is missing, choose one, mark it `// placeholder`, and list it in
    your answer.
-4. **Start from the template.** Copy `assets/template.html`. It already has the contract: a
+4. **Start from the template.** Copy `assets/template.html` (or `template-pixel.html` /
+   `template-3d.html`; see `references/3d-and-pixel-prototypes.md`). It already has the contract: a
    single state object, a seeded RNG, logic separate from UI, change-only DOM updates, and the
    `?test=1` / `?shot=1` hooks. Structure rules: `references/prototype-structure.md`.
 5. **Make the pillars visible.** Every pillar becomes a mechanic or UI element you can point
@@ -103,6 +104,9 @@ riskiest assumption**, built so the numbers can be trusted and the result can be
 - `references/prototype-structure.md`: single-file architecture, state, rendering, input.
 - `references/testing-and-bots.md`: self-test categories, bot design, real pitfalls found.
 - `references/assets-and-feel.md`: procedural art, WebAudio, juice, captions, hand-off.
-- `assets/template.html`: starter file with the full contract.
+- `assets/template.html`: starter file with the full contract. `template-pixel.html` (integer-scaled
+  pixel pipeline, palette sprites, BFS bot) and `template-3d.html` (pinned three.js, fixed-step
+  simulation separate from rendering, draw-call budget test).
+- `references/3d-and-pixel-prototypes.md`: pixel rendering pipeline and feel; three.js setup, physics, camera and headless WebGL tests.
 - `scripts/check.py`: headless self-test runner and screenshotter.
 - `examples/README.md`: six live prototypes built with this workflow, and what each demonstrates.

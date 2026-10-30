@@ -42,7 +42,8 @@ def find_browser():
 
 def run(browser, args, budget_ms, size="1280,720"):
     with tempfile.TemporaryDirectory() as profile:
-        cmd = [browser, "--headless=new", "--disable-gpu", "--hide-scrollbars", "--no-first-run",
+        # SwiftShader flags let WebGL (3D prototypes) render in headless mode without a GPU.
+        cmd = [browser, "--headless=new", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--hide-scrollbars", "--no-first-run",
                "--no-default-browser-check", f"--user-data-dir={profile}", f"--window-size={size}",
                f"--virtual-time-budget={budget_ms}", "--allow-file-access-from-files"] + args
         return subprocess.run(cmd, capture_output=True, text=True, timeout=180)

@@ -144,6 +144,13 @@ members-only, and many are mirrored free on the official GDC YouTube channel.
 | D13 | P | Lawlor, S., Neumann, T. (2016). *Overwatch: The Elusive Goal: Play by Sound*. GDC 2016. https://gdcvault.com/play/1023010/Overwatch-The-Elusive-Goal-Play ; coverage: https://pcgamesn.com/overwatch/overwatch-devs-on-creating-a-game-you-can-play-by-sound-and-announcing-dolby-atmos-support |
 | D14 | P | Riot Games — clarity and silhouettes (see B31). |
 | D15 | P | Cleveland, C. — design pillars in *Subnautica* (see B16); Johanas, J. — core pillars in *Hi-Fi Rush* (see B27). |
+| D16 | P | Azzi, M. (2017; revised 2022). *Pixel Logic: A Guide to Pixel Art*. https://michafrar.gumroad.com/l/pixel-logic |
+| D17 | S | Medeiros, P. (Saint11). Pixel art tutorials (animated GIF series). https://blog.studiominiboss.com/pixelart |
+| D18 | S | Yu, D. *Pixel Art Tutorial* and *Common Mistakes*. https://www.derekyu.com/makegames/pixelart.html |
+| D19 | P | Totten, C. W. (2019). *An Architectural Approach to Level Design* (2nd ed.). CRC Press. ISBN 9780815361367. |
+| D20 | P | Haigh-Hutchinson, M. (2009). *Real-Time Cameras: A Guide for Game Designers and Developers*. Morgan Kaufmann. ISBN 9780123116345. |
+| D21 | P | Nesky, J. (2014). *50 Game Camera Mistakes*. GDC 2014. https://gdcvault.com/play/1020460/50-Camera |
+| D22 | P | Keren, I. (2015). *Scroll Back: The Theory and Practice of Cameras in Side-Scrollers*. GDC 2015. https://gdcvault.com/play/1022243/Scroll-Back-The-Theory-and |
 
 ## E. Competitive scan (existing agent skills / plugins)
 
