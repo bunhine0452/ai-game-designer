@@ -2,84 +2,304 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Tidecaller · tide-spell deckbuilder</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tidecaller</title>
+<meta name="description" content="A roguelike deckbuilder where every card moves the tide. Original prototype designed with ai-game-designer.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  :root { --bg:#06131f; --panel:#0d2233; --ink:#eaf6ff; --ink2:#9cc0d6; --surge:#2ec4b6; --ebb:#6c63ff; --hp:#ff6b6b; --block:#8ecae6; --gold:#ffd166; --line:#18405a; }
+  :root {
+    --night:#030914; --ink:#eef6f8; --ink2:#9fbccb; --ink3:#5f7f92; --line:rgba(159,188,203,.2);
+    --surge:#3fe0cf; --ebb:#8f7dff; --gold:#ffcf6b; --hp:#ff6b6b; --block:#8fd3ff; --moon:#f4ecd8;
+    --serif:"Fraunces",Georgia,serif; --sans:"Outfit",system-ui,-apple-system,"Segoe UI",sans-serif;
+  }
   * { box-sizing:border-box; }
-  body { margin:0; background:linear-gradient(#06131f,#0a2236); color:var(--ink); font:15px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif; min-height:100vh; }
-  header { display:flex; flex-wrap:wrap; gap:6px 16px; align-items:baseline; padding:12px 16px; border-bottom:1px solid var(--line); }
-  header h1 { margin:0; font-size:20px; } .sub { color:var(--ink2); font-size:13px; } a { color:var(--gold); }
-  main { max-width:1180px; margin:0 auto; padding:12px 16px 24px; }
-  .map { display:flex; gap:6px; align-items:center; flex-wrap:wrap; margin-bottom:10px; }
-  .node { padding:5px 10px; border-radius:999px; background:#0f2a3f; border:1px solid var(--line); font-size:13px; color:var(--ink2); }
-  .node.cur { border-color:var(--gold); color:var(--ink); } .node.done { opacity:.5; text-decoration:line-through; }
-  .arena { display:grid; grid-template-columns:240px 1fr; gap:16px; align-items:end; min-height:250px; }
-  @media (max-width:760px){ .arena { grid-template-columns:1fr; } }
-  .unit { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:10px; text-align:center; position:relative; }
-  .enemies { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
-  .enemy { width:190px; cursor:default; } .enemy.targetable { cursor:pointer; outline:2px dashed var(--gold); }
-  .enemy.dead { opacity:.25; }
-  .hpbar { height:10px; background:#2a1620; border-radius:6px; overflow:hidden; margin:6px 0 2px; } .hpbar i { display:block; height:100%; background:var(--hp); }
-  .intent { font-weight:650; color:var(--gold); min-height:20px; } .status { font-size:12px; color:var(--ink2); min-height:16px; }
-  .tide { margin:14px 0 10px; }
-  .gauge { display:grid; grid-template-columns:repeat(11,1fr); gap:3px; }
-  .gauge div { height:26px; border-radius:6px; background:#0f2a3f; border:1px solid var(--line); font-size:11px; color:var(--ink2); display:flex; align-items:center; justify-content:center; }
-  .gauge div.on { background:linear-gradient(180deg,#5ee7df,#2ec4b6); color:#002; border-color:#5ee7df; font-weight:700; }
-  .gauge div.end0 { box-shadow:inset 0 0 0 2px var(--ebb); } .gauge div.end10 { box-shadow:inset 0 0 0 2px var(--surge); }
-  .bar { display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin:8px 0; }
-  .energy { font-size:20px; font-weight:800; color:var(--gold); }
-  .hand { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; min-height:178px; }
-  .card { width:132px; min-height:170px; border-radius:12px; padding:8px; background:#102c42; border:2px solid var(--line); cursor:pointer; display:flex; flex-direction:column; gap:4px; transition:transform .12s; }
-  .card:hover { transform:translateY(-6px); } .card.Surge { border-color:var(--surge); } .card.Ebb { border-color:var(--ebb); } .card.Either { border-color:var(--surge) var(--ebb) var(--ebb) var(--surge); }
-  .card.disabled { opacity:.45; cursor:not-allowed; transform:none; } .card.selected { outline:3px solid var(--gold); }
-  .card .top { display:flex; justify-content:space-between; font-weight:750; } .card .cost { color:var(--gold); }
-  .card .dir { font-size:12px; font-weight:700; } .card.Surge .dir { color:var(--surge); } .card.Ebb .dir { color:var(--ebb); }
-  .card .txt { font-size:12.5px; color:#d6ecff; flex:1; } .card .rar { font-size:11px; color:var(--ink2); }
-  button { font:inherit; cursor:pointer; border-radius:10px; border:1px solid var(--line); background:#123651; color:var(--ink); padding:9px 14px; }
-  button.primary { background:var(--gold); color:#2b1d00; border-color:var(--gold); font-weight:750; }
-  #log { font-size:13px; color:var(--ink2); max-height:90px; overflow:auto; margin:6px 0 0; padding-left:18px; }
-  .overlay { position:fixed; inset:0; background:rgba(2,8,14,.82); display:none; align-items:center; justify-content:center; padding:16px; z-index:5; }
-  .overlay.show { display:flex; } .overlay .box { background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:18px; max-width:760px; width:100%; text-align:center; }
-  .pick { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin:12px 0; }
-  .float { position:absolute; left:50%; top:30%; transform:translateX(-50%); font-weight:800; color:#fff; text-shadow:0 2px 6px #000; animation:up .8s ease-out forwards; pointer-events:none; }
-  @keyframes up { to { top:-10%; opacity:0; } }
-  .crest { animation:flash .5s; } @keyframes flash { 0% { box-shadow:0 0 0 0 rgba(94,231,223,.9); } 100% { box-shadow:0 0 0 30px rgba(94,231,223,0); } }
+  html,body { margin:0; height:100%; overflow:hidden; background:linear-gradient(#030914 0 50%,#030e1a 50% 100%); color:var(--ink); font:15px/1.4 var(--sans); -webkit-user-select:none; user-select:none; }
+  #stage { position:absolute; left:0; top:0; width:1280px; height:720px; transform-origin:0 0; overflow:hidden; background:#071a2b; }
+  #world { position:absolute; inset:0; }
+  canvas.layer { position:absolute; left:0; top:0; width:1280px; height:720px; pointer-events:none; }
+  #back { z-index:0; } #units { position:absolute; inset:0; z-index:2; } #front { z-index:3; }
+  #hud { position:absolute; inset:0; z-index:5; pointer-events:none; transition:opacity .4s; }
+  #hud.hidden { opacity:0; } #hud.hidden * { pointer-events:none !important; }
+  #fx { position:absolute; inset:0; z-index:6; pointer-events:none; }
+
+  /* ---- top bar ---- */
+  .top { position:absolute; left:0; right:0; top:0; height:66px; display:flex; align-items:center; justify-content:space-between; padding:0 22px; background:linear-gradient(rgba(3,9,20,.8),rgba(3,9,20,0)); }
+  .brand { font:800 23px var(--serif); letter-spacing:.01em; pointer-events:auto; }
+  .brand small { font:600 11px var(--sans); color:var(--ink2); letter-spacing:.22em; text-transform:uppercase; margin-left:10px; }
+  #route { display:flex; align-items:center; pointer-events:auto; }
+  #route .n { width:30px; height:30px; border-radius:50%; display:grid; place-items:center; background:rgba(8,28,44,.92); border:1.5px solid rgba(159,188,203,.3); color:var(--ink3); }
+  #route .n svg { width:16px; height:16px; }
+  #route .n.done { border-color:rgba(63,224,207,.55); color:var(--surge); background:rgba(14,59,68,.9); }
+  #route .n.cur { border-color:var(--gold); color:var(--gold); box-shadow:0 0 0 4px rgba(255,207,107,.16); }
+  #route .l { width:22px; height:2px; background:rgba(159,188,203,.22); }
+  #route .lab { margin-left:12px; font:600 13px var(--sans); color:var(--ink); letter-spacing:.04em; }
+  .icons { display:flex; gap:8px; pointer-events:auto; }
+  .ib { position:relative; height:38px; min-width:38px; padding:0 9px; border-radius:11px; border:1px solid var(--line); background:rgba(8,28,44,.85); color:var(--ink); display:flex; gap:6px; align-items:center; justify-content:center; cursor:pointer; font:600 13px var(--sans); }
+  .ib:hover { border-color:rgba(159,188,203,.55); } .ib svg { width:18px; height:18px; } .ib.mute { color:var(--ink3); }
+
+  /* ---- fight HUD ---- */
+  #fightHud > * { pointer-events:auto; }
+  #energy { position:absolute; left:40px; top:522px; width:96px; height:96px; border-radius:50%; display:grid; place-items:center; font:800 36px/1 var(--serif); color:#2a1a02;
+    background:radial-gradient(circle at 36% 30%,#fff6d2,#ffcf6b 38%,#c8851c 76%,#7a4a0c); box-shadow:0 0 0 3px #061019,0 0 30px rgba(255,207,107,.45); transition:filter .3s; }
+  #energy small { font:700 15px var(--sans); opacity:.75; }
+  #energy.empty { filter:grayscale(.75) brightness(.55); box-shadow:0 0 0 3px #061019; }
+  #energy::after { content:"ENERGY"; position:absolute; bottom:-19px; font:700 10px var(--sans); letter-spacing:.24em; color:var(--ink2); }
+  .pile { position:absolute; width:62px; height:86px; cursor:pointer; }
+  .pile .back { position:absolute; inset:0; border-radius:9px; background:linear-gradient(150deg,#14435a,#08192a); border:2px solid #2d7383; box-shadow:3px 3px 0 #0a2433,6px 6px 0 #061520; }
+  .pile .back::after { content:""; position:absolute; inset:9px; border-radius:50%; border:1.5px solid rgba(127,247,234,.35); }
+  .pile .cnt { position:absolute; right:-10px; top:-10px; min-width:28px; height:28px; padding:0 6px; border-radius:14px; background:#061019; border:1.5px solid rgba(159,188,203,.5); display:grid; place-items:center; font:700 13px var(--sans); }
+  #drawPile { left:150px; top:620px; } #discPile { left:1192px; top:640px; }
+  #discPile .back { background:linear-gradient(150deg,#2a2660,#0b0d24); border-color:#5a4fc0; }
+  #endTurn { position:absolute; left:1070px; top:548px; width:184px; height:56px; border-radius:28px; border:2px solid #061019; color:#2a1a02; font:700 19px var(--sans); cursor:pointer;
+    background:linear-gradient(#ffe7a8,#ffcf6b 45%,#d99a2b); box-shadow:0 6px 0 #8a5a12,0 10px 24px rgba(0,0,0,.45); }
+  #endTurn:active { transform:translateY(3px); box-shadow:0 3px 0 #8a5a12; }
+  #endTurn:disabled { filter:grayscale(.85) brightness(.55); cursor:default; transform:none; }
+  #endTurn.ready { animation:ready 1.4s ease-in-out infinite; }
+  #endTurn kbd { font:700 11px var(--sans); opacity:.55; margin-left:6px; border:1px solid rgba(42,26,2,.4); border-radius:4px; padding:0 4px; }
+  @keyframes ready { 50% { box-shadow:0 6px 0 #8a5a12,0 0 36px rgba(255,207,107,.9); } }
+  #turnInfo { position:absolute; left:1070px; top:614px; width:184px; text-align:center; font:600 12px var(--sans); color:var(--ink2); letter-spacing:.14em; text-transform:uppercase; }
+
+  /* ---- cards ---- */
+  #hand { position:absolute; left:0; top:0; width:0; height:0; }
+  .card { position:absolute; left:0; top:0; width:150px; height:210px; border-radius:14px; padding:32px 9px 10px; display:flex; flex-direction:column; align-items:center; color:var(--ink);
+    border:2.5px solid transparent; cursor:pointer; transition:transform .28s cubic-bezier(.2,.8,.2,1),opacity .3s,filter .2s,box-shadow .2s; box-shadow:0 12px 26px rgba(0,0,0,.5); pointer-events:auto; }
+  .card.surge { background:linear-gradient(170deg,#14495b,#0a2534 58%,#071a26) padding-box,linear-gradient(160deg,#9ffcf2,#159e9a) border-box; }
+  .card.ebb { background:linear-gradient(170deg,#2c2866,#151839 58%,#0b0d24) padding-box,linear-gradient(160deg,#d6cfff,#4b3fb8) border-box; }
+  .card.either { background:linear-gradient(170deg,#1d3d5f,#121f3b 58%,#0a1428) padding-box,linear-gradient(135deg,#9ffcf2,#8f7dff) border-box; }
+  .card .cost { position:absolute; left:-9px; top:-9px; width:38px; height:38px; border-radius:50%; display:grid; place-items:center; font:800 20px var(--serif); color:#2a1a02;
+    background:radial-gradient(circle at 36% 30%,#fff6d2,#ffcf6b 45%,#c8851c); border:2.5px solid #061019; }
+  .card .nm { position:absolute; top:9px; left:28px; right:8px; text-align:center; font:700 14.5px/1.1 var(--serif); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .card .art { width:130px; height:76px; border-radius:8px; overflow:hidden; border:1px solid rgba(255,255,255,.16); position:relative; flex:none; background:#061019; }
+  .card .art svg { display:block; width:100%; height:100%; }
+  .card .badge { position:absolute; right:5px; bottom:5px; padding:1px 7px; border-radius:9px; font:800 13px var(--sans); background:rgba(3,10,18,.82); border:1px solid rgba(255,255,255,.22); }
+  .card.surge .badge { color:#7ff7ea; } .card.ebb .badge { color:#c3b8ff; } .card.either .badge { color:#fff; }
+  .card .ty { margin:7px 0 2px; font:700 10px var(--sans); letter-spacing:.2em; text-transform:uppercase; }
+  .card.surge .ty { color:var(--surge); } .card.ebb .ty { color:#b3a8ff; } .card.either .ty { color:#d5e7ec; }
+  .card .tx { flex:1; display:flex; align-items:center; justify-content:center; text-align:center; font:500 13px/1.32 var(--sans); color:#dcebf0; padding:0 1px; }
+  .card .tx b { color:#fff; } .card .tx .kd { color:#ffb4a8; } .card .tx .kb { color:#a8dcff; } .card .tx .kw { color:var(--gold); font-weight:700; }
+  .card .rar { width:8px; height:8px; transform:rotate(45deg); border:1.5px solid #061019; flex:none; }
+  .rar.Basic { background:#6d8594; } .rar.Common { background:#dfe8ec; } .rar.Uncommon { background:#3fe0cf; } .rar.Rare { background:#ffcf6b; box-shadow:0 0 8px #ffcf6b; }
+  .card.off { filter:saturate(.4) brightness(.7); }
+  .card.off .cost { background:radial-gradient(circle at 36% 30%,#ffd6d6,#ff8a8a 45%,#a33a3a); }
+  .card.sel { box-shadow:0 0 0 3px var(--gold),0 0 34px rgba(255,207,107,.6),0 12px 26px rgba(0,0,0,.5); }
+  .card.flying { transition:transform .3s cubic-bezier(.55,0,.7,1),opacity .22s .1s; pointer-events:none; }
+  .card.nope { animation:nope .35s; }
+  @keyframes nope { 25% { margin-left:-8px; } 50% { margin-left:8px; } 75% { margin-left:-4px; } }
+
+  /* ---- units ---- */
+  .unit { position:absolute; width:0; height:0; }
+  .sprite { position:absolute; left:0; transform:translateX(-50%); pointer-events:none; transition:filter .2s; }
+  .sprite .body { width:100%; height:100%; transform-origin:50% 100%; }
+  .sprite svg { display:block; width:100%; height:100%; overflow:visible; }
+  .hitbox { position:absolute; left:0; transform:translateX(-50%); }
+  .unit.targetable .hitbox { cursor:crosshair; }
+  .unit.targetable .sprite { filter:drop-shadow(0 0 7px rgba(255,207,107,.55)); }
+  .unit.aim .sprite { filter:drop-shadow(0 0 16px rgba(255,207,107,1)); }
+  .unit.guard .sprite { filter:drop-shadow(0 0 12px rgba(143,211,255,.85)); }
+  .plate { position:absolute; left:0; top:12px; transform:translateX(-50%); width:160px; text-align:center; pointer-events:none; }
+  .plate .nm { font:700 11.5px var(--sans); letter-spacing:.14em; text-transform:uppercase; color:#cfe3ea; margin-bottom:4px; text-shadow:0 1px 3px #000,0 0 8px #000; white-space:nowrap; }
+  .bar { position:relative; height:17px; border-radius:9px; background:#24101a; border:2px solid #061019; }
+  .bar i { position:absolute; left:0; top:0; bottom:0; border-radius:7px; }
+  .bar .ghost { background:#ffe0d8; animation:ghost .9s ease-in-out infinite; }
+  .bar .fill { background:linear-gradient(#ff9182,#d93f3f); transition:width .4s cubic-bezier(.2,.8,.2,1); }
+  @keyframes ghost { 50% { opacity:.45; } }
+  .bar.shielded { border-color:#8fd3ff; box-shadow:0 0 12px rgba(143,211,255,.6); }
+  .bar .num { position:absolute; inset:0; display:grid; place-items:center; font:800 11.5px var(--sans); color:#fff; text-shadow:0 1px 2px #000; }
+  .bar .shield { position:absolute; left:-20px; top:50%; transform:translateY(-50%); width:30px; height:32px; display:none; place-items:center; font:800 13px var(--sans); color:#04202c;
+    background:linear-gradient(#d9f1ff,#8fd3ff); clip-path:path("M15 0 L30 6 V15 C30 24 23 30 15 32 C7 30 0 24 0 15 V6 Z"); }
+  .bar.shielded .shield { display:grid; }
+  .bar .pv { position:absolute; right:-4px; top:-25px; font:800 16px var(--sans); color:#ffb4a8; text-shadow:0 1px 3px #000; display:none; }
+  .bar .pv.on { display:block; } .bar .pv.lethal { color:var(--gold); } .bar .pv.blk { color:var(--block); left:-4px; right:auto; }
+  .chips { display:flex; gap:4px; justify-content:center; margin-top:5px; flex-wrap:wrap; }
+  .chip { font:700 11px var(--sans); padding:2px 8px; border-radius:9px; background:rgba(3,10,18,.85); border:1px solid rgba(255,255,255,.18); pointer-events:auto; }
+  .chip.drench { color:var(--block); } .chip.ecl { color:#ff8fa8; border-color:rgba(255,90,122,.55); } .chip.stag { color:var(--gold); }
+  .intent { position:absolute; left:0; transform:translateX(-50%); display:flex; gap:5px; pointer-events:auto; animation:ibob 2.6s ease-in-out infinite; }
+  @keyframes ibob { 50% { margin-bottom:4px; } }
+  .it { display:flex; align-items:center; gap:4px; padding:4px 10px 4px 8px; border-radius:999px; background:rgba(3,10,18,.88); border:1.5px solid rgba(255,255,255,.2); font:800 16px var(--sans); white-space:nowrap; box-shadow:0 4px 12px rgba(0,0,0,.4); }
+  .it svg { width:17px; height:17px; }
+  .it.atk { color:#ffa391; border-color:rgba(255,120,100,.6); } .it.blk { color:var(--block); border-color:rgba(143,211,255,.55); }
+  .it.up { color:#7ff7ea; border-color:rgba(63,224,207,.6); } .it.dn { color:#c3b8ff; border-color:rgba(143,125,255,.6); }
+  .it.ecl { color:#ff8fa8; border-color:rgba(255,90,122,.6); } .it.stun { color:var(--gold); }
+
+  /* idle and reaction animations */
+  @keyframes bob { 50% { transform:translateY(-4px); } }
+  @keyframes hover { 50% { transform:translateY(-14px); } }
+  @keyframes breathe { 50% { transform:scale(1.012,1.018); } }
+  @keyframes sway { 50% { transform:rotate(-1.6deg); } }
+  .k-player .body { animation:breathe 3.6s ease-in-out infinite; }
+  .k-crab .body { animation:bob 2.3s ease-in-out infinite; }
+  .k-gull .body { animation:hover 2.1s ease-in-out infinite; }
+  .k-sentinel .body { animation:bob 4.2s ease-in-out infinite; }
+  .k-moon .body { animation:sway 6s ease-in-out infinite; transform-origin:30% 100%; }
+  svg .wl { transform-origin:64px 54px; animation:flap .42s ease-in-out infinite alternate; }
+  svg .wr { transform-origin:90px 54px; animation:flapR .42s ease-in-out infinite alternate; }
+  @keyframes flap { to { transform:rotate(16deg) scaleY(.78); } } @keyframes flapR { to { transform:rotate(-12deg) scaleY(.8); } }
+  svg .glowp { animation:glowp 2.4s ease-in-out infinite; } @keyframes glowp { 50% { opacity:.55; } }
+  svg .claw { transform-origin:138px 50px; animation:snap 2.6s ease-in-out infinite; } @keyframes snap { 0%,72%,100% { transform:none; } 82% { transform:rotate(-14deg); } }
+  svg .jaw { transform-origin:186px 122px; animation:jaw 3.2s ease-in-out infinite; } @keyframes jaw { 50% { transform:rotate(7deg); } }
+  svg .cloak { transform-origin:75px 30px; animation:cloak 4s ease-in-out infinite; } @keyframes cloak { 50% { transform:skewX(-1.5deg); } }
+  svg .halo { opacity:0; transition:opacity .8s; } .unit.eclipsed svg .halo { opacity:1; }
+  .body.hit { animation:hit .42s ease-out; }
+  @keyframes hit { 0% { filter:brightness(2.8) saturate(0); } 25% { transform:translateX(12px); } 55% { transform:translateX(-7px); filter:none; } 100% { transform:none; } }
+  .body.lunge { animation:lunge .5s ease-in-out; } @keyframes lunge { 40% { transform:translateX(-50px) scale(1.06); } 100% { transform:none; } }
+  .body.cast { animation:cast .45s ease-out; } @keyframes cast { 35% { transform:translateX(12px) rotate(2.5deg); } }
+  .body.phit { animation:phit .45s; } @keyframes phit { 0% { filter:brightness(2.5) sepia(1) hue-rotate(-40deg); } 30% { transform:translateX(-14px); } 100% { transform:none; } }
+  .unit.dead .sprite { animation:sink 1.1s ease-in forwards; } @keyframes sink { to { transform:translate(-50%,80px); opacity:0; filter:blur(3px); } }
+  .unit.dead .plate, .unit.dead .intent { opacity:0; transition:opacity .4s; }
+  .unit.enter .sprite { animation:rise .9s cubic-bezier(.2,.8,.2,1) both; } @keyframes rise { from { transform:translate(-50%,100px); opacity:0; } }
+
+  /* ---- floating text, banner, arrow ---- */
+  .float { position:absolute; transform:translate(-50%,-50%); font:800 34px var(--serif); color:#fff; white-space:nowrap; text-shadow:0 3px 0 #061019,0 0 14px rgba(0,0,0,.7); animation:float 1.05s ease-out forwards; }
+  .float.dmg { color:#ffa391; } .float.blk { color:var(--block); font-size:26px; } .float.small { font:800 14px var(--sans); }
+  .float.info { font:800 15px var(--sans); color:var(--gold); letter-spacing:.06em; text-transform:uppercase; }
+  @keyframes float { 0% { opacity:0; transform:translate(-50%,-20%) scale(.55); } 14% { opacity:1; transform:translate(-50%,-62%) scale(1.18); } 24% { transform:translate(-50%,-70%) scale(1); } 100% { opacity:0; transform:translate(-50%,-175%); } }
+  #banner { position:absolute; left:0; right:0; top:178px; text-align:center; opacity:0; }
+  #banner.show { animation:banner var(--dur,1.4s) ease-out forwards; }
+  #banner::before { content:""; position:absolute; left:50%; top:50%; width:820px; height:150px; transform:translate(-50%,-50%); background:radial-gradient(closest-side,rgba(3,10,18,.75),transparent); z-index:-1; }
+  #banner h2 { margin:0; font:800 66px/1 var(--serif); letter-spacing:.03em; background:linear-gradient(#ffffff 30%,#8ff9ee); -webkit-background-clip:text; background-clip:text; color:transparent; filter:drop-shadow(0 4px 14px rgba(0,0,0,.6)); }
+  #banner.ebb h2 { background-image:linear-gradient(#ffffff 30%,#c9c0ff); } #banner.red h2 { background-image:linear-gradient(#ffffff 20%,#ff9aae); }
+  #banner.small h2 { font-size:40px; } #banner p { margin:10px 0 0; font:600 16px var(--sans); letter-spacing:.08em; text-shadow:0 1px 4px #000; }
+  @keyframes banner { 0% { opacity:0; transform:scale(.86); } 12% { opacity:1; transform:scale(1.03); } 20% { transform:scale(1); } 76% { opacity:1; } 100% { opacity:0; } }
+  #arrow { position:absolute; left:0; top:0; width:1280px; height:720px; display:none; }
+  #arrow path { animation:dash .6s linear infinite; } @keyframes dash { to { stroke-dashoffset:-28; } }
+  #choice { position:absolute; z-index:7; display:none; gap:8px; transform:translateX(-50%); }
+  #choice.show { display:flex; }
+  #choice button { font:700 14px var(--sans); padding:10px 15px; border-radius:999px; border:2px solid #061019; cursor:pointer; box-shadow:0 4px 0 rgba(0,0,0,.35); }
+  #choice .cs { background:linear-gradient(#b9fff8,#3fe0cf); color:#03211f; } #choice .ce { background:linear-gradient(#e6e1ff,#8f7dff); color:#140f3a; }
+
+  /* ---- screens and modals ---- */
+  #screen, #modal { position:absolute; inset:0; display:none; align-items:center; justify-content:center; }
+  #screen { z-index:8; background:radial-gradient(ellipse at 50% 45%,rgba(4,14,26,.55),rgba(2,6,12,.9)); }
+  #screen.title { background:linear-gradient(rgba(2,6,12,.05),rgba(2,6,12,.35) 55%,rgba(2,6,12,.75)); }
+  #modal { z-index:9; background:rgba(2,6,12,.84); }
+  #screen.show, #modal.show { display:flex; animation:fade .35s; }
+  @keyframes fade { from { opacity:0; } }
+  .panel { width:min(1000px,92%); text-align:center; position:relative; }
+  .kicker { font:700 12px var(--sans); letter-spacing:.34em; text-transform:uppercase; color:var(--surge); }
+  .panel h2 { font:800 48px/1.05 var(--serif); margin:12px 0 10px; }
+  .muted { color:var(--ink2); margin:0 auto; max-width:620px; }
+  .row { display:flex; gap:14px; justify-content:center; align-items:center; }
+  .btn { display:inline-block; text-decoration:none; font:700 17px var(--sans); padding:14px 30px; border-radius:999px; border:2px solid #061019; cursor:pointer; color:#2a1a02;
+    background:linear-gradient(#ffe7a8,#ffcf6b 45%,#d99a2b); box-shadow:0 5px 0 #8a5a12,0 12px 26px rgba(0,0,0,.4); }
+  .btn:active { transform:translateY(3px); box-shadow:0 2px 0 #8a5a12; }
+  .btn.ghost { background:rgba(8,28,44,.88); color:var(--ink); border-color:rgba(159,188,203,.35); box-shadow:none; }
+  .title-wrap { text-align:center; margin-top:-40px; }
+  .title-wrap .kicker { color:#a7f3ea; }
+  .title-wrap h1 { font:800 124px/0.92 var(--serif); margin:14px 0 0; letter-spacing:-.01em; background:linear-gradient(180deg,#ffffff 25%,#a4fbf1 62%,#3fe0cf); -webkit-background-clip:text; background-clip:text; color:transparent; filter:drop-shadow(0 8px 30px rgba(63,224,207,.28)); }
+  .title-wrap .tag { font:500 21px var(--sans); color:#d8eaef; margin:18px 0 36px; text-shadow:0 2px 8px #000; }
+  .foot { position:absolute; left:0; right:0; bottom:20px; text-align:center; font-size:12.5px; color:var(--ink2); text-shadow:0 1px 4px #000; }
+  .foot a { color:#d8eaef; }
+  .mapsvg { width:900px; height:250px; margin:16px auto 22px; display:block; overflow:visible; }
+  .mn .disc { fill:#0b2436; stroke:rgba(159,188,203,.35); stroke-width:2; } .mn.done .disc { fill:#0e3b44; stroke:#3fe0cf; } .mn.cur .disc { fill:#2a2108; stroke:#ffcf6b; stroke-width:3; }
+  .mn .ico { color:#7d97a6; } .mn.cur .ico { color:#ffcf6b; } .mn.done .ico { color:#3fe0cf; }
+  .mn text { fill:#9fbccb; font:600 14px Outfit,sans-serif; } .mn.cur text { fill:#fff; font-weight:700; }
+  .mn .pulse { fill:none; stroke:#ffcf6b; stroke-width:2; transform-box:fill-box; transform-origin:center; animation:pulse 1.6s infinite; }
+  @keyframes pulse { from { transform:scale(.8); opacity:.9; } to { transform:scale(1.3); opacity:0; } }
+  .picks { display:flex; gap:44px; justify-content:center; margin:34px 0 34px; height:270px; align-items:center; }
+  .pickwrap { width:150px; height:210px; animation:deal .55s var(--d) both; perspective:800px; }
+  .pickwrap .card { position:relative; transform:scale(1.22); }
+  .pickwrap .card:hover { transform:scale(1.3) translateY(-6px); box-shadow:0 0 0 3px var(--gold),0 0 36px rgba(255,207,107,.5); }
+  @keyframes deal { from { opacity:0; transform:translateY(50px) rotateY(85deg); } }
+  .opts { display:flex; gap:24px; justify-content:center; margin:30px 0 10px; }
+  .opt { width:290px; padding:24px 22px; border-radius:20px; background:rgba(8,28,44,.88); border:1.5px solid rgba(159,188,203,.3); color:var(--ink); cursor:pointer; font:inherit; transition:transform .15s,border-color .15s; }
+  .opt:hover { border-color:var(--gold); transform:translateY(-4px); }
+  .opt svg { width:64px; height:64px; } .opt b { display:block; font:700 24px var(--serif); margin:10px 0 4px; } .opt span { color:var(--ink2); font-size:14.5px; }
+  .relpick { display:flex; gap:30px; justify-content:center; margin-top:22px; height:230px; align-items:center; }
+  .relpick .card { position:relative; transform:scale(1.05); } .relpick .card:hover { transform:scale(1.12); box-shadow:0 0 0 3px #ff8fa8; }
+  .stats { display:grid; grid-template-columns:repeat(3,160px); gap:12px; justify-content:center; margin:26px 0 30px; }
+  .stat { padding:14px 10px; border-radius:16px; background:rgba(8,28,44,.85); border:1px solid var(--line); }
+  .stat b { display:block; font:800 32px var(--serif); } .stat span { font:600 11px var(--sans); color:var(--ink2); letter-spacing:.16em; text-transform:uppercase; }
+  .deckgrid { display:flex; flex-wrap:wrap; gap:16px 14px; justify-content:center; max-height:470px; overflow:auto; padding:16px 10px; margin:12px 0 18px; }
+  .deckgrid .card { position:relative; cursor:default; }
+  .howto { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; text-align:left; margin:22px auto 26px; max-width:860px; }
+  .howto div { padding:16px 18px; border-radius:16px; background:rgba(8,28,44,.85); border:1px solid var(--line); font-size:15px; color:#d8eaef; }
+  .howto b { display:block; font:700 19px var(--serif); color:#fff; margin-bottom:4px; }
+  .howto .s { color:var(--surge); } .howto .e { color:#b3a8ff; } .howto .g { color:var(--gold); }
+
+  /* ---- coach, tooltip, rotate hint ---- */
+  #coach { position:absolute; z-index:7; width:310px; padding:15px 17px; border-radius:16px; background:rgba(5,18,30,.96); border:1.5px solid var(--surge); box-shadow:0 12px 32px rgba(0,0,0,.55); font-size:14.5px; line-height:1.45; display:none; }
+  #coach.show { display:block; animation:fade .3s; }
+  #coach::before { content:""; position:absolute; left:-9px; top:34px; width:16px; height:16px; background:rgba(5,18,30,.96); border-left:1.5px solid var(--surge); border-bottom:1.5px solid var(--surge); transform:rotate(45deg); }
+  #coach b { color:#7ff7ea; } #coach .step { font:700 10.5px var(--sans); letter-spacing:.22em; color:var(--ink3); margin-bottom:6px; }
+  #coach button { margin-top:10px; font:700 13px var(--sans); background:none; border:1px solid rgba(159,188,203,.45); color:var(--ink); padding:6px 13px; border-radius:999px; cursor:pointer; }
+  #tip { position:absolute; z-index:10; max-width:270px; padding:10px 13px; border-radius:12px; background:rgba(3,10,18,.97); border:1px solid rgba(159,188,203,.38); font-size:13.5px; line-height:1.45; pointer-events:none; display:none; box-shadow:0 8px 24px rgba(0,0,0,.5); }
+  #tip.show { display:block; } #tip b { color:var(--gold); } #tip .s { color:#7ff7ea; } #tip .e { color:#c3b8ff; }
+  #rotate { position:fixed; left:12px; right:12px; top:12px; z-index:20; padding:12px 14px; border-radius:12px; background:#0b2436; border:1px solid var(--line); font-size:14px; display:none; }
+  #rotate.show { display:block; } #rotate button { float:right; background:none; border:0; color:var(--ink2); font-size:18px; cursor:pointer; }
+  .shot .pickwrap, .shot #screen.show, .shot .unit.enter .sprite { animation:none !important; }
+  .sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); }
 </style>
 </head>
 <body>
-<header>
-  <h1>Tidecaller <span class="sub">every card is a tide spell</span></h1>
-  <span class="sub">Playable prototype of the <a href="../../showcase/02-claude-en-deckbuilder/">showcase design</a> made with <a href="../../">ai-game-designer</a> · the 24 cards use the final v3 numbers from the cost-curve pass</span>
-</header>
-<main>
-  <div class="map" id="map"></div>
-  <div class="arena">
-    <div class="unit" id="player">
-      <svg viewBox="0 0 120 110" width="120" height="110" aria-label="Tidecaller"><defs><linearGradient id="robe" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#2ec4b6"/><stop offset="1" stop-color="#145a7a"/></linearGradient></defs><ellipse cx="60" cy="102" rx="34" ry="6" fill="rgba(0,0,0,.35)"/><path d="M60 18 L88 98 L32 98 Z" fill="url(#robe)"/><circle cx="60" cy="24" r="14" fill="#f2d7b6"/><path d="M44 22 Q60 0 76 22 Q60 14 44 22 Z" fill="#1d3557"/><path d="M84 30 Q100 50 88 70" stroke="#8ecae6" stroke-width="5" fill="none" stroke-linecap="round"/></svg>
-      <div><b>You</b></div>
-      <div class="hpbar"><i id="php"></i></div>
-      <div class="status" id="pstat"></div>
+<!-- Shared gradients and filters (one copy, so every card and sprite can reference them). -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="glow2" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <linearGradient id="cbg-s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0d3346"/><stop offset=".62" stop-color="#0f5161"/><stop offset="1" stop-color="#062231"/></linearGradient>
+    <linearGradient id="cbg-e" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#18143d"/><stop offset=".62" stop-color="#2d2672"/><stop offset="1" stop-color="#0b0b26"/></linearGradient>
+    <linearGradient id="cbg-x" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f4a5a"/><stop offset="1" stop-color="#2a2468"/></linearGradient>
+    <linearGradient id="g-cloak" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2f9aa3"/><stop offset=".45" stop-color="#11404f"/><stop offset="1" stop-color="#071b26"/></linearGradient>
+    <linearGradient id="g-hood" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a8a95"/><stop offset="1" stop-color="#0a2633"/></linearGradient>
+    <radialGradient id="g-orb"><stop offset="0" stop-color="#ffffff"/><stop offset=".45" stop-color="#9ffcf2"/><stop offset="1" stop-color="#2ec4b6"/></radialGradient>
+    <linearGradient id="g-crab" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffa577"/><stop offset=".5" stop-color="#d24a30"/><stop offset="1" stop-color="#6f1f14"/></linearGradient>
+    <linearGradient id="g-claw" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff9b6c"/><stop offset="1" stop-color="#9a2e1c"/></linearGradient>
+    <linearGradient id="g-gull" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#b8c7cf"/></linearGradient>
+    <linearGradient id="g-wing" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6f9fb"/><stop offset="1" stop-color="#8fa3af"/></linearGradient>
+    <linearGradient id="g-stone" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8aa5b4"/><stop offset=".5" stop-color="#4a6474"/><stop offset="1" stop-color="#1f2f3a"/></linearGradient>
+    <linearGradient id="g-eater" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5a48a0"/><stop offset=".45" stop-color="#271c4a"/><stop offset="1" stop-color="#0c0820"/></linearGradient>
+    <radialGradient id="g-maw" cx=".8" cy=".3" r=".9"><stop offset="0" stop-color="#fff4da"/><stop offset=".4" stop-color="#ffa07c"/><stop offset="1" stop-color="#4a0d2a"/></radialGradient>
+    <radialGradient id="g-corona"><stop offset=".72" stop-color="#ff5a7a" stop-opacity="0"/><stop offset=".82" stop-color="#ff7a92" stop-opacity=".9"/><stop offset="1" stop-color="#8f7dff" stop-opacity="0"/></radialGradient>
+  </defs>
+</svg>
+
+<div id="stage">
+  <div id="world">
+    <canvas class="layer" id="back"></canvas>
+    <div id="units"></div>
+    <canvas class="layer" id="front"></canvas>
+  </div>
+  <div id="hud" class="hidden">
+    <div class="top">
+      <div class="brand">Tidecaller<small>Act I</small></div>
+      <div id="route"></div>
+      <div class="icons">
+        <button class="ib" id="btnDeck" data-tip="Your deck"><svg viewBox="0 0 16 16"><rect x="2.5" y="2" width="8" height="11" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M13 4.5V13c0 .9-.7 1.5-1.5 1.5H5.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span id="deckN">10</span></button>
+        <button class="ib" id="btnHelp" data-tip="How to play">?</button>
+        <button class="ib" id="btnSound" data-tip="Sound on/off"></button>
+        <button class="ib" id="btnMotion" data-tip="Reduce motion and screen shake"></button>
+      </div>
     </div>
-    <div class="enemies" id="enemies"></div>
+    <div id="fightHud">
+      <div id="energy" data-tip="<b>Energy</b><br>Cards cost energy. You get 3 each turn."></div>
+      <div class="pile" id="drawPile" data-tip="<b>Draw pile</b><br>Click to see what's left (order hidden)."><div class="back"></div><div class="cnt" id="drawCnt">0</div></div>
+      <div class="pile" id="discPile" data-tip="<b>Discard pile</b><br>Shuffled back in when the draw pile runs out."><div class="back"></div><div class="cnt" id="discCnt">0</div></div>
+      <button id="endTurn">End turn<kbd>E</kbd></button>
+      <div id="turnInfo"></div>
+      <div id="hand"></div>
+    </div>
   </div>
-  <div class="tide">
-    <div class="bar"><span><b>Tide</b> <span class="sub">0 = Slack Water (+8 block, draw 1) · 10 = Crest (8 damage to ALL) · then back to 5</span></span><span id="tideVal"></span></div>
-    <div class="gauge" id="gauge"></div>
+  <div id="fx">
+    <svg id="arrow" viewBox="0 0 1280 720"><path id="arrowPath" fill="none" stroke="#ffcf6b" stroke-width="5" stroke-linecap="round" stroke-dasharray="3 11"/><circle id="arrowHead" r="10" fill="#ffcf6b" stroke="#061019" stroke-width="2.5"/></svg>
+    <div id="banner"><h2></h2><p></p></div>
   </div>
-  <div class="bar">
-    <span class="energy" id="energy"></span>
-    <span class="sub" id="piles"></span>
-    <button class="primary" id="endTurn">End turn</button>
-  </div>
-  <div class="hand" id="hand"></div>
-  <ol id="log" reversed></ol>
-</main>
-<div class="overlay" id="overlay"><div class="box" id="box"></div></div>
+  <div id="choice"><button class="cs" id="chS"></button><button class="ce" id="chE"></button></div>
+  <div id="coach"></div>
+  <div id="screen"></div>
+  <div id="modal"></div>
+  <div id="tip"></div>
+</div>
+<div id="rotate"><button id="rotX" aria-label="Dismiss">×</button>Turn your phone sideways for the best view.</div>
+<div class="sr" aria-live="polite" id="live"></div>
 <pre id="selftest" hidden></pre>
+
 <script>
 "use strict";
-// ---- Cards: showcase/02 cards/tidecaller-starter-v3.csv (FINAL v3) -------------------------
+// =====================================================================================
+// RULES. Numbers come straight from the design (showcase/02-claude-en-deckbuilder).
+// Cards: cards/tidecaller-starter-v3.csv (FINAL v3, after the cost-curve pass).
+// =====================================================================================
 const CSV = `Splash,1,6,0,0,0,1,0,0,Surge,Basic
 Brace,1,0,0,5,0,1,0,0,Ebb,Basic
 Riptide,1,6,0,0,0,1,1,0,Surge,Common
@@ -107,16 +327,9 @@ Drowned Bell,2,0,8,0,0,1,1,1,Ebb,Uncommon`;
 const CARDS = CSV.split("\n").map((l) => { const [name, cost, dmg, aoe, block, draw, tide, drench, exhaust, dir, rarity] = l.split(",");
   return { name, cost: +cost, dmg: +dmg, aoe: +aoe, block: +block, draw: +draw, tide: +tide, drench: +drench, exhaust: +exhaust === 1, dir, rarity }; });
 const byName = Object.fromEntries(CARDS.map((c) => [c.name, c]));
-function cardText(c) {
-  const t = [];
-  if (c.dmg) t.push(`Deal ${c.dmg}.`); if (c.aoe) t.push(`Deal ${c.aoe} to ALL.`); if (c.block) t.push(`Gain ${c.block} block.`);
-  if (c.draw) t.push(`Draw ${c.draw}.`); if (c.drench) t.push(`Drench ${c.drench}.`);
-  t.push(c.dir === "Either" ? `Surge ${c.tide} or Ebb ${c.tide}.` : `${c.dir} ${c.tide}.`); if (c.exhaust) t.push("Exhaust.");
-  return t.join(" ");
-}
 const needsTarget = (c) => c.dmg > 0 || (c.drench > 0 && c.aoe === 0);
 
-// ---- Enemies (original; intents include what they do to the tide) ---------------------------
+// Enemies are original; intents include what they do to the shared tide.
 const ENEMIES = {
   crab:     { name: "Brine Crab", hp: 22, art: "crab", plan: [{ atk: 6 }, { block: 6, tide: +1 }, { atk: 8 }] },
   gull:     { name: "Storm Gull", hp: 12, art: "gull", plan: [{ atk: 3 }, { atk: 4, tide: -1 }] },
@@ -136,28 +349,36 @@ let rng = Math.random;
 function seeded(a) { return () => { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
 const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 
+// Rules never touch the screen. They record events; the presentation plays them back.
+let FX = [], fxOn = true;
+const emit = (e) => { if (fxOn) FX.push(e); };
+
 let G;
 function newRun() {
-  G = { node: 0, hp: 60, maxHp: 60, deck: START_DECK.map((n) => byName[n]), log: [], pending: null }; shownPending = null;
+  G = { node: 0, hp: 60, maxHp: 60, deck: START_DECK.map((n) => byName[n]), log: [], pending: null,
+        stats: { crests: 0, slacks: 0, dmg: 0, turns: 0, cards: 0 } };
   startNode();
 }
 function log(m) { G.log.push(m); if (G.log.length > 60) G.log.shift(); }
 function startNode() {
   const n = ROUTE[G.node];
   if (n.kind === "rest") { G.fight = null; G.pending = "rest"; return; }
-  G.fight = { foes: n.foes.map((k, i) => ({ ...ENEMIES[k], key: k, maxHp: ENEMIES[k].hp, block: 0, drench: 0, step: i, phase: 1, eclipse: false, stagger: false })),
+  G.fight = { foes: n.foes.map((k, i) => ({ ...ENEMIES[k], key: k, maxHp: ENEMIES[k].hp, block: 0, drench: 0, step: i, phase: 1, eclipse: false, stagger: false, intent: null })),
               draw: shuffle(G.deck.slice()), hand: [], discard: [], exhaust: [], energy: 3, block: 0, tide: 5, turn: 0, crestThisTurn: false };
   startTurn();
 }
 function drawCards(n) {
-  const F = G.fight;
+  const F = G.fight, got = [];
   for (let i = 0; i < n; i++) {
-    if (!F.draw.length) { if (!F.discard.length) return; F.draw = shuffle(F.discard); F.discard = []; }
-    F.hand.push(F.draw.pop());
+    if (!F.draw.length) { if (!F.discard.length) break; F.draw = shuffle(F.discard); F.discard = []; emit({ t: "shuffle" }); }
+    const c = F.draw.pop(); F.hand.push(c); got.push(c.name);
   }
+  if (got.length) emit({ t: "draw", cards: got });
 }
 function startTurn() {
-  const F = G.fight; F.turn++; F.energy = 3; F.block = 0; F.crestThisTurn = false; drawCards(5);
+  const F = G.fight; F.turn++; G.stats.turns++; F.energy = 3; F.block = 0; F.crestThisTurn = false;
+  emit({ t: "turn", n: F.turn });
+  drawCards(5);
   for (const e of F.foes) if (e.hp > 0) e.intent = e.stagger ? { stunned: true } : nextIntent(e);
   for (const e of F.foes) e.stagger = false;
 }
@@ -167,35 +388,42 @@ function nextIntent(e) {
 }
 const alive = () => G.fight.foes.filter((e) => e.hp > 0);
 
-function hit(e, amount) {
+function hit(e, amount, src) {
   if (e.hp <= 0) return 0;
-  let dmg = amount + (e.drench > 0 ? 3 : 0); if (e.drench > 0) e.drench--;
+  const drenched = e.drench > 0;
+  let dmg = amount + (drenched ? 3 : 0); if (drenched) e.drench--;
   if (e.eclipse) dmg = Math.floor(dmg / 2);
   const absorbed = Math.min(e.block, dmg); e.block -= absorbed; dmg -= absorbed; e.hp = Math.max(0, e.hp - dmg);
-  floatOn(e, `-${dmg}`);
-  if (e.key === "moon" && e.phase === 1 && e.hp <= e.maxHp / 2 && e.hp > 0) { e.phase = 2; log("The Moon-Eater swallows the moon: Eclipse! Crest on its turn to break it."); }
+  G.stats.dmg += dmg;
+  const i = G.fight.foes.indexOf(e);
+  emit({ t: "hit", i, dmg, absorbed, drenched, eclipse: e.eclipse, hp: e.hp, block: e.block, drench: e.drench, src });
+  if (e.hp <= 0) emit({ t: "kill", i });
+  if (e.key === "moon" && e.phase === 1 && e.hp <= e.maxHp / 2 && e.hp > 0) { e.phase = 2; log("The Moon-Eater swallows the moon: Eclipse! Crest on its turn to break it."); emit({ t: "phase", i }); }
   return dmg;
 }
 function moveTide(delta) {
-  const F = G.fight; F.tide = Math.max(0, Math.min(10, F.tide + delta));
-  if (F.tide >= 10) { crest(); F.tide = 5; }
-  else if (F.tide <= 0) { slack(); F.tide = 5; }
+  const F = G.fight, from = F.tide; F.tide = Math.max(0, Math.min(10, F.tide + delta));
+  emit({ t: "tide", from, to: F.tide });
+  if (F.tide >= 10) { crest(); F.tide = 5; emit({ t: "tide", from: 10, to: 5, reset: true }); }
+  else if (F.tide <= 0) { slack(); F.tide = 5; emit({ t: "tide", from: 0, to: 5, reset: true }); }
 }
 function crest() {
-  const F = G.fight; F.crestThisTurn = true; log("CREST! 8 damage to all enemies.");
-  for (const e of alive()) { if (e.key === "moon" && e.eclipse) { e.eclipse = false; e.stagger = true; log("The Crest breaks the Eclipse. The Moon-Eater staggers."); } hit(e, 8); }
-  pulse = "crest";
+  const F = G.fight; F.crestThisTurn = true; G.stats.crests++; log("CREST! 8 damage to all enemies."); emit({ t: "crest" });
+  for (const e of alive()) {
+    if (e.key === "moon" && e.eclipse) { e.eclipse = false; e.stagger = true; log("The Crest breaks the Eclipse. The Moon-Eater staggers."); emit({ t: "break", i: F.foes.indexOf(e) }); }
+    hit(e, 8, "crest");
+  }
 }
-function slack() { const F = G.fight; F.block += 8; drawCards(1); log("Slack Water: +8 block, draw 1."); pulse = "slack"; }
+function slack() { const F = G.fight; F.block += 8; G.stats.slacks++; emit({ t: "slack", block: F.block }); drawCards(1); log("Slack Water: +8 block, draw 1."); }
 
-function canPlay(c) { return G.fight && c.cost <= G.fight.energy; }
+function canPlay(c) { return !!G.fight && c.cost <= G.fight.energy; }
 function play(idx, target, choice) {
   const F = G.fight, c = F.hand[idx]; if (!c || !canPlay(c)) return false;
-  F.energy -= c.cost; F.hand.splice(idx, 1);
+  F.energy -= c.cost; F.hand.splice(idx, 1); G.stats.cards++;
   if (c.dmg && target) hit(target, c.dmg);
   if (c.aoe) for (const e of alive()) hit(e, c.aoe);
   if (c.drench) for (const e of (c.aoe ? alive() : target ? [target] : [])) e.drench += c.drench;
-  if (c.block) F.block += c.block;
+  if (c.block) { F.block += c.block; emit({ t: "block", n: c.block, total: F.block }); }
   if (c.draw) drawCards(c.draw);
   const dir = c.dir === "Either" ? (choice || "Surge") : c.dir;
   moveTide(dir === "Surge" ? c.tide : -c.tide);
@@ -203,26 +431,30 @@ function play(idx, target, choice) {
   log(`${c.name}${target ? " → " + target.name : ""}`);
   checkEnd(); return true;
 }
-function endTurn() {
-  const F = G.fight; F.discard.push(...F.hand); F.hand = [];
-  for (const e of alive()) {
-    const it = e.intent || {}; e.block = 0;
-    if (it.stunned) { log(`${e.name} is staggered.`); continue; }
-    if (it.eclipse) e.eclipse = true;
-    if (it.block) e.block += it.block;
-    if (it.atk) { const d = Math.max(0, it.atk - F.block); F.block = Math.max(0, F.block - it.atk); G.hp = Math.max(0, G.hp - d); log(`${e.name} hits for ${d}.`); }
-    if (it.tide) moveTide(it.tide);
-    if (it.seize) { F.tide = it.seize; log(`${e.name} seizes the tide: it drops to ${it.seize}.`); }
-    if (it.swing) moveTide(it.swing);
+// The enemy phase is split into steps so the screen can show each enemy act in turn.
+function beginEnemyPhase() { const F = G.fight; F.discard.push(...F.hand); F.hand = []; }
+function enemyAct(e) {
+  const F = G.fight; if (e.hp <= 0) return;
+  const it = e.intent || {}, i = F.foes.indexOf(e); e.block = 0;
+  if (it.stunned) { log(`${e.name} is staggered.`); emit({ t: "stunned", i }); return; }
+  emit({ t: "act", i });
+  if (it.eclipse) { e.eclipse = true; emit({ t: "eclipse", i }); }
+  if (it.block) { e.block += it.block; emit({ t: "eblock", i, n: it.block, block: e.block }); }
+  if (it.atk) {
+    const absorbed = Math.min(F.block, it.atk), d = it.atk - absorbed;
+    F.block -= absorbed; G.hp = Math.max(0, G.hp - d); log(`${e.name} hits for ${d}.`);
+    emit({ t: "phurt", dmg: d, absorbed, hp: G.hp, block: F.block });
   }
-  if (G.hp <= 0) { G.pending = "loss"; return; }
-  if (!checkEnd()) startTurn();
+  if (it.tide) moveTide(it.tide);
+  if (it.seize) { const from = F.tide; F.tide = it.seize; log(`${e.name} seizes the tide: it drops to ${it.seize}.`); emit({ t: "tide", from, to: F.tide, seize: true }); }
+  if (it.swing) moveTide(it.swing);
 }
+function finishEnemyPhase() { if (G.hp <= 0) { G.pending = "loss"; return; } if (!checkEnd()) startTurn(); }
+function endTurn() { beginEnemyPhase(); for (const e of G.fight.foes.slice()) enemyAct(e); finishEnemyPhase(); }
 function checkEnd() {
   if (alive().length) return false;
   const boss = ROUTE[G.node].foes && ROUTE[G.node].foes.includes("moon");
-  G.fight = null;
-  G.pending = boss ? "win" : "reward"; return true;
+  G.fight = null; G.pending = boss ? "win" : "reward"; emit({ t: "cleared" }); return true;
 }
 function rewardChoices() {
   const pool = CARDS.filter((c) => c.rarity !== "Basic"), w = { Common: 6, Uncommon: 3, Rare: 1 }, out = [];
@@ -230,107 +462,840 @@ function rewardChoices() {
     for (const c of pool) { x -= w[c.rarity]; if (x <= 0) { if (!out.includes(c)) out.push(c); break; } } }
   return out;
 }
-function advanceNode() { G.pending = null; G.node++; startNode(); render(); }
+function restHeal() { G.hp = Math.min(G.maxHp, G.hp + 18); }
+function restRemove(name) { const i = G.deck.findIndex((c) => c.name === name); if (i >= 0) G.deck.splice(i, 1); }
+function advanceNode() { G.pending = null; G.node++; startNode(); }
 
-// ---- Rendering ---------------------------------------------------------------------------------
+// Hover preview (pillar "Read the water"): play the card on a copy of the state and report the outcome.
+function preview(idx, target, choice) {
+  const saved = { G, rng, fxOn }, ti = target ? G.fight.foes.indexOf(target) : -1;
+  G = structuredClone(G); rng = () => 0.5; fxOn = false;
+  const F = G.fight, before = F.foes.map((e) => e.hp), b0 = F.block, c0 = G.stats.crests, s0 = G.stats.slacks;
+  try {
+    if (!play(idx, ti >= 0 ? F.foes[ti] : null, choice)) return null;
+    return { foes: F.foes.map((e, i) => ({ dmg: before[i] - e.hp, hp: e.hp, block: e.block })), block: F.block - b0, blockAfter: F.block,
+             tide: F.tide, crest: G.stats.crests > c0, slack: G.stats.slacks > s0 };
+  } finally { G = saved.G; rng = saved.rng; fxOn = saved.fxOn; }
+}
+
+// =====================================================================================
+// PRESENTATION
+// =====================================================================================
 const $ = (id) => document.getElementById(id);
-let selected = -1, pulse = "";
-const ART = {
-  crab: `<path d="M30 70 Q60 30 90 70 Q60 86 30 70 Z" fill="#e76f51"/><circle cx="50" cy="58" r="4" fill="#111"/><circle cx="70" cy="58" r="4" fill="#111"/><path d="M28 66 Q12 50 22 40 Q30 52 36 60 Z M92 66 Q108 50 98 40 Q90 52 84 60 Z" fill="#c4553c"/>`,
-  gull: `<path d="M20 60 Q45 40 60 58 Q75 40 100 60 Q75 52 60 70 Q45 52 20 60 Z" fill="#e9ecef"/><circle cx="60" cy="62" r="7" fill="#dee2e6"/><path d="M60 64 L68 66 L60 68 Z" fill="#ffb703"/>`,
-  sentinel: `<rect x="38" y="24" width="44" height="62" rx="10" fill="#3d5a80"/><rect x="46" y="38" width="28" height="8" rx="3" fill="#98c1d9"/><path d="M30 90 Q60 70 90 90" stroke="#2ec4b6" stroke-width="5" fill="none"/>`,
-  moon: `<circle cx="60" cy="56" r="34" fill="#22223b"/><circle cx="72" cy="48" r="26" fill="#f1faee"/><path d="M40 70 Q60 86 80 70" stroke="#e63946" stroke-width="5" fill="none"/><circle cx="48" cy="52" r="5" fill="#e63946"/>`,
+const setHTML = (el, html) => { if (el._html !== html) { el._html = html; el.innerHTML = html; } };
+const STW = 1280, STH = 720, WATER = (t) => 540 - 14 * t, POLE = 352, PLAYER = { x: 190, y: 398 }, FOE_Y = 464;
+const FOE_X = { 1: [915], 2: [800, 1050], 3: [715, 900, 1090] };
+const SPR = { player: { w: 150, h: 196, lift: 0 }, crab: { w: 170, h: 112, lift: 0 }, gull: { w: 150, h: 104, lift: 128 },
+              sentinel: { w: 176, h: 236, lift: 0 }, moon: { w: 330, h: 310, lift: -26 } };
+const NODE_TEXT = ["Two Brine Crabs guard the shallows. Learn how the water moves.", "Storm Gulls drag the tide down every other turn. Make them work for you.",
+  "A quiet pool. Rest, or release a basic card to keep your deck sharp.", "The Drowned Sentinel hits hard and seizes the tide.",
+  "The Moon-Eater rises. At half health it eclipses itself; only a Crest breaks the eclipse."];
+const rnd = (a, b) => a + Math.random() * (b - a);
+const wait = (ms) => new Promise((r) => setTimeout(r, SET.motion ? ms : ms * 0.45));
+
+const SET = (() => { const d = { sound: true, motion: !matchMedia("(prefers-reduced-motion: reduce)").matches, coach: true };
+  try { return { ...d, ...JSON.parse(localStorage.getItem("tidecaller") || "{}") }; } catch (e) { return d; } })();
+function saveSet() { try { localStorage.setItem("tidecaller", JSON.stringify(SET)); } catch (e) { /* storage is optional */ } }
+
+const UI = { screen: "title", busy: false, sel: -1, choice: null, aim: -1, hover: -1, pv: null, mapAdvance: false,
+  water: 5, waterTarget: 5, tideShown: 5, eat: 0, eatT: 0, ecl: 0, eclT: 0, flash: 0, hurt: 0, shake: 0, crestT0: -1,
+  ripples: [], parts: [], mouse: { x: 640, y: 360 }, coach: -1 };
+let VIEW = null, handEls = [], SHOWN = null;   // SHOWN: the fight on screen (outlives G.fight by one animation)
+
+// ---- icons -----------------------------------------------------------------------------
+const IC = {
+  sword: `<svg viewBox="0 0 16 16"><path fill="currentColor" d="M15 1l-.6 3.6-7.8 7.8-3-3L11.4 1.6z"/><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M2.2 9.8l4 4M3 13l-1.6 1.6"/></svg>`,
+  shield: `<svg viewBox="0 0 16 16"><path fill="currentColor" d="M8 1l6 2.4v4.2c0 3.8-2.5 6.3-6 7.4-3.5-1.1-6-3.6-6-7.4V3.4z"/></svg>`,
+  up: `<svg viewBox="0 0 16 16"><path fill="currentColor" d="M8 1.5l4.5 5H9.6V10H6.4V6.5H3.5z"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M1.5 13.5c1.6-1.4 3.2-1.4 4.8 0s3.2 1.4 4.8 0 2.6-1.2 3.4-.6"/></svg>`,
+  down: `<svg viewBox="0 0 16 16"><path fill="currentColor" d="M8 10.5l4.5-5H9.6V1.5H6.4v4H3.5z"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M1.5 13.5c1.6-1.4 3.2-1.4 4.8 0s3.2 1.4 4.8 0 2.6-1.2 3.4-.6"/></svg>`,
+  anchor: `<svg viewBox="0 0 16 16"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8" cy="3" r="1.6"/><path d="M8 4.6V14.5M5 7.5h6M2.5 10.5c.5 2.6 2.8 4 5.5 4s5-1.4 5.5-4"/></g></svg>`,
+  eclipse: `<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="8" cy="8" r="3.4" fill="currentColor"/></svg>`,
+  star: `<svg viewBox="0 0 16 16"><path fill="currentColor" d="M8 1l1.9 4.3 4.6.5-3.5 3.1 1 4.6L8 11.2 4 13.5l1-4.6L1.5 5.8l4.6-.5z"/></svg>`,
+  sound: `<svg viewBox="0 0 16 16"><path fill="currentColor" d="M2 6h3l4-3v10l-4-3H2z"/><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M11.5 5.5c1.2 1.4 1.2 3.6 0 5M13.3 3.8c2.1 2.4 2.1 6 0 8.4"/></svg>`,
+  mute: `<svg viewBox="0 0 16 16"><path fill="currentColor" d="M2 6h3l4-3v10l-4-3H2z"/><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M11 6l4 4M15 6l-4 4"/></svg>`,
+  wave: `<svg viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M1.5 6c2-2 4-2 6.5 0s4.5 2 6.5 0M1.5 11c2-2 4-2 6.5 0s4.5 2 6.5 0"/></svg>`,
+  still: `<svg viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M1.5 6h13M1.5 11h13"/></svg>`,
 };
-function intentText(it) {
-  if (!it) return ""; if (it.stunned) return "💫 staggered";
-  const p = []; if (it.atk) p.push(`⚔ ${it.atk}`); if (it.block) p.push(`🛡 ${it.block}`);
-  if (it.tide) p.push(`${it.tide > 0 ? "↑" : "↓"}${Math.abs(it.tide)} tide`); if (it.seize) p.push(`tide → ${it.seize}`);
-  if (it.swing) p.push(`${it.swing > 0 ? "↑" : "↓"}${Math.abs(it.swing)} tide`); if (it.eclipse) p.push("🌑 Eclipse");
-  return p.join(" · ");
+const MAPICON = [
+  `<path fill="currentColor" d="M4 17c-1.5-4.5 1-9.5 6-10.5-1.5 1.8-1.8 3.6-.8 5 1.6-2.3 4.6-3.1 7-1.9-.6 3.8-4.6 6.8-9.2 6.4.6 1.2 1.6 2 2.8 2.4C7 19.6 5 18.9 4 17z"/>`,
+  `<path fill="currentColor" d="M1 11c3.5-3 7-3 11 1 4-4 7.5-4 11-1-3.8-.6-7.2.6-11 4.6C8.2 11.6 4.8 10.4 1 11z"/>`,
+  `<g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><ellipse cx="12" cy="15.5" rx="9" ry="4"/><path d="M7 9.5c1.5-1.5 3-1.5 4.5 0s3 1.5 4.5 0M9 5.5c1-1 2-1 3 0s2 1 3 0"/></g>`,
+  `<path fill="currentColor" fill-rule="evenodd" d="M12 2c5 0 8 3.6 8 8.5V18c0 1.2-.8 2-2 2H6c-1.2 0-2-.8-2-2v-7.5C4 5.6 7 2 12 2zM7 11v2h10v-2z"/>`,
+  `<path fill="currentColor" d="M15 3a9 9 0 1 0 6 15.5A8 8 0 0 1 15 3z"/>`,
+];
+
+// ---- card art: one small painted vignette per card ---------------------------------------
+const drop = (x, y, r, f) => `<path d="M${x} ${y - r * 1.7}C${x + r} ${y - r * .3} ${x + r} ${y + r} ${x} ${y + r}C${x - r} ${y + r} ${x - r} ${y - r * .3} ${x} ${y - r * 1.7}Z" fill="${f}"/>`;
+const SEA = (a, y = 62) => `<path d="M0 ${y}Q16 ${y - 4} 33 ${y}T66 ${y}T99 ${y}T132 ${y}V78H0Z" fill="${a}" opacity=".45"/>`;
+const WAVE = (m, a, s = 1, dx = 0, op = 1) => `<g transform="translate(${dx} ${78 - 78 * s}) scale(${s})" opacity="${op}"><path d="M-6 62C12 56 24 34 50 30C76 26 88 44 76 54C68 60 58 52 64 46C56 44 50 52 52 62H140V82H-6Z" fill="${a}"/><path d="M-6 62C12 56 24 34 50 30C76 26 88 44 76 54C68 60 58 52 64 46" fill="none" stroke="${m}" stroke-width="2.4" stroke-linecap="round"/><circle cx="82" cy="40" r="2" fill="${m}"/><circle cx="88" cy="46" r="1.3" fill="${m}"/><circle cx="78" cy="34" r="1.2" fill="${m}"/></g>`;
+const SPIRAL = (m, cx, cy, turns, k, w) => { let d = ""; for (let a = 0; a < turns * Math.PI * 2; a += 0.25) { const r = 2 + a * k; d += `${d ? "L" : "M"}${(cx + Math.cos(a) * r).toFixed(1)} ${(cy + Math.sin(a) * r * 0.55).toFixed(1)}`; } return `<path d="${d}" fill="none" stroke="${m}" stroke-width="${w}" stroke-linecap="round"/>`; };
+const MOTIF = {
+  "Splash": (m, a) => SEA(a) + `<ellipse cx="66" cy="62" rx="28" ry="5" fill="none" stroke="${m}" stroke-width="1.6" opacity=".7"/>` + [[-30, -18, 3], [-16, -30, 3.4], [0, -36, 4], [16, -30, 3.4], [30, -18, 3]].map(([x, y, r]) => drop(66 + x, 58 + y, r, m)).join(""),
+  "Brace": (m, a) => SEA(a, 66) + `<path d="M38 60Q66 2 94 60Z" fill="${a}" stroke="${m}" stroke-width="2"/>` + [-20, -10, 0, 10, 20].map((x) => `<path d="M66 60L${66 + x * 1.3} ${22 + Math.abs(x) * .9}" stroke="${m}" stroke-width="1.6" opacity=".8"/>`).join("") + `<rect x="58" y="58" width="16" height="7" rx="3" fill="${m}"/>`,
+  "Riptide": (m, a) => SEA(a, 66) + [24, 40, 56].map((y, i) => `<path d="M8 ${y}C40 ${y - 12} 74 ${y + 10} ${112 - i * 8} ${y - 6}" fill="none" stroke="${i === 1 ? m : a}" stroke-width="${i === 1 ? 3 : 2}" stroke-linecap="round"/><path d="M${112 - i * 8} ${y - 6}l-9 -4M${112 - i * 8} ${y - 6}l-6 7" stroke="${i === 1 ? m : a}" stroke-width="2.4" stroke-linecap="round"/>`).join(""),
+  "Undertow": (m, a) => `<path d="M0 26Q16 22 33 26T66 26T99 26T132 26" fill="none" stroke="${m}" stroke-width="2"/><rect y="26" width="132" height="52" fill="${a}" opacity=".25"/>` + [30, 66, 102].map((x) => `<path d="M${x} 34C${x - 4} 48 ${x - 16} 56 ${x - 24} 64" fill="none" stroke="${m}" stroke-width="2.4" stroke-linecap="round"/><path d="M${x - 24} 64l2 -9M${x - 24} 64l9 -2" stroke="${m}" stroke-width="2.4" stroke-linecap="round"/>`).join(""),
+  "Brine Lash": (m, a) => SEA(a) + `<path d="M12 64C38 8 82 74 122 16" fill="none" stroke="${a}" stroke-width="7" stroke-linecap="round"/><path d="M12 64C38 8 82 74 122 16" fill="none" stroke="${m}" stroke-width="2.6" stroke-linecap="round"/>` + drop(118, 30, 2.4, m) + drop(108, 22, 2, m),
+  "Kelp Snare": (m, a) => SEA(a, 70) + [18, 40, 92, 114].map((x) => `<path d="M${x} 80C${x - 9} 60 ${x + 9} 42 ${x} 14" fill="none" stroke="${a}" stroke-width="4" stroke-linecap="round"/><ellipse cx="${x + 5}" cy="36" rx="5" ry="2.4" fill="${a}" transform="rotate(-30 ${x + 5} 36)"/>`).join("") + `<path d="M40 40C56 22 82 22 92 40C82 58 56 58 40 40Z" fill="none" stroke="${m}" stroke-width="2.6"/><path d="M60 40h12" stroke="${m}" stroke-width="2.6"/>`,
+  "Mist Veil": (m, a) => `<circle cx="96" cy="22" r="10" fill="${m}" opacity=".35"/>` + [24, 38, 52, 64].map((y, i) => `<path d="M-4 ${y}Q20 ${y - 6} 44 ${y}T92 ${y}T140 ${y}" fill="none" stroke="${m}" stroke-width="${7 - i}" opacity="${.18 + i * .1}" stroke-linecap="round"/>`).join(""),
+  "Ebb and Flow": () => `<path d="M40 52A28 22 0 0 1 84 22" fill="none" stroke="#7ff7ea" stroke-width="4" stroke-linecap="round"/><path d="M84 22l-10 -3M84 22l-3 10" stroke="#7ff7ea" stroke-width="4" stroke-linecap="round"/><path d="M92 30A28 22 0 0 1 48 60" fill="none" stroke="#c3b8ff" stroke-width="4" stroke-linecap="round"/><path d="M48 60l10 3M48 60l3 -10" stroke="#c3b8ff" stroke-width="4" stroke-linecap="round"/>`,
+  "Spindrift": (m, a) => SEA(a) + [16, 28, 40, 50].map((y, i) => `<path d="M${10 + i * 6} ${y}H${84 + i * 8}" stroke="${m}" stroke-width="1.6" stroke-linecap="round" opacity="${.4 + i * .15}"/>`).join("") + [[96, 18], [108, 26], [104, 38], [116, 44], [92, 48]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="2" fill="${m}"/>`).join(""),
+  "Rogue Wave": (m, a) => WAVE(m, a, 1.3, -10),
+  "Spring Tide": (m, a) => `<circle cx="66" cy="22" r="13" fill="#f4ecd8" filter="url(#glow)"/>` + SEA(a, 60) + [44, 66, 88].map((x) => `<path d="M${x} 58V40M${x} 40l-5 6M${x} 40l5 6" stroke="${m}" stroke-width="2.4" stroke-linecap="round" fill="none"/>`).join(""),
+  "Neap Tide": (m, a) => `<path d="M66 10A13 13 0 0 1 66 36Z" fill="#f4ecd8"/><path d="M66 10A13 13 0 0 0 66 36Z" fill="#f4ecd8" opacity=".18"/>` + `<path d="M8 54Q24 50 40 54T72 54T104 54T136 54" fill="none" stroke="${m}" stroke-width="2"/><path d="M8 64Q24 61 40 64T72 64T104 64T136 64" fill="none" stroke="${m}" stroke-width="1.6" opacity=".6"/>`,
+  "Saltspray": (m, a) => SEA(a, 66) + [[14, 70, 60, 20], [24, 72, 80, 26], [34, 74, 100, 34]].map(([x1, y1, x2, y2]) => `<path d="M${x1} ${y1}L${x2} ${y2}" stroke="${m}" stroke-width="1.4" stroke-dasharray="2 5" stroke-linecap="round"/>`).join("") + [[64, 20], [84, 24], [104, 32], [72, 30], [94, 16]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.8" fill="${m}"/>`).join(""),
+  "Breakwater": (m, a) => SEA(a) + `<g stroke="#061019" stroke-width="1.4"><rect x="76" y="30" width="22" height="16" rx="2" fill="#5a7486"/><rect x="100" y="30" width="26" height="16" rx="2" fill="#4a6474"/><rect x="70" y="46" width="28" height="18" rx="2" fill="#4a6474"/><rect x="100" y="46" width="28" height="18" rx="2" fill="#3a5262"/></g>` + `<path d="M10 62C30 58 44 40 60 38C68 37 72 44 70 50" fill="none" stroke="${m}" stroke-width="2.4" stroke-linecap="round"/>` + drop(70, 30, 2.4, m) + drop(62, 24, 2, m),
+  "Swell": (m, a) => `<path d="M-4 70C30 70 40 24 66 24C92 24 102 70 136 70V78H-4Z" fill="${a}" opacity=".85"/><path d="M-4 70C30 70 40 24 66 24C92 24 102 70 136 70" fill="none" stroke="${m}" stroke-width="2.4"/><path d="M42 50C52 40 58 34 66 33" fill="none" stroke="${m}" stroke-width="1.4" opacity=".6"/>`,
+  "Whirlpool": (m, a) => `<ellipse cx="66" cy="42" rx="56" ry="28" fill="${a}" opacity=".35"/>` + SPIRAL(m, 66, 42, 3, 3.3, 2.2),
+  "Moonpull": (m, a) => `<circle cx="66" cy="16" r="10" fill="#f4ecd8" filter="url(#glow)"/>` + SEA(a, 64) + [-36, -18, 0, 18, 36].map((x) => `<path d="M${66 + x} 62C${66 + x} 46 ${66 + x * .4} 36 66 28" fill="none" stroke="${m}" stroke-width="1.6" opacity=".75"/>`).join(""),
+  "Crest Breaker": (m, a) => WAVE(m, a, 1.05, -6) + `<path d="M70 4C90 20 90 56 70 74C80 54 80 24 70 4Z" fill="#f4ecd8" stroke="#061019" stroke-width="1.4"/>`,
+  "Deep Current": (m, a) => `<rect width="132" height="78" fill="#030713" opacity=".35"/>` + [18, 34, 50].map((y, i) => `<path d="M6 ${y}C40 ${y + 2} 70 ${y + 14} 120 ${y + 22}" fill="none" stroke="${m}" stroke-width="2.4" opacity="${.5 + i * .2}" stroke-linecap="round"/><path d="M120 ${y + 22}l-9 0M120 ${y + 22}l-5 -7" stroke="${m}" stroke-width="2.4" stroke-linecap="round" opacity="${.5 + i * .2}"/>`).join("") + `<circle cx="30" cy="62" r="2.4" fill="none" stroke="${m}"/><circle cx="38" cy="54" r="1.6" fill="none" stroke="${m}"/>`,
+  "Still Water": (m, a) => `<circle cx="66" cy="20" r="10" fill="#f4ecd8"/><path d="M0 44H132" stroke="${m}" stroke-width="1.6"/><rect y="44" width="132" height="34" fill="${a}" opacity=".35"/>` + [50, 56, 62, 68].map((y, i) => `<rect x="${58 + i}" y="${y}" width="${16 - i * 2}" height="2" rx="1" fill="#f4ecd8" opacity="${.7 - i * .14}"/>`).join(""),
+  "Tidal Wave": (m, a) => WAVE(m, a, 1.08, 26, .55) + WAVE(m, a, 1.45, -24),
+  "Maelstrom": (m, a) => `<ellipse cx="66" cy="44" rx="60" ry="30" fill="${a}" opacity=".45"/>` + SPIRAL(m, 66, 44, 3.4, 3.4, 3) + `<path d="M98 6L88 26H96L84 46L104 22H95Z" fill="#ffcf6b" stroke="#061019" stroke-width="1.2"/>`,
+  "Abyssal Call": (m, a) => `<rect width="132" height="78" fill="#03020b" opacity=".55"/><circle cx="66" cy="48" r="30" fill="#05040f"/><ellipse cx="66" cy="48" rx="13" ry="5" fill="${a}" filter="url(#glow2)"/><ellipse cx="66" cy="48" rx="2" ry="4.6" fill="#05040f"/>` + [[40, 26, 2.4], [92, 20, 1.8], [100, 36, 2.6], [32, 14, 1.6]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="${m}" stroke-width="1.2"/>`).join(""),
+  "Drowned Bell": (m, a) => SEA(a, 68) + `<path d="M48 54C48 30 55 16 66 16C77 16 84 30 84 54L89 60H43Z" fill="${a}" stroke="${m}" stroke-width="2"/><circle cx="66" cy="62" r="4" fill="${m}"/><path d="M60 12h12" stroke="${m}" stroke-width="3" stroke-linecap="round"/>` + [1, 2].map((k) => `<path d="M${36 - k * 9} ${26 - k * 4}Q${30 - k * 10} ${40} ${36 - k * 9} ${54 + k * 4}M${96 + k * 9} ${26 - k * 4}Q${102 + k * 10} 40 ${96 + k * 9} ${54 + k * 4}" fill="none" stroke="${m}" stroke-width="1.6" opacity="${.8 - k * .25}"/>`).join(""),
+};
+function cardArt(c) {
+  const d = c.dir === "Ebb" ? "e" : c.dir === "Either" ? "x" : "s", m = d === "e" ? "#e2dcff" : "#d2fff8", a = d === "e" ? "#8f7dff" : "#2ec4b6";
+  const stars = [[12, 10], [30, 6], [116, 8], [124, 20]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r=".9" fill="#fff" opacity=".7"/>`).join("");
+  return `<svg viewBox="0 0 132 78" preserveAspectRatio="xMidYMid slice"><rect width="132" height="78" fill="url(#cbg-${d})"/>${stars}${(MOTIF[c.name] || (() => ""))(m, a)}</svg>`;
 }
-function floatOn(e, txt) { e._float = txt; }
-function render() {
-  $("map").innerHTML = ROUTE.map((n, i) => `<span class="node ${i === G.node ? "cur" : i < G.node ? "done" : ""}">${n.label}</span>`).join("→");
-  $("php").style.width = `${G.hp / G.maxHp * 100}%`;
-  const F = G.fight;
-  $("pstat").textContent = `HP ${G.hp}/${G.maxHp}${F ? ` · 🛡 ${F.block}` : ""} · deck ${G.deck.length}`;
-  if (!F) { $("enemies").innerHTML = ""; $("hand").innerHTML = ""; $("gauge").innerHTML = ""; $("energy").textContent = ""; $("piles").textContent = ""; $("tideVal").textContent = ""; }
-  else {
-    $("enemies").innerHTML = F.foes.map((e, i) => `<div class="unit enemy ${e.hp <= 0 ? "dead" : ""} ${selected >= 0 && e.hp > 0 ? "targetable" : ""}" data-i="${i}">
-      <div class="intent">${e.hp > 0 ? intentText(e.intent) : "defeated"}</div>
-      <svg viewBox="0 0 120 100" width="120" height="100">${ART[e.art]}</svg><div><b>${e.name}</b>${e.boss ? ` <span class="sub">phase ${e.phase}</span>` : ""}</div>
-      <div class="hpbar"><i style="width:${e.hp / e.maxHp * 100}%"></i></div>
-      <div class="status">HP ${e.hp}/${e.maxHp}${e.block ? ` · 🛡 ${e.block}` : ""}${e.drench ? ` · 💧 drench ${e.drench}` : ""}${e.eclipse ? " · 🌑 Eclipse (½ damage)" : ""}</div>
-      ${e._float ? `<div class="float">${e._float}</div>` : ""}</div>`).join("");
-    F.foes.forEach((e) => (e._float = ""));
-    $("gauge").innerHTML = Array.from({ length: 11 }, (_, i) => `<div class="${i <= F.tide && F.tide > 0 && i > 0 ? "on" : ""} ${i === 0 ? "end0" : i === 10 ? "end10" : ""}">${i === 0 ? "Slack" : i === 10 ? "Crest" : i}</div>`).join("");
-    $("tideVal").innerHTML = `<b>${F.tide}</b> / 10`;
-    if (pulse) { $("gauge").classList.remove("crest"); void $("gauge").offsetWidth; $("gauge").classList.add("crest"); pulse = ""; }
-    $("energy").textContent = `⚡ ${F.energy} / 3`;
-    $("piles").textContent = `Draw ${F.draw.length} · Discard ${F.discard.length} · Exhausted ${F.exhaust.length} · Turn ${F.turn}`;
-    $("hand").innerHTML = F.hand.map((c, i) => `<div class="card ${c.dir} ${canPlay(c) ? "" : "disabled"} ${i === selected ? "selected" : ""}" data-i="${i}" tabindex="0" role="button" aria-label="${c.name}: ${cardText(c)}">
-      <div class="top"><span>${c.name}</span><span class="cost">${c.cost}</span></div>
-      <div class="dir">${c.dir === "Surge" ? "▲ Surge" : c.dir === "Ebb" ? "▼ Ebb" : "▲▼ Either"}</div>
-      <div class="txt">${cardText(c)}</div><div class="rar">${c.rarity}</div></div>`).join("");
+function cardRules(c) {
+  const t = [];
+  if (c.dmg) t.push(`Deal <b class="kd">${c.dmg}</b> damage.`);
+  if (c.aoe) t.push(`Deal <b class="kd">${c.aoe}</b> to <b>ALL</b> enemies.`);
+  if (c.block) t.push(`Gain <b class="kb">${c.block}</b> block.`);
+  if (c.draw) t.push(`Draw <b>${c.draw}</b>.`);
+  if (c.drench) t.push(`<span class="kw">Drench</span> ${c.drench}.`);
+  if (c.exhaust) t.push(`<span class="kw">Exhaust</span>.`);
+  return t.join(" ");
+}
+function cardTip(c) {
+  const t = [c.dir === "Either" ? `<b>Surge or Ebb ${c.tide}</b>: you choose which way the water moves.` : c.dir === "Surge" ? `<b class="s">Surge ${c.tide}</b>: raises the tide by ${c.tide}.` : `<b class="e">Ebb ${c.tide}</b>: lowers the tide by ${c.tide}.`];
+  if (c.drench) t.push("<b>Drench</b>: that enemy's next hit taken deals +3.");
+  if (c.exhaust) t.push("<b>Exhaust</b>: removed until the fight ends.");
+  return t.join("<br>");
+}
+function cardHTML(c, attrs = "") {
+  const k = c.dir === "Ebb" ? "ebb" : c.dir === "Either" ? "either" : "surge";
+  const badge = c.dir === "Surge" ? `▲ ${c.tide}` : c.dir === "Ebb" ? `▼ ${c.tide}` : `▲▼ ${c.tide}`;
+  const ty = c.dir === "Either" ? "Surge or Ebb" : c.dir;
+  return `<div class="card ${k}" data-name="${c.name}" data-tip="${cardTip(c).replace(/"/g, "&quot;")}" ${attrs} role="button" aria-label="${c.name}, cost ${c.cost}. ${cardRules(c).replace(/<[^>]+>/g, "")} ${ty} ${c.tide}.">
+    <div class="cost">${c.cost}</div><div class="nm">${c.name}</div>
+    <div class="art">${cardArt(c)}<div class="badge">${badge}</div></div>
+    <div class="ty">${ty}</div><div class="tx"><span>${cardRules(c)}</span></div><div class="rar ${c.rarity}"></div></div>`;
+}
+function makeCard(c) { const d = document.createElement("div"); d.innerHTML = cardHTML(c); return d.firstElementChild; }
+
+// ---- sprites ------------------------------------------------------------------------------
+const OL = `stroke="#061019" stroke-width="2.5" stroke-linejoin="round"`;
+const limb = (d, col, w = 5.5) => `<path d="${d}" fill="none" stroke="#061019" stroke-width="${w + 3.2}" stroke-linecap="round" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
+const mirror = (d) => d.replace(/(-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?)/g, (s, x, y) => `${170 - x} ${y}`);
+const ART = {
+  player: () => `<svg viewBox="0 0 150 196">
+    <ellipse cx="74" cy="192" rx="46" ry="6" fill="#000" opacity=".35"/>
+    <g class="cloak"><path d="M75 22C98 22 106 44 104 64C112 90 122 130 134 186C118 180 108 190 96 184C86 192 74 184 64 190C52 184 40 192 30 184C22 188 14 184 10 186C24 130 38 90 46 64C44 44 52 22 75 22Z" fill="url(#g-cloak)" ${OL}/>
+      <path d="M76 72C71 112 67 150 64 186" stroke="#041820" stroke-width="3" opacity=".6" fill="none"/>
+      <path d="M104 66C112 92 122 132 132 182" stroke="#9ffcf2" stroke-width="1.6" opacity=".55" fill="none"/>
+      <path d="M14 182q7-7 14 0t14 0 14 0 14 0 14 0 14 0 14 0 14 0" fill="none" stroke="#bff6ef" stroke-width="1.6" opacity=".5"/></g>
+    <path class="glowp" d="M50 100q6-6 12 0t12 0 12 0 12 0" fill="none" stroke="#7ff7ea" stroke-width="2.4" stroke-linecap="round" filter="url(#glow)"/>
+    <g><rect x="119" y="28" width="7" height="166" rx="3.5" fill="#6b4a2f" ${OL}/>
+      <path d="M110 36C104 18 118 4 136 9C124 12 117 21 121 34Z" fill="#d8c18a" ${OL}/>
+      <circle class="glowp" cx="124" cy="22" r="10" fill="url(#g-orb)" filter="url(#glow2)"/></g>
+    <path d="M75 12C101 12 109 37 105 62C96 71 54 71 45 62C41 37 49 12 75 12Z" fill="url(#g-hood)" ${OL}/>
+    <path d="M100 30C104 40 105 50 104 60" stroke="#9ffcf2" stroke-width="1.6" opacity=".5" fill="none"/>
+    <ellipse cx="75" cy="47" rx="17" ry="18" fill="#030a10"/>
+    <g filter="url(#glow)"><ellipse cx="68" cy="50" rx="3.4" ry="2.1" fill="#b6fff6"/><ellipse cx="82" cy="50" rx="3.4" ry="2.1" fill="#b6fff6"/></g>
+    <ellipse cx="121" cy="100" rx="8" ry="7" fill="#11404f" ${OL}/></svg>`,
+  crab: () => `<svg viewBox="0 0 170 112">
+    <ellipse cx="85" cy="108" rx="62" ry="6" fill="#000" opacity=".35"/>
+    ${["M58 80L36 90L28 110", "M66 86L50 98L46 112", "M52 72L28 78L16 98"].map((d) => limb(d, "#a83522") + limb(mirror(d), "#a83522")).join("")}
+    ${limb("M46 64L28 52", "#b83c26", 7)}${limb("M124 62L140 50", "#b83c26", 7)}
+    <path d="M32 54C12 58 6 40 16 30C20 40 26 42 32 40C28 34 30 26 36 24C42 34 40 48 32 54Z" fill="url(#g-claw)" ${OL}/>
+    <g class="claw"><path d="M134 52C130 26 158 10 170 26C160 27 155 33 161 41C169 53 151 66 134 52Z" fill="url(#g-claw)" ${OL}/><path d="M146 30C152 24 160 22 166 26" stroke="#ffc6a6" stroke-width="2" opacity=".7" fill="none"/></g>
+    <path d="M24 72C26 42 54 28 85 28C116 28 144 42 146 72C130 92 110 96 85 96C60 96 40 92 24 72Z" fill="url(#g-crab)" ${OL}/>
+    <path d="M50 44C66 34 104 34 120 44" stroke="#ffc9ab" stroke-width="3" opacity=".65" fill="none" stroke-linecap="round"/>
+    <circle cx="62" cy="58" r="4.5" fill="#ffb58f" opacity=".45"/><circle cx="86" cy="52" r="5.5" fill="#ffb58f" opacity=".4"/><circle cx="110" cy="60" r="4" fill="#ffb58f" opacity=".45"/>
+    <circle cx="102" cy="40" r="3.4" fill="#eee6d2" stroke="#061019" stroke-width="1.5"/><circle cx="108" cy="44" r="2.4" fill="#eee6d2" stroke="#061019" stroke-width="1.5"/>
+    ${limb("M74 34L68 14", "#c24a30", 4)}${limb("M96 34L102 14", "#c24a30", 4)}
+    <circle cx="68" cy="12" r="7.5" fill="#fff" ${OL}/><circle cx="69.5" cy="13" r="3.4" fill="#061019"/><circle cx="102" cy="12" r="7.5" fill="#fff" ${OL}/><circle cx="100.5" cy="13" r="3.4" fill="#061019"/>
+    <path d="M59 3L75 8M111 3L95 8" stroke="#061019" stroke-width="3.4" stroke-linecap="round"/>
+    <path d="M74 80Q85 74 96 80" stroke="#3a0e08" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+    <circle cx="100" cy="72" r="2.4" fill="none" stroke="#bff6ef" stroke-width="1.4"/><circle cx="105" cy="65" r="1.6" fill="none" stroke="#bff6ef" stroke-width="1.2"/></svg>`,
+  gull: () => `<svg viewBox="0 0 150 104">
+    <g class="wr"><path d="M88 52C106 30 128 22 148 24C138 30 132 34 130 38C140 38 146 42 150 46C130 44 112 52 94 62Z" fill="#9fb0bb" ${OL}/><path d="M148 24C138 30 132 34 130 38C140 38 146 42 150 46C144 40 144 30 148 24Z" fill="#2b3440"/></g>
+    <path d="M50 62L24 72L33 60L22 53Z" fill="#c9d5dc" ${OL}/>
+    <ellipse cx="74" cy="62" rx="29" ry="15.5" fill="url(#g-gull)" ${OL}/>
+    <g class="wl"><path d="M68 52C48 32 24 24 4 28C14 32 20 36 24 40C14 40 8 44 4 48C22 46 40 54 60 62Z" fill="url(#g-wing)" ${OL}/><path d="M4 28C14 32 20 36 24 40C14 40 8 44 4 48C10 42 10 34 4 28Z" fill="#2b3440"/>
+      <path d="M40 38L47 38L42 46L49 46L38 58L41 49L35 49Z" fill="#ffcf6b" stroke="#061019" stroke-width="1.1"/></g>
+    <circle cx="100" cy="50" r="13.5" fill="url(#g-gull)" ${OL}/>
+    <path d="M110 47L131 52L110 57Z" fill="#ffbf3c" ${OL}/><circle cx="123" cy="54" r="1.7" fill="#e63946"/>
+    <circle cx="103" cy="47" r="2.8" fill="#061019"/><path d="M95 40L108 44" stroke="#061019" stroke-width="2.8" stroke-linecap="round"/>
+    <path d="M68 76l-3 8M80 76l2 8" stroke="#ffbf3c" stroke-width="2.6" stroke-linecap="round"/></svg>`,
+  sentinel: () => `<svg viewBox="0 0 176 236">
+    <ellipse cx="88" cy="232" rx="66" ry="6" fill="#000" opacity=".35"/>
+    <rect x="58" y="176" width="25" height="56" rx="7" fill="url(#g-stone)" ${OL}/><rect x="94" y="176" width="25" height="56" rx="7" fill="url(#g-stone)" ${OL}/>
+    <path d="M48 160H128L137 194H39Z" fill="#33495a" ${OL}/>
+    <rect x="150" y="16" width="7" height="214" rx="3.5" fill="#9b7a4a" ${OL}/>
+    <path d="M140 34V10M153.5 30V2M167 34V10M140 34Q153.5 44 167 34" fill="none" stroke="#061019" stroke-width="7" stroke-linecap="round"/><path d="M140 34V10M153.5 30V2M167 34V10M140 34Q153.5 44 167 34" fill="none" stroke="#c9a46a" stroke-width="3.6" stroke-linecap="round"/>
+    <path d="M42 84C42 70 60 62 88 62C116 62 134 70 134 84L126 164H50Z" fill="url(#g-stone)" ${OL}/>
+    <path d="M64 92H112L106 142H70Z" fill="#5f7a8a" opacity=".55"/>
+    <path class="glowp" d="M88 100V132M77 112H99" stroke="#7ff7ea" stroke-width="3.4" stroke-linecap="round" filter="url(#glow)"/>
+    <rect x="21" y="92" width="19" height="62" rx="9" fill="#46606f" ${OL}/><rect x="136" y="92" width="19" height="52" rx="9" fill="#46606f" ${OL}/>
+    <ellipse cx="153" cy="132" rx="10" ry="9" fill="#3a5262" ${OL}/>
+    <ellipse cx="40" cy="84" rx="23" ry="16" fill="url(#g-stone)" ${OL}/><ellipse cx="136" cy="84" rx="23" ry="16" fill="url(#g-stone)" ${OL}/>
+    <path d="M60 58C58 26 72 12 88 12C104 12 118 26 116 58C108 66 68 66 60 58Z" fill="url(#g-stone)" ${OL}/>
+    <path d="M84 14L89 -2L95 14Z" fill="#3f7a5a" ${OL}/>
+    <rect x="67" y="35" width="42" height="8" rx="4" fill="#031015"/><rect class="glowp" x="71" y="37" width="34" height="4" rx="2" fill="#8ffcf1" filter="url(#glow)"/>
+    <path d="M44 74C52 70 56 80 64 76C70 74 74 82 82 78" stroke="#3f7a5a" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M28 96C22 120 34 136 26 160" stroke="#2f6b4a" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M142 96C150 116 138 132 146 152" stroke="#2f6b4a" stroke-width="5" fill="none" stroke-linecap="round"/>
+    ${[[110, 120, 3.4], [117, 128, 2.6], [56, 150, 3.2], [100, 74, 2.6], [70, 24, 2.4]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#ddd6c4" stroke="#061019" stroke-width="1.4"/>`).join("")}</svg>`,
+  moon: () => `<svg viewBox="0 0 330 310">
+    <g class="halo"><circle cx="232" cy="80" r="82" fill="url(#g-corona)"/><circle cx="232" cy="80" r="62" fill="#07040f" opacity=".7"/></g>
+    <path d="M60 330C40 250 70 206 120 194C170 182 190 152 184 116L226 106C238 164 216 218 162 234C120 246 106 276 120 330Z" fill="url(#g-eater)" ${OL}/>
+    <path d="M120 330C106 276 120 246 162 234C216 218 238 164 226 106" fill="none" stroke="#6d5bb8" stroke-width="9" opacity=".5"/>
+    ${[[70, 262], [86, 222], [116, 200], [150, 190], [174, 166], [182, 136]].map(([x, y]) => `<path d="M${x} ${y}l-14 -10l16 -2Z" fill="#3d2d6b" ${OL}/>`).join("")}
+    ${[[96, 250], [112, 222], [142, 210], [168, 196], [190, 168], [150, 228], [128, 256], [200, 140]].map(([x, y], i) => `<circle class="glowp" style="animation-delay:${i * .3}s" cx="${x}" cy="${y}" r="3.2" fill="#a9f8ff" filter="url(#glow)"/>`).join("")}
+    <path d="M184 114C166 94 168 68 180 52C186 72 194 86 206 94Z" fill="#3d2d6b" ${OL}/>
+    <path d="M178 120C172 86 198 58 238 52C264 48 292 38 308 24C302 50 284 70 254 82C234 90 216 102 208 122Z" fill="url(#g-eater)" ${OL}/>
+    <path d="M208 116C230 104 264 92 302 70C292 92 264 108 228 120Z" fill="url(#g-maw)"/>
+    ${[0, 1, 2, 3, 4, 5].map((k) => `<path d="M${214 + k * 13} ${101 - k * 4.6}l5 9l5 -9Z" fill="#f4ecd8" stroke="#061019" stroke-width="1"/>`).join("")}
+    <g class="jaw"><path d="M182 124C198 118 228 114 264 102C288 94 302 84 308 78C300 104 270 126 232 136C208 142 188 138 182 124Z" fill="#2a1d4e" ${OL}/>
+      ${[0, 1, 2, 3, 4].map((k) => `<path d="M${222 + k * 13} ${116 - k * 4.4}l5 -8l5 8Z" fill="#f4ecd8" stroke="#061019" stroke-width="1"/>`).join("")}</g>
+    <ellipse class="glowp" cx="230" cy="72" rx="9" ry="5.5" fill="#ff4d6d" filter="url(#glow)"/><ellipse cx="230" cy="72" rx="1.8" ry="4.6" fill="#1a0510"/>
+    <path d="M212 63C224 55 238 57 248 63" stroke="#120c24" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M198 122C188 142 194 158 180 170M206 128C204 150 214 162 206 178" stroke="#a9f8ff" stroke-width="2" fill="none" opacity=".7"/></svg>`,
+};
+
+// ---- units ----------------------------------------------------------------------------------
+const foePos = (i) => { const n = SHOWN ? SHOWN.foes.length : 1; return { x: FOE_X[n][i], y: FOE_Y }; };
+function foeCenter(i) { const e = SHOWN ? SHOWN.foes[i] : null, s = SPR[e ? e.art : "crab"], p = foePos(i); return { x: p.x, y: p.y - s.lift - s.h * 0.5 }; }
+const unitEl = (k) => document.querySelector(`.unit[data-u="${k}"]`);
+function unitHTML(kind, key, x, y, enter) {
+  const s = SPR[kind];
+  return `<div class="unit k-${kind} ${key === "p" ? "p" : "foe"}${enter ? " enter" : ""}" data-u="${key}" style="left:${x}px;top:${y}px">
+    <div class="hitbox" style="bottom:${Math.max(0, s.lift)}px;width:${Math.min(s.w, 200)}px;height:${s.h}px"></div>
+    <div class="sprite" style="bottom:${s.lift}px;width:${s.w}px;height:${s.h}px"><div class="body">${ART[kind]()}</div></div>
+    ${key === "p" ? "" : `<div class="intent" style="bottom:${s.lift + s.h + 10}px"></div>`}
+    <div class="plate" style="top:${12 - Math.max(0, s.lift)}px"><div class="nm"></div><div class="bar"><i class="ghost"></i><i class="fill"></i><span class="num"></span><span class="shield"></span><span class="pv"></span></div><div class="chips"></div></div></div>`;
+}
+function buildUnits(enter) {
+  SHOWN = G.fight; let h = unitHTML("player", "p", PLAYER.x, PLAYER.y, false);
+  if (G.fight) G.fight.foes.forEach((e, i) => { const p = foePos(i); h += unitHTML(e.art, i, p.x, p.y, enter); });
+  $("units").innerHTML = h;
+  if (enter) setTimeout(() => document.querySelectorAll(".unit.enter").forEach((u) => u.classList.remove("enter")), 1000);
+}
+function syncView() {
+  const F = G.fight; if (!F && SHOWN && VIEW) return;   // fight just ended: keep the last frame
+  VIEW = { hp: G.hp, block: F ? F.block : 0, foes: F ? F.foes.map((e) => ({ hp: e.hp, block: e.block, drench: e.drench, eclipse: e.eclipse, stagger: e.stagger, intent: e.intent, phase: e.phase })) : [] };
+  UI.tideShown = F ? F.tide : 5;
+}
+function updatePlate(u, o) {
+  const plate = u.querySelector(".plate"), bar = plate.querySelector(".bar");
+  plate.querySelector(".nm").textContent = o.name;
+  const cur = Math.max(0, o.hp) / o.max * 100, after = o.pvHp == null ? cur : Math.max(0, o.pvHp) / o.max * 100;
+  bar.querySelector(".fill").style.width = `${after}%`;
+  const gh = bar.querySelector(".ghost"); gh.style.width = `${cur}%`; gh.style.display = after < cur ? "" : "none";
+  bar.querySelector(".num").textContent = `${o.hp} / ${o.max}`;
+  bar.classList.toggle("shielded", o.block > 0); bar.querySelector(".shield").textContent = o.block || "";
+  const pv = bar.querySelector(".pv");
+  pv.className = "pv" + (o.pvText ? " on" : "") + (o.pvClass ? " " + o.pvClass : ""); pv.textContent = o.pvText || "";
+  setHTML(plate.querySelector(".chips"), o.chips || "");
+}
+const pill = (k, icon, txt, tip) => `<span class="it ${k}" data-tip="${tip}">${icon}${txt === "" ? "" : `<span>${txt}</span>`}</span>`;
+function intentHTML(it) {
+  if (!it) return "";
+  if (it.stunned) return pill("stun", IC.star, "Staggered", "<b>Staggered</b><br>Skips its next move.");
+  const p = [];
+  if (it.atk) p.push(pill("atk", IC.sword, it.atk, `<b>Attack</b><br>Deals ${it.atk} damage to you. Block absorbs it first.`));
+  if (it.block) p.push(pill("blk", IC.shield, it.block, `<b>Block</b><br>Gains ${it.block} block.`));
+  const tide = it.tide || it.swing;
+  if (tide) p.push(pill(tide > 0 ? "up" : "dn", tide > 0 ? IC.up : IC.down, Math.abs(tide), `<b>${tide > 0 ? "Surge" : "Ebb"} ${Math.abs(tide)}</b><br>${tide > 0 ? "Raises" : "Lowers"} the shared tide by ${Math.abs(tide)}. It can trigger your Crest or Slack Water.`));
+  if (it.seize) p.push(pill("dn", IC.anchor, `→${it.seize}`, `<b>Seize</b><br>Sets the tide to ${it.seize}.`));
+  if (it.eclipse) p.push(pill("ecl", IC.eclipse, "", "<b>Eclipse</b><br>Takes half damage until a Crest breaks it. A Crest also staggers it."));
+  return p.join("");
+}
+function drawUnits() {
+  if (!VIEW || !G) return;
+  const pu = unitEl("p");
+  if (pu) {
+    const pvB = UI.pv && UI.pv.blockAfter !== VIEW.block ? UI.pv.blockAfter - VIEW.block : 0;
+    updatePlate(pu, { name: "Tidecaller", hp: VIEW.hp, max: G.maxHp, block: VIEW.block, pvText: pvB > 0 ? `+${pvB} block` : "", pvClass: "blk" });
+    pu.classList.toggle("guard", VIEW.block > 0);
   }
-  $("log").innerHTML = G.log.slice(-12).reverse().map((m) => `<li>${m}</li>`).join("");
-  showPending();
+  const F = SHOWN; if (!F) return;
+  const tgt = targeting();
+  VIEW.foes.forEach((v, i) => {
+    const u = unitEl(i), e = F.foes[i]; if (!u || !e) return;
+    const pvHp = UI.pv && UI.pv.foes[i].hp < v.hp ? UI.pv.foes[i].hp : null;
+    const chips = [v.drench ? `<span class="chip drench" data-tip="<b>Drench ${v.drench}</b><br>Its next ${v.drench > 1 ? v.drench + " hits" : "hit"} taken deal +3.">Drench ${v.drench}</span>` : "",
+      v.eclipse ? `<span class="chip ecl" data-tip="<b>Eclipse</b><br>Takes half damage. A Crest breaks it.">Eclipse ½</span>` : "",
+      v.stagger ? `<span class="chip stag">Staggered</span>` : ""].join("");
+    updatePlate(u, { name: e.name + (e.boss && v.phase === 2 ? " · II" : ""), hp: v.hp, max: e.maxHp, block: v.block, pvHp,
+      pvText: pvHp == null ? "" : pvHp <= 0 ? "LETHAL" : `−${v.hp - pvHp}`, pvClass: pvHp != null && pvHp <= 0 ? "lethal" : "", chips });
+    const ie = u.querySelector(".intent"); if (ie) setHTML(ie, v.hp > 0 ? intentHTML(v.intent) : "");
+    u.classList.toggle("dead", v.hp <= 0); u.classList.toggle("eclipsed", !!v.eclipse);
+    u.classList.toggle("targetable", tgt && v.hp > 0); u.classList.toggle("aim", tgt && UI.aim === i);
+  });
 }
-// The game logic only records what should happen next; the UI decides how to show it.
-let shownPending = null;
-function showPending() {
-  if (!G.pending || shownPending === G.pending + G.node) return;
-  shownPending = G.pending + G.node;
-  if (G.pending === "reward") showReward(); else if (G.pending === "rest") showRest(); else showEnd(G.pending === "win");
+function flashClass(el, cls, ms) { if (!el) return; el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); setTimeout(() => el.classList.remove(cls), ms); }
+
+// ---- hand -------------------------------------------------------------------------------------
+const PILE = { draw: { x: 181, y: 663 }, disc: { x: 1223, y: 683 } };
+function handPos(i, n) {
+  const o = i - (n - 1) / 2, step = n > 1 ? Math.min(122, 520 / (n - 1)) : 0;
+  return { x: 722 + o * step, y: 652 + o * o * 3.4, r: o * 3.2 };
 }
-function overlay(html) { $("box").innerHTML = html; $("overlay").classList.add("show"); }
-function closeOverlay() { $("overlay").classList.remove("show"); }
-function showReward() {
-  const choices = rewardChoices();
-  overlay(`<h2>Choose a card</h2><p class="sub">Pick one for your deck, or skip to keep it lean.</p><div class="pick">${choices.map((c, i) =>
-    `<div class="card ${c.dir}" data-pick="${i}"><div class="top"><span>${c.name}</span><span class="cost">${c.cost}</span></div><div class="dir">${c.dir}</div><div class="txt">${cardText(c)}</div><div class="rar">${c.rarity}</div></div>`).join("")}</div><button id="skip">Skip</button>`);
-  $("box").querySelectorAll("[data-pick]").forEach((el) => el.onclick = () => { G.deck.push(choices[+el.dataset.pick]); closeOverlay(); advanceNode(); });
-  $("skip").onclick = () => { closeOverlay(); advanceNode(); };
+function layoutHand(instant) {
+  const F = G && G.fight, n = handEls.length;
+  handEls.forEach((el, i) => {
+    let { x, y, r } = handPos(i, n), s = 1;
+    if (i === UI.sel) { y = 566; r = 0; s = 1.12; } else if (i === UI.hover && UI.sel < 0 && !UI.busy) { y = 588; r = 0; s = 1.16; }
+    el.style.transform = `translate(${x - 75}px, ${y - 105}px) rotate(${r}deg) scale(${s})`;
+    el.style.zIndex = i === UI.hover || i === UI.sel ? 60 : 10 + i;
+    el.dataset.i = i;
+    const c = F && F.hand[i];
+    el.classList.toggle("off", !c || !canPlay(c)); el.classList.toggle("sel", i === UI.sel);
+    if (instant) { el.style.transition = "none"; void el.offsetWidth; el.style.transition = ""; }
+  });
 }
-function showRest() {
-  overlay(`<h2>Tide pool</h2><p>A quiet pool before the deep water.</p><div class="pick"><button class="primary" id="heal">Rest: heal 18</button><button id="remove">Remove a Brace or Splash</button></div>`);
-  $("heal").onclick = () => { G.hp = Math.min(G.maxHp, G.hp + 18); closeOverlay(); advanceNode(); };
-  $("remove").onclick = () => { const i = G.deck.findIndex((c) => c.name === "Brace" || c.name === "Splash"); if (i >= 0) G.deck.splice(i, 1); closeOverlay(); advanceNode(); };
+function addCardEl(c) {
+  const el = makeCard(c);
+  el.style.transition = "none"; el.style.opacity = "0";
+  el.style.transform = `translate(${PILE.draw.x - 75}px, ${PILE.draw.y - 105}px) rotate(-24deg) scale(.35)`;
+  $("hand").appendChild(el); handEls.push(el); void el.offsetWidth;
+  el.style.transition = ""; el.style.opacity = "1"; layoutHand();
 }
-function showEnd(win) {
-  overlay(`<h2>${win ? "The tide turns." : "Swept under."}</h2><p>${win ? "You broke the Moon-Eater's eclipse and the sea goes still." : "The current was too strong this time."}</p><button class="primary" id="again">New run</button>`);
-  $("again").onclick = () => { closeOverlay(); newRun(); render(); };
+function rebuildHand() {
+  $("hand").innerHTML = ""; handEls = [];
+  if (G.fight) for (const c of G.fight.hand) { const el = makeCard(c); $("hand").appendChild(el); handEls.push(el); }
+  layoutHand(true);
+}
+function reconcileHand() {
+  const F = G.fight, names = F ? F.hand.map((c) => c.name) : [];
+  if (handEls.length !== names.length || handEls.some((el, i) => el.dataset.name !== names[i])) rebuildHand(); else layoutHand();
+}
+function discardHandEls() {
+  handEls.forEach((el, i) => { el.classList.add("flying"); el.style.transitionDelay = `${i * 35}ms`;
+    el.style.transform = `translate(${PILE.disc.x - 75}px, ${PILE.disc.y - 105}px) rotate(18deg) scale(.3)`; el.style.opacity = "0";
+    setTimeout(() => el.remove(), 600); });
+  handEls = [];
 }
 
-// ---- Input ---------------------------------------------------------------------------------------
-let pendingChoice = null;
-$("hand").addEventListener("click", (ev) => {
-  const el = ev.target.closest(".card"); if (!el || !G.fight) return;
-  const i = +el.dataset.i, c = G.fight.hand[i]; if (!c || !canPlay(c)) return;
-  if (c.dir === "Either") { either(i); return; }
-  if (needsTarget(c) && alive().length > 1) { selected = selected === i ? -1 : i; render(); return; }
-  play(i, alive()[0]); selected = -1; render();
-});
-$("enemies").addEventListener("click", (ev) => {
-  const el = ev.target.closest(".enemy"); if (!el || selected < 0 || !G.fight) return;
-  const e = G.fight.foes[+el.dataset.i]; if (e.hp <= 0) return;
-  play(selected, e, pendingChoice); selected = -1; pendingChoice = null; render();
-});
-$("endTurn").onclick = () => { if (G.fight) { selected = -1; endTurn(); render(); } };
-// "Either" cards ask Surge or Ebb in an inline panel (no browser dialogs).
-function either(i) {
-  overlay(`<h3>${G.fight.hand[i].name}</h3><div class="pick"><button class="primary" id="cs">▲ Surge</button><button id="ce">▼ Ebb</button></div>`);
-  const go = (choice) => {
-    closeOverlay(); const c = G.fight.hand[i];
-    if (needsTarget(c) && alive().length > 1) { selected = i; pendingChoice = choice; } else play(i, alive()[0], choice);
-    render();
+// ---- HUD ----------------------------------------------------------------------------------------
+function routeHTML() {
+  if (!G) return "";
+  return ROUTE.map((n, i) => `${i ? '<span class="l"></span>' : ""}<span class="n ${i < G.node ? "done" : i === G.node ? "cur" : ""}" data-tip="<b>${n.label}</b>"><svg viewBox="0 0 24 24">${MAPICON[i]}</svg></span>`).join("") +
+    `<span class="lab">${ROUTE[G.node].label}</span>`;
+}
+function refreshHUD() {
+  const F = G && G.fight, inFight = UI.screen === "fight" && !!F;
+  $("hud").classList.toggle("hidden", UI.screen === "title");
+  $("fightHud").style.display = inFight ? "" : "none";
+  if (G) setHTML($("route"), routeHTML());
+  $("deckN").textContent = G ? G.deck.length : START_DECK.length;
+  setHTML($("btnSound"), SET.sound ? IC.sound : IC.mute); $("btnSound").classList.toggle("mute", !SET.sound);
+  setHTML($("btnMotion"), SET.motion ? IC.wave : IC.still); $("btnMotion").classList.toggle("mute", !SET.motion);
+  if (!inFight) return;
+  setHTML($("energy"), `${F.energy}<small>/3</small>`); $("energy").classList.toggle("empty", F.energy === 0);
+  $("drawCnt").textContent = F.draw.length; $("discCnt").textContent = F.discard.length + F.exhaust.length;
+  $("turnInfo").textContent = `Turn ${F.turn}`;
+  $("endTurn").disabled = UI.busy;
+  $("endTurn").classList.toggle("ready", !UI.busy && !F.hand.some(canPlay));
+}
+
+// ---- feedback: floats, banner, particles, shake ------------------------------------------------
+function floatText(x, y, txt, cls) {
+  const d = document.createElement("div"); d.className = `float ${cls || ""}`; d.textContent = txt;
+  d.style.left = `${x}px`; d.style.top = `${y}px`; $("fx").appendChild(d); setTimeout(() => d.remove(), 1100);
+}
+function banner(title, sub, cls = "", dur = 1400) {
+  const b = $("banner"); b.className = cls; b.querySelector("h2").textContent = title; b.querySelector("p").textContent = sub || "";
+  b.style.setProperty("--dur", `${dur}ms`); void b.offsetWidth; b.classList.add("show");
+  $("live").textContent = `${title}. ${sub || ""}`;
+}
+function shake(s) { if (SET.motion) UI.shake = Math.max(UI.shake, s); }
+function particles(x, y, n, kind, color) {
+  if (!SET.motion) n = Math.ceil(n / 3);
+  for (let i = 0; i < n; i++) {
+    const a = kind === "splash" ? rnd(-Math.PI * .92, -Math.PI * .08) : rnd(0, Math.PI * 2), v = kind === "bubble" ? rnd(20, 60) : rnd(140, 380);
+    UI.parts.push({ x: x + rnd(-14, 14), y, vx: Math.cos(a) * v * (kind === "bubble" ? .3 : 1), vy: kind === "bubble" ? -rnd(40, 110) : Math.sin(a) * v,
+      g: kind === "splash" ? 760 : kind === "spark" ? 0 : -30, life: 0, max: kind === "bubble" ? rnd(.9, 1.6) : rnd(.45, .85), r: kind === "bubble" ? rnd(2, 5) : rnd(1.6, 3.6), kind, color });
+  }
+}
+
+// ---- sound: synthesized with WebAudio, no files ---------------------------------------------------
+const AU = { ctx: null, out: null, nbuf: null };
+function audioInit() {
+  if (AU.ctx) { if (AU.ctx.state === "suspended") AU.ctx.resume(); return; }
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)(); AU.ctx = ctx;
+    AU.out = ctx.createGain(); AU.out.gain.value = SET.sound ? 0.55 : 0; AU.out.connect(ctx.destination);
+    const n = ctx.sampleRate * 2, b = ctx.createBuffer(1, n, ctx.sampleRate), d = b.getChannelData(0);
+    let last = 0; for (let i = 0; i < n; i++) { const w = Math.random() * 2 - 1; last = (last + 0.02 * w) / 1.02; d[i] = i % 2 ? w : last * 3.5; } AU.nbuf = b;
+    const src = ctx.createBufferSource(), lp = ctx.createBiquadFilter(), g = ctx.createGain(), lfo = ctx.createOscillator(), lg = ctx.createGain();
+    src.buffer = b; src.loop = true; lp.type = "lowpass"; lp.frequency.value = 420; g.gain.value = 0.05; lfo.frequency.value = 0.085; lg.gain.value = 0.04;
+    lfo.connect(lg); lg.connect(g.gain); src.connect(lp); lp.connect(g); g.connect(AU.out); src.start(); lfo.start();
+  } catch (e) { AU.ctx = null; }
+}
+function tone(f, dur, type = "sine", peak = 0.2, delay = 0, f2 = 0) {
+  if (!AU.ctx) return; const t0 = AU.ctx.currentTime + delay, o = AU.ctx.createOscillator(), g = AU.ctx.createGain();
+  o.type = type; o.frequency.setValueAtTime(f, t0); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t0 + dur);
+  g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(peak, t0 + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  o.connect(g); g.connect(AU.out); o.start(t0); o.stop(t0 + dur + 0.05);
+}
+function hiss(dur, type, f1, f2, peak = 0.2, delay = 0, q = 1) {
+  if (!AU.ctx) return; const t0 = AU.ctx.currentTime + delay, s = AU.ctx.createBufferSource(), fl = AU.ctx.createBiquadFilter(), g = AU.ctx.createGain();
+  s.buffer = AU.nbuf; fl.type = type; fl.Q.value = q; fl.frequency.setValueAtTime(f1, t0); fl.frequency.exponentialRampToValueAtTime(f2, t0 + dur);
+  g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(peak, t0 + Math.min(0.06, dur / 3)); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  s.connect(fl); fl.connect(g); g.connect(AU.out); s.start(t0, Math.random()); s.stop(t0 + dur + 0.05);
+}
+const sfx = {
+  card() { hiss(0.24, "bandpass", 600, 2800, 0.32, 0, 1.4); },
+  hit(n) { tone(150, 0.2, "sine", Math.min(0.6, 0.3 + n / 40), 0, 45); hiss(0.09, "lowpass", 2600, 500, 0.22); },
+  block() { tone(880, 0.3, "triangle", 0.14); tone(1320, 0.25, "sine", 0.08, 0.03); },
+  crest() { hiss(1.4, "lowpass", 260, 3600, 0.5, 0, 0.7); hiss(0.9, "lowpass", 3600, 300, 0.3, 0.6); tone(62, 1.0, "sine", 0.45, 0.05, 34); },
+  slack() { [660, 990, 1320].forEach((f, i) => tone(f, 1.3, "sine", 0.1, i * 0.07)); hiss(0.8, "bandpass", 1200, 500, 0.08, 0, 3); },
+  draw() { hiss(0.07, "highpass", 3000, 6000, 0.07); },
+  up() { tone(330, 0.2, "sine", 0.07, 0, 560); }, down() { tone(560, 0.2, "sine", 0.07, 0, 300); },
+  enemy() { tone(120, 0.28, "sawtooth", 0.07, 0, 70); hiss(0.25, "bandpass", 400, 900, 0.1, 0, 2); },
+  hurt() { tone(220, 0.3, "square", 0.06, 0, 90); tone(110, 0.3, "sine", 0.4, 0, 50); },
+  sink() { tone(320, 0.7, "sine", 0.08, 0, 70); hiss(0.6, "bandpass", 800, 300, 0.06, 0.1, 4); },
+  eclipse() { tone(70, 1.6, "sawtooth", 0.06, 0, 45); tone(105, 1.6, "sine", 0.12, 0, 60); },
+  win() { [523, 659, 784, 1047].forEach((f, i) => tone(f, 1.0, "triangle", 0.12, i * 0.12)); },
+  lose() { [392, 330, 262, 196].forEach((f, i) => tone(f, 0.9, "sine", 0.12, i * 0.2)); },
+  ui() { tone(620, 0.08, "sine", 0.06); },
+  nope() { tone(180, 0.14, "square", 0.05); },
+};
+
+// ---- canvases: sky, sea, tide pole, and effects ----------------------------------------------------
+const back = $("back"), front = $("front"), bg = back.getContext("2d"), fg = front.getContext("2d");
+const SR = seeded(777);
+const STARS = Array.from({ length: 150 }, () => ({ x: SR() * STW, y: SR() * 330, r: SR() < .1 ? 2 : 1.2, a: .3 + SR() * .7, w: .5 + SR() * 2, p: SR() * 6 }));
+const ISLES = [[420, 580, [[0, 0], [50, -90], [96, -150], [130, -178], [168, -170], [214, -128], [270, -92], [330, -40], [380, 0]]], [860, 580, [[0, 0], [36, -70], [80, -104], [118, -96], [160, -60], [200, 0]]], [1110, 580, [[0, 0], [30, -50], [70, -66], [110, -40], [150, 0]]]];
+const MOON = { x: 1078, y: 116, r: 44 };
+let K = 1;
+function fit() {
+  const W = innerWidth, H = innerHeight; K = Math.min(W / STW, H / STH);
+  const st = $("stage"); st.style.transform = `scale(${K})`; st.style.left = `${(W - STW * K) / 2}px`; st.style.top = `${(H - STH * K) / 2}px`;
+  const R = Math.min(2, (devicePixelRatio || 1) * K);
+  for (const [c, g] of [[back, bg], [front, fg]]) { c.width = Math.round(STW * R); c.height = Math.round(STH * R); g.setTransform(R, 0, 0, R, 0, 0); }
+  $("rotate").classList.toggle("show", W < H && W < 760 && !UI.rotX);
+}
+function surface(x, L, t, k) { return L + Math.sin(x * 0.012 + t * 1.25 + k) * 3.6 + Math.sin(x * 0.033 - t * 2.1 + k * 2) * 2; }
+function drawBack(now) {
+  const g = bg, t = now / 1000, L = WATER(UI.water), ecl = UI.ecl;
+  const sky = g.createLinearGradient(0, 0, 0, 560);
+  sky.addColorStop(0, "#02060f"); sky.addColorStop(.55, "#0a2236"); sky.addColorStop(1, "#16465c");
+  g.fillStyle = sky; g.fillRect(0, 0, STW, STH);
+  for (const s of STARS) { g.globalAlpha = s.a * (.55 + .45 * Math.sin(t * s.w + s.p)); g.fillStyle = "#e8f2ff"; g.fillRect(s.x, s.y, s.r, s.r); }
+  g.globalAlpha = 1;
+  // moon, nibbled in the boss fight and eclipsed in its second phase
+  const glow = g.createRadialGradient(MOON.x, MOON.y, MOON.r * .8, MOON.x, MOON.y, MOON.r * 5);
+  glow.addColorStop(0, `rgba(244,236,216,${.28 * (1 - ecl * .8)})`); glow.addColorStop(1, "rgba(244,236,216,0)");
+  g.fillStyle = glow; g.fillRect(MOON.x - 260, MOON.y - 260, 520, 520);
+  const md = g.createRadialGradient(MOON.x - 12, MOON.y - 14, 4, MOON.x, MOON.y, MOON.r);
+  md.addColorStop(0, "#fffdf5"); md.addColorStop(1, "#e6dcc2"); g.fillStyle = md;
+  g.beginPath(); g.arc(MOON.x, MOON.y, MOON.r, 0, Math.PI * 2); g.fill();
+  g.fillStyle = "rgba(160,150,120,.22)"; for (const [dx, dy, r] of [[-14, -8, 8], [12, 10, 6], [16, -16, 4], [-4, 18, 5]]) { g.beginPath(); g.arc(MOON.x + dx, MOON.y + dy, r, 0, Math.PI * 2); g.fill(); }
+  if (UI.eat > .01) { g.save(); g.beginPath(); g.arc(MOON.x, MOON.y, MOON.r + 1, 0, Math.PI * 2); g.clip(); g.fillStyle = "#081a2b"; g.beginPath(); g.arc(MOON.x + MOON.r * 2.05 - MOON.r * 1.45 * UI.eat, MOON.y - 8, MOON.r * 1.08, 0, Math.PI * 2); g.fill(); g.restore(); }
+  if (ecl > .01) {
+    const co = g.createRadialGradient(MOON.x, MOON.y, MOON.r * .9, MOON.x, MOON.y, MOON.r * 1.9);
+    co.addColorStop(0, `rgba(255,110,140,${.85 * ecl})`); co.addColorStop(.4, `rgba(160,90,255,${.35 * ecl})`); co.addColorStop(1, "rgba(120,60,200,0)");
+    g.fillStyle = co; g.beginPath(); g.arc(MOON.x, MOON.y, MOON.r * 1.9, 0, Math.PI * 2); g.fill();
+    g.fillStyle = `rgba(5,3,14,${ecl})`; g.beginPath(); g.arc(MOON.x, MOON.y, MOON.r * 1.01, 0, Math.PI * 2); g.fill();
+  }
+  // distant islands (their feet sit under the lowest tide, so rising water swallows them)
+  for (const [x0, y0, pts] of ISLES) { g.fillStyle = "#0b2436"; g.beginPath(); g.moveTo(x0, y0); for (const [dx, dy] of pts) g.lineTo(x0 + dx, y0 + dy); g.closePath(); g.fill(); }
+  // the player's cliff and the reef under the enemies
+  const rock = g.createLinearGradient(0, 380, 0, 720); rock.addColorStop(0, "#22394a"); rock.addColorStop(1, "#08131c");
+  g.fillStyle = rock; g.beginPath(); g.moveTo(40, 720); g.lineTo(70, 470); g.lineTo(96, 412); g.lineTo(140, 398); g.lineTo(236, 396); g.lineTo(276, 408); g.lineTo(300, 452); g.lineTo(316, 720); g.closePath(); g.fill();
+  g.strokeStyle = "rgba(170,230,235,.35)"; g.lineWidth = 2; g.beginPath(); g.moveTo(140, 398); g.lineTo(236, 396); g.lineTo(276, 408); g.lineTo(300, 452); g.stroke();
+  g.fillStyle = rock; g.beginPath(); g.moveTo(590, 720); g.lineTo(608, 488); g.lineTo(660, 470); g.lineTo(760, 466); g.lineTo(860, 472); g.lineTo(960, 464); g.lineTo(1080, 470); g.lineTo(1180, 466); g.lineTo(1250, 482); g.lineTo(1280, 520); g.lineTo(1280, 720); g.closePath(); g.fill();
+  g.strokeStyle = "rgba(170,230,235,.22)"; g.beginPath(); g.moveTo(660, 470); g.lineTo(760, 466); g.lineTo(860, 472); g.lineTo(960, 464); g.lineTo(1080, 470); g.lineTo(1180, 466); g.stroke();
+  // sea body
+  g.beginPath(); g.moveTo(0, STH); for (let x = 0; x <= STW; x += 16) g.lineTo(x, surface(x, L, t, 0)); g.lineTo(STW, STH); g.closePath();
+  const wg = g.createLinearGradient(0, L - 10, 0, STH); wg.addColorStop(0, "rgba(30,120,138,.94)"); wg.addColorStop(.22, "rgba(11,56,76,.97)"); wg.addColorStop(1, "#030e1a");
+  g.fillStyle = wg; g.fill();
+  g.strokeStyle = "rgba(170,250,240,.55)"; g.lineWidth = 2; g.beginPath(); for (let x = 0; x <= STW; x += 16) g[x ? "lineTo" : "moveTo"](x, surface(x, L, t, 0)); g.stroke();
+  for (let i = 0; i < 16; i++) { const w = (46 - i * 2.4) * (.7 + .3 * Math.sin(t * 2 + i)); g.fillStyle = `rgba(244,236,216,${(.32 - i * .018) * (1 - ecl)})`; g.fillRect(MOON.x - w / 2 + Math.sin(t * 1.3 + i) * 7, L + 8 + i * 9, w, 2); }
+  // the tide pole: a diegetic gauge standing in the water
+  if (UI.screen !== "fight") return;
+  const x = POLE, pg = g.createLinearGradient(x - 6, 0, x + 6, 0); pg.addColorStop(0, "#3f2d1e"); pg.addColorStop(.5, "#86643f"); pg.addColorStop(1, "#3a291b");
+  g.fillStyle = pg; g.fillRect(x - 6, 376, 12, 360); g.fillStyle = "#d8c18a"; g.beginPath(); g.arc(x, 376, 8, 0, Math.PI * 2); g.fill();
+  g.font = "700 11px Outfit, system-ui, sans-serif"; g.textAlign = "right";
+  for (let k = 0; k <= 10; k++) {
+    const y = WATER(k), major = k % 5 === 0; g.fillStyle = major ? "rgba(244,236,216,.95)" : "rgba(244,236,216,.6)";
+    g.fillRect(x - (major ? 13 : 8), y - 1, major ? 26 : 16, 2);
+    if (k === 5) { g.fillStyle = "rgba(220,235,240,.7)"; g.fillText("5", x - 18, y + 4); }
+  }
+  g.font = "800 11px Outfit, system-ui, sans-serif";
+  g.fillStyle = "#7ff7ea"; g.fillText("CREST 10", x - 18, WATER(10) + 4); g.fillStyle = "#c3b8ff"; g.fillText("SLACK 0", x - 18, WATER(0) + 4); g.textAlign = "left";
+}
+function drawFront(now, dt) {
+  const g = fg, t = now / 1000, L = WATER(UI.water);
+  g.clearRect(0, 0, STW, STH);
+  // crest: a swell crosses the stage from the caller toward the enemies
+  let xf = -9999, hf = 0;
+  if (UI.crestT0 >= 0) { const p = (now - UI.crestT0) / 1150; if (p > 1) UI.crestT0 = -1; else { xf = -260 + p * 1820; hf = 240 * Math.sin(Math.PI * Math.min(1, p * 1.05)); if (Math.random() < .9) particles(xf + 40, L - hf + 10, 3, "splash", "#e8fffb"); } }
+  const lvl = (x) => { let y = surface(x, L, t, 3); if (hf) { const d = (x - xf) / 170; y -= hf * Math.exp(-d * d) + (x < xf ? 60 * Math.exp((x - xf) / 500) * (hf / 240) : 0); } return y; };
+  g.beginPath(); g.moveTo(0, STH); for (let x = 0; x <= STW; x += 12) g.lineTo(x, lvl(x)); g.lineTo(STW, STH); g.closePath();
+  const fw = g.createLinearGradient(0, L - 60, 0, STH); fw.addColorStop(0, `rgba(40,150,165,${hf ? .5 : .3})`); fw.addColorStop(.3, "rgba(8,44,62,.42)"); fw.addColorStop(1, "rgba(3,14,26,.55)");
+  g.fillStyle = fw; g.fill();
+  g.strokeStyle = "rgba(220,255,250,.5)"; g.lineWidth = 2; g.beginPath(); for (let x = 0; x <= STW; x += 12) g[x ? "lineTo" : "moveTo"](x, lvl(x)); g.stroke();
+  // slack ripples
+  UI.ripples = UI.ripples.filter((r) => now - r.t0 < 1400);
+  for (const r of UI.ripples) { const p = (now - r.t0) / 1400; if (p < 0) continue; g.strokeStyle = `rgba(195,184,255,${.8 * (1 - p)})`; g.lineWidth = 3 * (1 - p) + .5; g.beginPath(); g.ellipse(r.x, L + 4, 20 + p * 260, 4 + p * 26, 0, 0, Math.PI * 2); g.stroke(); }
+  // the buoy riding the water line on the pole
+  const by = surface(POLE, L, t, 3) - 3, onPole = UI.screen === "fight";
+  if (onPole) {
+  g.fillStyle = "rgba(0,0,0,.3)"; g.beginPath(); g.ellipse(POLE, by + 16, 20, 4, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = "#f4ecd8"; g.strokeStyle = "#061019"; g.lineWidth = 2.5; g.beginPath(); g.arc(POLE, by, 17, 0, Math.PI * 2); g.fill(); g.stroke();
+  g.fillStyle = "#e63946"; g.beginPath(); g.arc(POLE, by, 17, Math.PI * .15, Math.PI * .85); g.closePath(); g.fill();
+  g.fillStyle = "#061019"; g.font = "800 17px Fraunces, Georgia, serif"; g.textAlign = "center"; g.fillText(String(UI.tideShown), POLE, by + 5);
+  }
+  // tide preview: where the water lands if you play the hovered card
+  const pv = UI.pv;
+  if (pv && onPole) {
+    const target = pv.crest ? 10 : pv.slack ? 0 : pv.tide, ty = WATER(target), col = pv.crest ? "#7ff7ea" : pv.slack ? "#c3b8ff" : "#ffcf6b";
+    g.setLineDash([5, 5]); g.strokeStyle = col; g.lineWidth = 2.5; g.beginPath(); g.moveTo(POLE - 12, ty); g.lineTo(POLE + 30, ty); g.stroke(); g.setLineDash([]);
+    if (target !== UI.tideShown) { g.globalAlpha = .55; g.fillStyle = "#f4ecd8"; g.beginPath(); g.arc(POLE, ty, 15, 0, Math.PI * 2); g.fill(); g.globalAlpha = 1;
+      g.fillStyle = "#061019"; g.font = "800 15px Fraunces, Georgia, serif"; g.textAlign = "center"; g.fillText(String(target), POLE, ty + 5); }
+    g.globalAlpha = .55 + .45 * Math.sin(t * 6); g.strokeStyle = col; g.lineWidth = 3; g.beginPath(); g.arc(POLE, ty, 17, 0, Math.PI * 2); g.stroke(); g.globalAlpha = 1;
+    if (target !== UI.tideShown) { g.strokeStyle = col; g.lineWidth = 2; g.beginPath(); g.moveTo(POLE + 34, by); g.lineTo(POLE + 34, ty); g.stroke();
+      const dir = ty < by ? -1 : 1; g.beginPath(); g.moveTo(POLE + 28, ty - dir * 8); g.lineTo(POLE + 34, ty); g.lineTo(POLE + 40, ty - dir * 8); g.stroke(); }
+    if (pv.crest || pv.slack) { g.font = "800 22px Fraunces, Georgia, serif"; g.textAlign = "left"; g.fillStyle = col; g.fillText(pv.crest ? "CREST!" : "SLACK!", POLE + 50, ty + (pv.crest ? -6 : 8)); }
+  }
+  // particles
+  UI.parts = UI.parts.filter((p) => (p.life += dt) < p.max);
+  for (const p of UI.parts) {
+    p.vy += p.g * dt; p.x += p.vx * dt + (p.kind === "bubble" ? Math.sin(p.life * 8) * .4 : 0); p.y += p.vy * dt;
+    const a = 1 - p.life / p.max; g.globalAlpha = a;
+    if (p.kind === "bubble") { g.strokeStyle = p.color; g.lineWidth = 1.4; g.beginPath(); g.arc(p.x, p.y, p.r, 0, Math.PI * 2); g.stroke(); }
+    else { g.fillStyle = p.color; g.beginPath(); g.arc(p.x, p.y, p.r, 0, Math.PI * 2); g.fill(); }
+  }
+  g.globalAlpha = 1;
+  // mood: eclipse dim, hurt flash, crest flash, vignette
+  if (UI.ecl > .01) { g.fillStyle = `rgba(14,2,24,${.28 * UI.ecl})`; g.fillRect(0, 0, STW, STH); }
+  UI.hurt = Math.max(0, UI.hurt - dt * 2); UI.flash = Math.max(0, UI.flash - dt * 2.4);
+  if (UI.hurt > 0) { const v = g.createRadialGradient(640, 360, 260, 640, 360, 760); v.addColorStop(0, "rgba(255,40,60,0)"); v.addColorStop(1, `rgba(255,40,60,${.45 * UI.hurt})`); g.fillStyle = v; g.fillRect(0, 0, STW, STH); }
+  if (UI.flash > 0 && SET.motion) { g.fillStyle = `rgba(220,255,250,${.3 * UI.flash})`; g.fillRect(0, 0, STW, STH); }
+  const vg = g.createRadialGradient(640, 330, 380, 640, 360, 820); vg.addColorStop(0, "rgba(0,0,0,0)"); vg.addColorStop(1, "rgba(0,4,10,.55)"); g.fillStyle = vg; g.fillRect(0, 0, STW, STH);
+}
+let lastT = performance.now(), shook = false;
+function frame(now) {
+  const dt = Math.min(0.05, (now - lastT) / 1000); lastT = now;
+  UI.water += (UI.waterTarget - UI.water) * Math.min(1, dt * (SET.motion ? 5.5 : 14));
+  UI.eat += (UI.eatT - UI.eat) * Math.min(1, dt * 1.4); UI.ecl += (UI.eclT - UI.ecl) * Math.min(1, dt * 2);
+  drawBack(now); drawFront(now, dt);
+  if (UI.shake > 0) { UI.shake -= dt; const a = 9 * Math.min(1, UI.shake / .3); $("world").style.transform = `translate(${rnd(-a, a)}px, ${rnd(-a, a)}px)`; shook = true; }
+  else if (shook) { $("world").style.transform = ""; shook = false; }
+  drawArrow();
+  requestAnimationFrame(frame);
+}
+
+// ---- playing back rule events -------------------------------------------------------------
+async function drainFX() { while (FX.length) await handleFX(FX.shift()); }
+async function handleFX(e) {
+  const P = { x: PLAYER.x, y: PLAYER.y - 110 };
+  switch (e.t) {
+    case "hit": {
+      const v = VIEW.foes[e.i]; v.hp = e.hp; v.block = e.block; v.drench = e.drench; drawUnits();
+      const c = foeCenter(e.i), u = unitEl(e.i);
+      if (e.dmg > 0) { flashClass(u && u.querySelector(".body"), "hit", 420); floatText(c.x + rnd(-16, 16), c.y - 6, String(e.dmg), "dmg"); particles(c.x, c.y + 30, 10 + Math.min(18, e.dmg), "splash", "#d8fff9"); sfx.hit(e.dmg); shake(e.dmg >= 12 ? .28 : .12); }
+      if (e.absorbed > 0) floatText(c.x + 44, c.y - 40, `${e.absorbed} blocked`, "small blk");
+      if (e.drenched) floatText(c.x - 46, c.y - 46, "+3 drench", "info");
+      if (e.eclipse) floatText(c.x, c.y - 76, "halved", "info");
+      return wait(e.src === "crest" ? 110 : 200);
+    }
+    case "kill": { VIEW.foes[e.i].hp = 0; drawUnits(); const c = foeCenter(e.i); particles(c.x, FOE_Y, 28, "bubble", "#bff6ef"); sfx.sink(); return wait(280); }
+    case "phase": UI.eatT = 1; sfx.eclipse(); banner("The moon is swallowed", "Phase II: the Moon-Eater will eclipse itself", "red", 2200); return wait(1500);
+    case "eclipse": { const v = VIEW.foes[e.i]; v.eclipse = true; drawUnits(); UI.eclT = 1; const c = foeCenter(e.i); floatText(c.x, c.y - 90, "Eclipse", "info"); sfx.eclipse(); return wait(650); }
+    case "break": { const v = VIEW.foes[e.i]; v.eclipse = false; v.stagger = true; UI.eclT = 0; UI.flash = 1; drawUnits(); banner("Eclipse broken", "The Moon-Eater staggers", "", 1600); return wait(450); }
+    case "block": VIEW.block = e.total; drawUnits(); floatText(P.x, P.y - 20, `+${e.n}`, "blk"); particles(P.x, P.y + 20, 14, "spark", "#bfe6ff"); sfx.block(); return wait(170);
+    case "tide": UI.waterTarget = e.to; UI.tideShown = e.to; if (!e.reset && e.to !== e.from) (e.to > e.from ? sfx.up : sfx.down)();
+      if (e.seize) { banner("Tide seized", `The water drops to ${e.to}`, "ebb small", 1200); }
+      return wait(e.reset ? 430 : 300);
+    case "crest": UI.crestT0 = performance.now(); UI.flash = .7; shake(.45); banner("Crest", "8 damage to every enemy", "", 1300); sfx.crest(); return wait(560);
+    case "slack": VIEW.block = e.block; drawUnits(); UI.ripples.push({ x: PLAYER.x + 80, t0: performance.now() }, { x: PLAYER.x + 80, t0: performance.now() + 220 }, { x: PLAYER.x + 80, t0: performance.now() + 440 });
+      banner("Slack water", "+8 block · draw 1", "ebb", 1300); sfx.slack(); return wait(560);
+    case "draw": for (const n of e.cards) { addCardEl(byName[n]); sfx.draw(); await wait(85); } return wait(60);
+    case "shuffle": floatText(PILE.draw.x, PILE.draw.y - 70, "Reshuffled", "info"); return wait(180);
+    case "turn": if (e.n > 1) banner("Your turn", "", "small", 900); return wait(e.n > 1 ? 380 : 0);
+    case "act": { const v = VIEW.foes[e.i]; flashClass(unitEl(e.i) && unitEl(e.i).querySelector(".body"), "lunge", 500); sfx.enemy(); await wait(240); v.intent = null; drawUnits(); return; }
+    case "eblock": { VIEW.foes[e.i].block = e.block; drawUnits(); const c = foeCenter(e.i); floatText(c.x, c.y - 40, `+${e.n}`, "blk"); sfx.block(); return wait(300); }
+    case "phurt": {
+      VIEW.hp = e.hp; VIEW.block = e.block; drawUnits();
+      if (e.dmg > 0) { flashClass(unitEl("p") && unitEl("p").querySelector(".body"), "phit", 450); floatText(P.x, P.y, String(e.dmg), "dmg"); UI.hurt = 1; shake(.32); sfx.hurt(); }
+      if (e.absorbed > 0) { floatText(P.x + 50, P.y - 46, `${e.absorbed} blocked`, "small blk"); sfx.block(); }
+      return wait(420);
+    }
+    case "stunned": { const c = foeCenter(e.i); floatText(c.x, c.y - 60, "Staggered", "info"); return wait(520); }
+    default: return;
+  }
+}
+
+// ---- player actions ------------------------------------------------------------------------------
+function targeting() {
+  const F = G && G.fight; if (!F || UI.sel < 0) return false; const c = F.hand[UI.sel];
+  return !!c && needsTarget(c) && alive().length > 1 && (c.dir !== "Either" || !!UI.choice);
+}
+function autoTarget(c) { return needsTarget(c) && alive().length === 1 ? alive()[0] : null; }
+function setPreview(i, target, choice) {
+  const F = G && G.fight, c = F && F.hand[i];
+  UI.pv = c && canPlay(c) ? preview(i, target, choice) : null; drawUnits();
+}
+function setHover(i) {
+  if (UI.hover === i) return; UI.hover = i;
+  if (UI.screen !== "fight" || UI.busy) return;
+  layoutHand();
+  if (UI.sel < 0) { if (i >= 0) { const c = G.fight.hand[i]; setPreview(i, c && autoTarget(c), "Surge"); } else { UI.pv = null; drawUnits(); } }
+}
+function cancelSel() { UI.sel = -1; UI.choice = null; UI.aim = -1; UI.pv = null; $("choice").classList.remove("show"); layoutHand(); drawUnits(); }
+function onCard(i) {
+  if (UI.busy || UI.screen !== "fight" || !G.fight) return;
+  const c = G.fight.hand[i]; if (!c) return;
+  audioInit();
+  if (!canPlay(c)) { flashClass(handEls[i], "nope", 360); sfx.nope(); floatText(92, 506, "Not enough energy", "info"); return; }
+  if (UI.sel === i) { cancelSel(); return; }
+  if (c.dir === "Either") { UI.sel = i; UI.choice = null; layoutHand(); showChoice(i); setPreview(i, autoTarget(c), "Surge"); return; }
+  if (needsTarget(c) && alive().length > 1) { UI.sel = i; UI.aim = -1; layoutHand(); setPreview(i, null); sfx.ui(); return; }
+  tryPlay(i, autoTarget(c));
+}
+function showChoice(i) {
+  const c = G.fight.hand[i], p = handPos(i, handEls.length), box = $("choice");
+  $("chS").textContent = `▲ Surge ${c.tide}`; $("chE").textContent = `▼ Ebb ${c.tide}`;
+  box.style.left = `${p.x}px`; box.style.top = `${430}px`; box.classList.add("show");
+}
+function pickChoice(choice) {
+  const i = UI.sel; if (i < 0) return; const c = G.fight.hand[i];
+  $("choice").classList.remove("show"); UI.choice = choice;
+  if (needsTarget(c) && alive().length > 1) { setPreview(i, null, choice); return; }
+  tryPlay(i, autoTarget(c), choice);
+}
+async function tryPlay(i, target, choice) {
+  const F = G.fight, c = F && F.hand[i]; if (UI.busy || !c || !canPlay(c)) return;
+  UI.busy = true; $("choice").classList.remove("show"); hideTip();
+  const el = handEls.splice(i, 1)[0];
+  UI.sel = -1; UI.hover = -1; UI.pv = null; UI.aim = -1; UI.choice = UI.choice || choice;
+  const to = target ? foeCenter(SHOWN.foes.indexOf(target)) : { x: 640, y: 300 };
+  el.classList.add("flying"); el.style.zIndex = 90; el.style.transform = `translate(${to.x - 75}px, ${to.y - 105}px) rotate(0deg) scale(.5)`; el.style.opacity = "0";
+  layoutHand(); flashClass(unitEl("p") && unitEl("p").querySelector(".body"), "cast", 450); sfx.card(); refreshHUD();
+  await wait(210);
+  play(i, target, choice); UI.choice = null;
+  refreshHUD(); await drainFX(); el.remove();
+  syncView(); reconcileHand(); drawUnits(); UI.busy = false; refreshHUD();
+  coachAdvance();
+  await afterAction();
+}
+async function endTurnUI() {
+  if (UI.busy || UI.screen !== "fight" || !G.fight) return;
+  audioInit(); UI.busy = true; cancelSel(); hideTip(); refreshHUD();
+  beginEnemyPhase(); discardHandEls(); refreshHUD();
+  banner("Enemy turn", "", "red small", 900); await wait(650);
+  for (const e of G.fight.foes.slice()) { if (e.hp <= 0) continue; enemyAct(e); await drainFX(); await wait(150); if (G.hp <= 0) break; }
+  finishEnemyPhase();
+  if (G.pending) FX.length = 0; else await drainFX();
+  syncView(); reconcileHand(); drawUnits(); UI.busy = false; refreshHUD();
+  await afterAction();
+}
+async function afterAction() {
+  if (!G.pending || UI.screen !== "fight") return;
+  UI.busy = true; if (UI.coach >= 0) coachDone(); await wait(450);
+  if (G.pending === "loss") { banner("Swept under", "", "red", 1600); sfx.lose(); await wait(1500); UI.busy = false; endScreen(false); return; }
+  sfx.win();
+  if (G.pending === "win") { UI.eatT = 0; UI.eclT = 0; banner("The tide turns", "The Moon-Eater sinks beneath the waves", "", 2200); await wait(2000); UI.busy = false; endScreen(true); return; }
+  banner("Victory", "The water settles", "", 1500); await wait(1400); UI.busy = false; rewardScreen();
+}
+
+// ---- screens -------------------------------------------------------------------------------------
+function showScreen(html, cls = "") { const s = $("screen"); s.className = `show ${cls}`; s.innerHTML = html; refreshHUD(); }
+function hideScreen() { $("screen").className = ""; $("screen").innerHTML = ""; }
+function showModal(html) { const m = $("modal"); m.innerHTML = html; m.classList.add("show"); const x = m.querySelector("[data-close]"); if (x) x.onclick = closeModal; }
+function closeModal() { $("modal").classList.remove("show"); $("modal").innerHTML = ""; }
+function titleScreen() {
+  UI.screen = "title"; G = null; SHOWN = null; UI.waterTarget = 5; UI.eatT = 0; UI.eclT = 0; $("units").innerHTML = ""; $("hand").innerHTML = ""; handEls = [];
+  showScreen(`<div class="title-wrap"><div class="kicker">A roguelike deckbuilder</div><h1>Tidecaller</h1>
+    <div class="tag">Every card moves the tide. Raise it to a Crest. Drain it to Slack Water.</div>
+    <div class="row"><button class="btn" id="begin">Begin the run</button><button class="btn ghost" id="how">How to play</button></div></div>
+    <div class="foot">Original game · designed with <a href="https://github.com/bunhine0452/ai-game-designer">ai-game-designer</a> (<a href="../../showcase/02-claude-en-deckbuilder/">showcase session 02</a>) · 24 cards from the final v3 cost-curve pass · <a href="../">← Arcade</a></div>`, "title");
+  $("begin").onclick = () => { audioInit(); sfx.ui(); startRun(); };
+  $("how").onclick = () => { audioInit(); howTo(); };
+}
+function howTo() {
+  showModal(`<div class="panel"><div class="kicker">How to play</div><h2>Read the water</h2>
+    <div class="howto">
+      <div><b><span class="s">▲ Surge</span> and <span class="e">▼ Ebb</span></b>Every card moves one shared tide, 0 to 10. Hover a card to see where the water lands.</div>
+      <div><b class="s">Crest at 10</b>8 damage to every enemy, then the tide resets to 5.</div>
+      <div><b class="e">Slack Water at 0</b>Gain 8 block and draw a card, then the tide resets to 5.</div>
+      <div><b>Enemies move the water too</b>Their next move is shown above them, including how they push the tide. Bait their Surge into your Crest.</div>
+      <div><b class="g">Energy, block, drench</b>3 energy a turn. Block absorbs damage until your next turn. Drenched enemies take +3 from their next hit.</div>
+      <div><b>Controls</b>Click a card (or press 1–9), then click a target. E ends the turn, Esc cancels, D shows your deck.</div>
+    </div><button class="btn" data-close>Got it</button></div>`);
+}
+function startRun() { rng = Math.random; newRun(); UI.mapAdvance = false; UI.eatT = 0; UI.eclT = 0; mapScreen(); }
+function mapSVG(next) {
+  const pts = ROUTE.map((n, i) => ({ x: 90 + i * 180, y: i % 2 ? 150 : 92 }));
+  let d = `M${pts[0].x} ${pts[0].y}`; for (let i = 1; i < pts.length; i++) { const a = pts[i - 1], b = pts[i]; d += `C${a.x + 90} ${a.y} ${b.x - 90} ${b.y} ${b.x} ${b.y}`; }
+  return `<svg class="mapsvg" viewBox="0 0 900 250"><path d="${d}" fill="none" stroke="rgba(159,188,203,.4)" stroke-width="3" stroke-dasharray="2 10" stroke-linecap="round"/>
+    ${pts.map((p, i) => { const st = i < next ? "done" : i === next ? "cur" : "todo", r = i === 4 ? 38 : 30;
+      return `<g class="mn ${st}" transform="translate(${p.x} ${p.y})">${st === "cur" ? `<circle class="pulse" r="${r + 10}"/>` : ""}<circle class="disc" r="${r}"/><g class="ico" transform="translate(-16 -16) scale(1.34)">${MAPICON[i]}</g><text y="${r + 28}" text-anchor="middle">${ROUTE[i].label}</text></g>`; }).join("")}</svg>`;
+}
+function mapScreen() {
+  UI.screen = "map"; $("units").innerHTML = ""; SHOWN = null; UI.waterTarget = 5; const next = UI.mapAdvance ? G.node + 1 : G.node;
+  showScreen(`<div class="panel"><div class="kicker">The route · HP ${G.hp}/${G.maxHp} · deck ${G.deck.length}</div><h2>${ROUTE[next].label.replace(/^(Boss|Elite): /, "")}</h2>
+    <p class="muted">${NODE_TEXT[next]}</p>${mapSVG(next)}<div class="row"><button class="btn" id="setout">Set out →</button><button class="btn ghost" id="mapDeck">View deck</button></div></div>`);
+  $("setout").onclick = () => { sfx.ui(); if (UI.mapAdvance) advanceNode(); UI.mapAdvance = true; enterNode(); };
+  $("mapDeck").onclick = () => deckView("deck");
+}
+async function enterNode() {
+  hideScreen(); FX.length = 0;
+  if (G.pending === "rest") { restScreen(); return; }
+  UI.screen = "fight"; UI.sel = -1; UI.hover = -1; UI.pv = null;
+  const boss = ROUTE[G.node].foes.includes("moon"); UI.eatT = boss ? .3 : 0; UI.eclT = 0;
+  UI.water = 3; UI.waterTarget = 5;
+  syncView(); buildUnits(true); handEls = []; $("hand").innerHTML = ""; drawUnits(); UI.busy = true; refreshHUD();
+  banner(ROUTE[G.node].label.replace(/^(Boss|Elite): /, ""), NODE_TEXT[G.node].split(".")[0] + ".", boss ? "red" : "", 1700);
+  await wait(1100);
+  for (const c of G.fight.hand) { addCardEl(c); sfx.draw(); await wait(90); }
+  UI.busy = false; refreshHUD(); coachStart();
+}
+function rewardScreen() {
+  UI.screen = "reward"; const choices = rewardChoices();
+  showScreen(`<div class="panel"><div class="kicker">Spoils of the tide</div><h2>Choose a card</h2><p class="muted">Add one to your deck, or skip to keep it lean. Your deck has ${G.deck.length} cards.</p>
+    <div class="picks">${choices.map((c, i) => `<div class="pickwrap" style="--d:${120 + i * 140}ms">${cardHTML(c, `data-pick="${i}"`)}</div>`).join("")}</div>
+    <button class="btn ghost" id="skip">Skip</button></div>`);
+  document.querySelectorAll("[data-pick]").forEach((el) => el.onclick = () => { G.deck.push(choices[+el.dataset.pick]); sfx.block(); hideTip(); mapScreen(); });
+  $("skip").onclick = () => { sfx.ui(); hideTip(); mapScreen(); };
+}
+function restScreen() {
+  UI.screen = "rest"; $("units").innerHTML = ""; refreshHUD();
+  const heal = Math.min(G.maxHp, G.hp + 18);
+  showScreen(`<div class="panel"><div class="kicker">Tide pool</div><h2>A quiet pool before the deep water</h2><p class="muted">Choose one.</p>
+    <div class="opts"><button class="opt" id="heal"><svg viewBox="0 0 64 64"><ellipse cx="32" cy="44" rx="26" ry="10" fill="#0f5161" stroke="#7ff7ea" stroke-width="2"/><path d="M32 40C20 30 14 24 14 17C14 11 19 8 23 8C27 8 30 10 32 13C34 10 37 8 41 8C45 8 50 11 50 17C50 24 44 30 32 40Z" fill="#ff8a8a" stroke="#061019" stroke-width="2.5"/></svg><b>Rest</b><span>Heal 18 HP · ${G.hp} → ${heal}</span></button>
+    <button class="opt" id="release"><svg viewBox="0 0 64 64"><rect x="16" y="8" width="30" height="42" rx="5" fill="#14495b" stroke="#7ff7ea" stroke-width="2" transform="rotate(-10 31 29)"/><path d="M10 52C20 46 28 58 38 52S54 46 58 50" fill="none" stroke="#c3b8ff" stroke-width="3" stroke-linecap="round"/></svg><b>Release</b><span>Remove a Splash or a Brace from your deck</span></button></div>
+    <div id="relpick"></div></div>`);
+  $("heal").onclick = () => { restHeal(); sfx.slack(); mapScreen(); };
+  $("release").onclick = () => {
+    const names = ["Splash", "Brace"].filter((n) => G.deck.some((c) => c.name === n));
+    if (!names.length) { restHeal(); mapScreen(); return; }
+    setHTML($("relpick"), `<p class="muted">Release which card?</p><div class="relpick">${names.map((n) => cardHTML(byName[n], `data-rel="${n}"`)).join("")}</div>`);
+    document.querySelectorAll("[data-rel]").forEach((el) => el.onclick = () => { restRemove(el.dataset.rel); sfx.slack(); hideTip(); mapScreen(); });
   };
-  $("cs").onclick = () => go("Surge"); $("ce").onclick = () => go("Ebb");
+}
+function endScreen(win) {
+  UI.screen = "end"; const s = G.stats; refreshHUD();
+  showScreen(`<div class="panel"><div class="kicker" style="color:${win ? "#7ff7ea" : "#ff9aae"}">${win ? "Victory" : "Defeat"} · ${ROUTE[G.node].label}</div>
+    <h2>${win ? "The tide turns." : "Swept under."}</h2>
+    <p class="muted">${win ? "The eclipse breaks and the moon slips free. The sea goes still." : "The current was too strong this time. The tide always comes back."}</p>
+    <div class="stats">${[["Turns", s.turns], ["Crests", s.crests], ["Slack waters", s.slacks], ["Damage dealt", s.dmg], ["Cards played", s.cards], ["Deck size", G.deck.length]].map(([k, v]) => `<div class="stat"><b>${v}</b><span>${k}</span></div>`).join("")}</div>
+    <div class="row"><button class="btn" id="again">${win ? "New run" : "Try again"}</button><a class="btn ghost" href="../">Back to the arcade</a></div></div>`);
+  $("again").onclick = () => { sfx.ui(); startRun(); };
+}
+function deckView(which) {
+  const F = G && G.fight;
+  const list = which === "draw" && F ? F.draw.slice() : which === "disc" && F ? F.discard.concat(F.exhaust) : G.deck.slice();
+  list.sort((a, b) => a.cost - b.cost || a.name.localeCompare(b.name));
+  const title = which === "draw" ? "Draw pile" : which === "disc" ? "Discard pile" : "Your deck";
+  showModal(`<div class="panel"><div class="kicker">${title}${which === "draw" ? " · order hidden" : ""}</div><h2>${list.length} cards</h2>
+    <div class="deckgrid">${list.map((c) => cardHTML(c)).join("") || '<p class="muted">Empty.</p>'}</div><button class="btn" data-close>Close</button></div>`);
 }
 
-// ---- Self-test (?test=1) and screenshot state (?shot=1) ---------------------------------------------
+// ---- coach marks (first fight only) ---------------------------------------------------------------
+const COACH = [
+  "<b>Every card moves the tide.</b> ▲ Surge raises it and ▼ Ebb lowers it. Hover a card to see where the water lands on this pole.",
+  "<b>Reach 10 for a Crest:</b> 8 damage to every enemy. <b>Reach 0 for Slack Water:</b> 8 block and a card. Either way, the tide resets to 5.",
+  "<b>Enemies push the water too.</b> Their next move is shown above them. Plan your turn around it, then press End turn.",
+];
+function coachStart() { if (SET.coach && G.node === 0) { UI.coach = 0; coachShow(); } }
+function coachShow() {
+  const c = $("coach"); if (UI.coach < 0 || UI.coach >= COACH.length) { c.classList.remove("show"); return; }
+  c.style.left = `${POLE + 52}px`; c.style.top = `${UI.coach === 2 ? 200 : 300}px`;
+  c.innerHTML = `<div class="step">TIP ${UI.coach + 1} / ${COACH.length}</div>${COACH[UI.coach]}<br><button id="coachOk">${UI.coach === COACH.length - 1 ? "Got it" : "Next"}</button> <button id="coachSkip">Skip tips</button>`;
+  c.classList.add("show");
+  $("coachOk").onclick = () => { UI.coach++; if (UI.coach >= COACH.length) coachDone(); else coachShow(); };
+  $("coachSkip").onclick = coachDone;
+}
+function coachAdvance() { if (UI.coach >= 0 && UI.coach < COACH.length - 1) { UI.coach++; coachShow(); } }
+function coachDone() { UI.coach = -1; $("coach").classList.remove("show"); SET.coach = false; saveSet(); }
+
+// ---- tooltip and arrow ------------------------------------------------------------------------------
+function stagePt(ev) { const r = $("stage").getBoundingClientRect(); return { x: (ev.clientX - r.left) / K, y: (ev.clientY - r.top) / K }; }
+function hideTip() { $("tip").classList.remove("show"); }
+function showTip(el, p) {
+  const tip = $("tip"), html = el.getAttribute("data-tip"); if (!html) return hideTip();
+  setHTML(tip, html); tip.classList.add("show");
+  const w = tip.offsetWidth, h = tip.offsetHeight; let x = p.x + 18, y = p.y - h - 14;
+  const ci = el.closest("#hand .card") ? +el.dataset.i : -1;
+  if (ci >= 0) { const hp = handPos(ci, handEls.length); x = hp.x + 96; y = 478; if (x + w > STW - 10) x = hp.x - 96 - w; tip.style.left = `${x}px`; tip.style.top = `${y}px`; return; }
+  if (x + w > STW - 10) x = p.x - w - 18; if (y < 70) y = p.y + 22;
+  tip.style.left = `${x}px`; tip.style.top = `${y}px`;
+}
+function drawArrow() {
+  const svg = $("arrow");
+  if (!targeting() || UI.busy) { if (svg.style.display !== "none") svg.style.display = "none"; return; }
+  const p = handPos(UI.sel, handEls.length), from = { x: p.x, y: 470 };
+  const to = UI.aim >= 0 ? foeCenter(UI.aim) : UI.mouse;
+  svg.style.display = "block";
+  $("arrowPath").setAttribute("d", `M${from.x} ${from.y}Q${(from.x + to.x) / 2} ${Math.min(from.y, to.y) - 140} ${to.x} ${to.y}`);
+  $("arrowHead").setAttribute("cx", to.x); $("arrowHead").setAttribute("cy", to.y);
+}
+
+// ---- input ---------------------------------------------------------------------------------------------
+const hand = $("hand");
+hand.addEventListener("mouseover", (ev) => { const el = ev.target.closest(".card"); if (el && el.dataset.i != null) setHover(+el.dataset.i); });
+hand.addEventListener("mouseout", (ev) => { const to = ev.relatedTarget && ev.relatedTarget.closest && ev.relatedTarget.closest("#hand .card"); if (!to) setHover(-1); });
+hand.addEventListener("click", (ev) => { ev.stopPropagation(); const el = ev.target.closest(".card"); if (el) onCard(+el.dataset.i); });
+$("stage").addEventListener("mousemove", (ev) => {
+  const p = stagePt(ev); UI.mouse = p;
+  const t = ev.target.closest && ev.target.closest("[data-tip]"); if (t && !UI.busy) showTip(t, p); else hideTip();
+  if (targeting()) {
+    const u = ev.target.closest && ev.target.closest(".unit.foe"), i = u ? +u.dataset.u : -1;
+    const aim = i >= 0 && G.fight.foes[i].hp > 0 ? i : -1;
+    if (aim !== UI.aim) { UI.aim = aim; setPreview(UI.sel, aim >= 0 ? G.fight.foes[aim] : null, UI.choice); }
+  }
+});
+$("stage").addEventListener("click", (ev) => {
+  if (ev.target.closest("#choice, #screen, #modal, .icons, #fightHud, #coach")) return;
+  if (!targeting()) { if (UI.sel >= 0) cancelSel(); return; }
+  const u = ev.target.closest(".unit.foe"); if (!u) { cancelSel(); return; }
+  const e = G.fight.foes[+u.dataset.u]; if (e.hp > 0) tryPlay(UI.sel, e, UI.choice);
+});
+$("stage").addEventListener("contextmenu", (ev) => { if (UI.sel >= 0) { ev.preventDefault(); cancelSel(); } });
+$("chS").onclick = (ev) => { ev.stopPropagation(); pickChoice("Surge"); };
+$("chE").onclick = (ev) => { ev.stopPropagation(); pickChoice("Ebb"); };
+$("chS").onmouseenter = () => UI.sel >= 0 && setPreview(UI.sel, autoTarget(G.fight.hand[UI.sel]), "Surge");
+$("chE").onmouseenter = () => UI.sel >= 0 && setPreview(UI.sel, autoTarget(G.fight.hand[UI.sel]), "Ebb");
+$("endTurn").onclick = (ev) => { ev.stopPropagation(); endTurnUI(); };
+$("drawPile").onclick = () => deckView("draw");
+$("discPile").onclick = () => deckView("disc");
+$("btnDeck").onclick = () => G && deckView("deck");
+$("btnHelp").onclick = howTo;
+$("btnSound").onclick = () => { SET.sound = !SET.sound; saveSet(); audioInit(); if (AU.out) AU.out.gain.value = SET.sound ? 0.55 : 0; refreshHUD(); };
+$("btnMotion").onclick = () => { SET.motion = !SET.motion; saveSet(); refreshHUD(); };
+$("rotX").onclick = () => { UI.rotX = true; $("rotate").classList.remove("show"); };
+addEventListener("keydown", (ev) => {
+  if ($("modal").classList.contains("show")) { if (ev.key === "Escape" || ev.key === "Enter") closeModal(); return; }
+  if (UI.screen !== "fight" || !G.fight) return;
+  const k = ev.key.toLowerCase();
+  if (k >= "1" && k <= "9") { const i = +k - 1; if (i < handEls.length) { setHover(i); onCard(i); } }
+  else if (k === "e") endTurnUI();
+  else if (k === "d") deckView("deck");
+  else if (k === "escape") cancelSel();
+  else if (targeting() && (k === "arrowleft" || k === "arrowright" || k === "tab")) {
+    ev.preventDefault(); const live = G.fight.foes.map((e, i) => (e.hp > 0 ? i : -1)).filter((i) => i >= 0);
+    const at = live.indexOf(UI.aim), n = live[(at + (k === "arrowleft" ? live.length - 1 : 1)) % live.length];
+    UI.aim = n; setPreview(UI.sel, G.fight.foes[n], UI.choice);
+  } else if (targeting() && k === "enter" && UI.aim >= 0) tryPlay(UI.sel, G.fight.foes[UI.aim], UI.choice);
+});
+addEventListener("resize", fit);
+
+// =====================================================================================
+// SELF-TEST (?test=1) and screenshot states (?shot=1, ?shot=title|map|reward|rest|end|gulls)
+// =====================================================================================
 function selftest() {
   const out = [], ok = (name, cond, info = "") => out.push({ name, pass: !!cond, info });
+  fxOn = false;
   ok("24 cards from the v3 pool", CARDS.length === 24);
   ok("Rogue Wave is cost 2 / 12 dmg (v3 fix)", byName["Rogue Wave"].cost === 2 && byName["Rogue Wave"].dmg === 12);
   ok("Crest Breaker is Ebb 1 (v3 fix)", byName["Crest Breaker"].dir === "Ebb" && byName["Crest Breaker"].tide === 1);
@@ -349,6 +1314,23 @@ function selftest() {
   G.node = 4; startNode(); F = G.fight; const m = F.foes[0]; m.hp = 50; m.phase = 2; m.eclipse = true; const before = m.hp;
   hit(m, 10); ok("Eclipse halves damage", before - m.hp === 5, `${before - m.hp}`);
   F.tide = 9; moveTide(1); ok("Crest breaks Eclipse and staggers the boss", !m.eclipse && m.stagger);
+  // The hover preview must predict exactly what the play will do (pillar: read the water).
+  let pvN = 0, pvOk = 0, pvBad = "";
+  for (let s = 0; s < 240; s++) {
+    rng = seeded(500 + s); newRun(); G.node = [0, 1, 3, 4][s % 4]; startNode(); const Fp = G.fight;
+    for (const x of Fp.foes) { x.hp = 1 + Math.floor(rng() * x.maxHp); x.block = rng() < .3 ? Math.floor(rng() * 8) : 0; x.drench = rng() < .3 ? 1 : 0;
+      if (x.key === "moon") { x.phase = rng() < .5 ? 2 : 1; x.eclipse = x.phase === 2 && rng() < .6; } }
+    Fp.tide = 1 + Math.floor(rng() * 9); Fp.block = Math.floor(rng() * 6);
+    const card = CARDS[Math.floor(rng() * CARDS.length)]; Fp.hand = [card]; Fp.energy = 3;
+    const tgt = needsTarget(card) ? Fp.foes[Math.floor(rng() * Fp.foes.length)] : null, choice = rng() < .5 ? "Surge" : "Ebb";
+    const p = preview(0, tgt, choice); play(0, tgt, choice); pvN++;
+    const same = p && p.foes.every((f, i) => f.hp === Fp.foes[i].hp && f.block === Fp.foes[i].block) && p.tide === Fp.tide && p.blockAfter === Fp.block;
+    if (same) pvOk++; else if (!pvBad) pvBad = `${card.name}: tide ${p && p.tide} vs ${Fp.tide}`;
+  }
+  ok("Hover preview matches the real play", pvN > 200 && pvOk === pvN, `${pvOk}/${pvN} ${pvBad}`);
+  // A dead enemy must not act later in the same enemy phase.
+  rng = seeded(9); newRun(); F = G.fight; F.foes[1].hp = 0; F.foes[1].intent = { atk: 50 }; F.foes[0].intent = {}; const hpB = G.hp; endTurn();
+  ok("Defeated enemies skip their move", G.hp === hpB, `hp ${hpB} → ${G.hp}`);
   // Smoke test: a greedy bot plays the whole run 30 times without errors.
   let wins = 0, errors = 0;
   for (let s = 0; s < 30; s++) {
@@ -368,20 +1350,39 @@ function selftest() {
     } catch (err) { errors++; out.push({ name: "bot error", pass: false, info: String(err && err.stack || err).slice(0, 300) }); }
   }
   ok("30 bot runs finish without errors", errors === 0, `bot wins ${wins}/30`);
+  // The screen can build a fight: one unit per combatant and one card element per card in hand.
+  try { rng = seeded(3); newRun(); UI.screen = "fight"; syncView(); buildUnits(false); rebuildHand(); drawUnits(); refreshHUD();
+    ok("Fight screen renders units and hand", document.querySelectorAll(".unit").length === G.fight.foes.length + 1 && handEls.length === G.fight.hand.length, `${handEls.length} cards`);
+  } catch (err) { ok("Fight screen renders units and hand", false, String(err).slice(0, 200)); }
   const pass = out.every((o) => o.pass);
   $("selftest").textContent = JSON.stringify({ game: "tidecaller", pass, results: out }, null, 1);
   $("selftest").hidden = false; document.title = `SELFTEST ${pass ? "PASS" : "FAIL"}`;
-  rng = Math.random;
+  fxOn = true; FX.length = 0; rng = Math.random;
 }
+function setupFight(node, seed) {
+  rng = seeded(seed); newRun(); G.node = node; G.pending = null; startNode(); FX.length = 0;
+  UI.screen = "fight"; hideScreen(); syncView(); buildUnits(false); rebuildHand(); drawUnits(); refreshHUD();
+}
+function setupShot(kind) {
+  document.body.classList.add("shot"); SET.coach = false; SET.sound = false;
+  if (kind === "title") return titleScreen();
+  if (kind === "map") { rng = seeded(4); newRun(); G.node = 2; UI.mapAdvance = true; return mapScreen(); }
+  if (kind === "reward") { rng = seeded(11); newRun(); setupFight(1, 11); return rewardScreen(); }
+  if (kind === "rest") { rng = seeded(5); newRun(); G.node = 2; G.hp = 37; return restScreen(); }
+  if (kind === "end") { rng = seeded(6); newRun(); G.node = 4; Object.assign(G.stats, { turns: 17, crests: 6, slacks: 3, dmg: 312, cards: 58 }); G.deck.push(byName["Tidal Wave"], byName["Moonpull"]); UI.eatT = 0; return endScreen(true); }
+  if (kind === "gulls") { setupFight(1, 21); const F = G.fight; F.tide = 2; F.foes[0].hp = 7; F.foes[2].drench = 1; syncView(); UI.water = UI.waterTarget = 2; drawUnits(); UI.hover = 1; layoutHand(true); setPreview(1, null, "Surge"); return; }
+  setupFight(4, 42); const F = G.fight; G.deck.push(byName["Rogue Wave"], byName["Moonpull"], byName["Tidal Wave"]);
+  F.hand = ["Rogue Wave", "Moonpull", "Splash", "Ebb and Flow", "Brace"].map((n) => byName[n]);
+  F.tide = 8; F.turn = 4; F.energy = 3; F.foes[0].hp = 61; F.foes[0].drench = 1; F.foes[0].intent = { atk: 6, tide: -2 }; G.hp = 41; F.block = 0;
+  UI.water = UI.waterTarget = 8; UI.eat = UI.eatT = .3; syncView(); rebuildHand(); drawUnits(); refreshHUD();
+  UI.hover = 0; layoutHand(true); setPreview(0, F.foes[0], "Surge");
+}
+
 const params = new URLSearchParams(location.search);
-if (params.has("test")) { selftest(); closeOverlay(); newRun(); render(); }
-else if (params.has("shot")) {
-  rng = seeded(42); newRun(); G.deck.push(byName["Rogue Wave"], byName["Moonpull"], byName["Tidal Wave"]);
-  G.node = 4; startNode(); const F = G.fight; F.hand = ["Rogue Wave", "Moonpull", "Splash", "Ebb and Flow", "Brace"].map((n) => byName[n]);
-  F.tide = 8; F.turn = 4; F.foes[0].hp = 61; F.foes[0].drench = 1; F.foes[0].intent = { atk: 10 }; G.hp = 41;
-  G.log = ["Spring Tide → Surge 4", "CREST! 8 damage to all enemies.", "Moon-Eater hits for 4.", "Riptide → Moon-Eater"];
-  render();
-} else { newRun(); render(); }
+fit();
+if (params.has("test")) selftest();
+if (params.get("shot")) setupShot(params.get("shot")); else titleScreen();
+requestAnimationFrame(frame);
 </script>
 </body>
 </html>
