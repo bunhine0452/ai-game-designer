@@ -1,6 +1,6 @@
 # Sources
 
-Full bibliography for **claude-game-designer**. Every reference file in `skills/*/references/` cites
+Full bibliography for **ai-game-designer**. Every reference file in `skills/*/references/` cites
 entries from this list by ID (e.g. `[A5]`). Trust levels:
 
 - **P** — primary: the book, paper, talk, official document, or the designer's own writing.

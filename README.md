@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/images/banner.png" alt="claude-game-designer: research-backed game design skills for every genre" width="100%">
+  <img src="docs/images/banner.png" alt="ai-game-designer: research-backed game design skills for any AI agent" width="100%">
 </p>
 
 <p align="center">
@@ -7,14 +7,14 @@
   <img alt="Skills: 6" src="https://img.shields.io/badge/skills-6-fcbf49">
   <img alt="Genre playbooks: 26" src="https://img.shields.io/badge/genre%20playbooks-26-2a78d6">
   <img alt="Languages" src="https://img.shields.io/badge/answers%20in-EN%20%C2%B7%20KO%20%C2%B7%20JA%20%C2%B7%20ZH%20%C2%B7%20ES-1baf7a">
-  <img alt="Works in Claude Code and the Claude app" src="https://img.shields.io/badge/works%20in-Claude%20Code%20%7C%20Claude%20app-14213d">
+  <img alt="Works with Claude Code, Codex, Antigravity, Gemini CLI, Cursor, Copilot" src="https://img.shields.io/badge/works%20with-Claude%20Code%20%C2%B7%20Codex%20%C2%B7%20Antigravity%20%C2%B7%20Gemini%20CLI%20%C2%B7%20Cursor%20%C2%B7%20Copilot-14213d">
 </p>
 
 <p align="center"><b>English</b> · <a href="README.ko.md">한국어</a></p>
 
-# claude-game-designer
+# ai-game-designer
 
-**Turn Claude into a senior game designer who can show its work.** Six skills cover every genre,
+**Turn any AI agent into a senior game designer who can show its work.** Six skills cover every genre,
 from first concept to soft launch: pacing you can plot, numbers you can simulate, documents your
 team will actually read, and reviews that catch dark patterns before players or regulators do.
 
@@ -29,10 +29,11 @@ team will actually read, and reviews that catch dark patterns before players or 
 - **Answers in your language.** It detects the language you write in, answers in it, and
   shows each technical term with the English term on first use, e.g. `관심 곡선 (Interest Curve)`.
   A 5-language glossary ships with it.
-- **Works everywhere.** Skills only: no MCP servers, API keys or hooks. Install it in Claude Code
-  or upload it to the Claude app.
+- **Works with your agent.** Native packages for Claude Code, OpenAI Codex, Antigravity and Gemini
+  CLI, plus an installer for Cursor, Copilot, OpenCode and any agent that reads `SKILL.md`
+  folders. Skills only: no MCP servers, API keys or hooks.
 
-> Unofficial community project. Not affiliated with or endorsed by Anthropic.
+> Unofficial community project. Not affiliated with or endorsed by Anthropic, OpenAI or Google.
 
 ---
 
@@ -76,37 +77,60 @@ and flags undercosted and overcosted cards.
 
 <p align="center"><img src="docs/images/cost-curve.png" width="60%" alt="Card cost curve with outliers"></p>
 
+## Showcase: six real sessions
+
+We ran six design sessions **in parallel** across **Claude Code, Codex and Antigravity**, in
+Korean, English, Japanese, Spanish and Chinese, each in a fresh project folder with an original
+concept. Every output file the agents wrote is in [`showcase/`](showcase/):
+
+| Agent | Language | Concept | Result |
+|---|---|---|---|
+| Claude Code | 한국어 | Cozy monster farm | Day pacing 29 → 92, plus brief and one-pager |
+| Claude Code | English | Tide-spell deckbuilder | Cost-curve R² 0.71 → 0.96, run curve fixed |
+| Claude Code | 日本語 | F2P gacha RPG | Inflation 5.12:1 → 1.00, worst case 300 → 120 pulls, monetization review |
+| Codex | English | Horror lighthouse chapter | Pacing findings 12 → 0, plus accessibility checklist |
+| Antigravity | Español | Garden tower defense | 30-level progression, 2 mis-costed towers fixed |
+| Codex | 中文 | Idle space mining | Prestige pacing, review with dark-pattern check |
+
+Real use also found a gap: the gacha simulator lacked 50/50 guarantees and spark exchanges. That's
+fixed in 1.1.0 ([details](showcase/README.md#what-real-use-taught-us-and-what-changed-in-110)).
+
 ---
 
 ## Install
 
-### Claude Code
+| Agent | How |
+|---|---|
+| **Claude Code** | `/plugin marketplace add bunhine0452/ai-game-designer` then `/plugin install game-designer@ai-game-designer` |
+| **OpenAI Codex** | `codex plugin marketplace add bunhine0452/ai-game-designer` then `codex plugin add game-designer@ai-game-designer` |
+| **Antigravity** | Clone the repo, then `agy plugin install ./ai-game-designer` |
+| **Gemini CLI** | `gemini extensions install https://github.com/bunhine0452/ai-game-designer` |
+| **Cursor, Copilot, OpenCode, others** | Clone, then `./install.sh --agent cursor` (or `copilot`, `opencode`, `universal`). See below |
+| **Claude app** (claude.ai / desktop) | Upload `game-designer.plugin` or the per-skill zips from the [latest release](https://github.com/bunhine0452/ai-game-designer/releases/latest) |
 
-```text
-/plugin marketplace add bunhine0452/claude-game-designer
-/plugin install game-designer@claude-game-designer
+### Any agent that reads `SKILL.md` folders
+
+```bash
+git clone https://github.com/bunhine0452/ai-game-designer
+cd your-game-project
+../ai-game-designer/install.sh                      # ./.agents/skills (Codex, Gemini CLI, Antigravity...)
+../ai-game-designer/install.sh --agent claude --scope user
+../ai-game-designer/install.sh --list-agents        # every known target and its paths
 ```
 
-Skills trigger automatically from what you ask. You can also call one directly, e.g.
-`/game-designer:fun-curve`.
+The installer copies the six skills (each with the shared glossary), or symlinks them with
+`--link`. Use `--dest <dir>` for any other agent. The repo also follows the standard
+`skills/<name>/SKILL.md` layout that the community `npx skills add bunhine0452/ai-game-designer`
+CLI scans (not tested here). Agents without skill support can follow [`AGENTS.md`](AGENTS.md).
 
-### Claude app (claude.ai / desktop)
+### Claude app notes
 
-1. Download the files from the [latest release](https://github.com/bunhine0452/claude-game-designer/releases/latest):
-   - `game-designer.plugin` (the whole plugin), for apps that support uploading plugins, or
-   - `skills/*.zip` (one zip per skill), for **Settings → Capabilities → Skills → Upload skill**.
-2. Turn on **code execution** so the scripts can run (charts appear when matplotlib is
-   available, otherwise text and CSV).
-3. Upload `game-design.zip` first: it's the router and holds the glossary. Add the others as
-   you need them. Each zip is self-contained.
+Upload `game-design.zip` first: it's the router and holds the glossary. Turn on **code
+execution** so the scripts can run (charts appear when matplotlib is available, otherwise text
+and CSV). Menu names differ between app versions. Look for "Skills" or "Plugins" in Settings.
 
-Menu names can differ between app versions. Look for "Skills" or "Plugins" in Settings.
-
-### Other agents that read `SKILL.md` folders
-
-Copy `skills/<name>/` into your agent's skills directory (e.g. `~/.claude/skills/`). The
-scripts are plain Python 3.
-
+In Claude Code, skills trigger automatically from what you ask, or you can call one directly,
+e.g. `/game-designer:fun-curve`.
 ---
 
 ## Usage examples
@@ -168,13 +192,16 @@ sources). The loot-box law map is dated **October 2026** and is **not legal advi
 
 Popular game-dev agent projects focus on *production* (studio role-play agents) or *engines*
 (Godot, Unity and Phaser skills). This plugin focuses on **design knowledge and analysis**:
-cited playbooks, runnable models and an ethics layer. It works in both Claude Code and the Claude
-app, and it pairs well with engine or production plugins. See the competitive scan in
+cited playbooks, runnable models and an ethics layer. It works across agents, and it pairs well
+with engine or production plugins. See the competitive scan in
 [`research/RESEARCH_NOTES.md`](research/RESEARCH_NOTES.md#e-competitive-scan).
 
 ## Quality checks
 
-- `claude plugin validate .` passes for both the plugin and the marketplace manifest.
+- Manifests validate with each agent's own tool: `claude plugin validate --strict`,
+  `agy plugin validate`, `gemini extensions validate`, and a Codex marketplace install
+  (`codex plugin marketplace add` then `codex plugin add`).
+- Codex and Antigravity both discovered all six skills from a project's `.agents/skills` folder.
 - Every script runs against the bundled examples (with and without matplotlib).
 - `evals/`: 18 trigger-and-language cases (3 per skill: English, Korean, and Japanese, Chinese or
   Spanish), run with `claude plugin eval .`. In the v1.0.0 run (Sonnet, 1 run per case), the right

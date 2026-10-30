@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/images/banner.png" alt="claude-game-designer: 모든 장르를 위한 연구 기반 게임 디자인 스킬" width="100%">
+  <img src="docs/images/banner.png" alt="ai-game-designer: 모든 AI 에이전트를 위한 연구 기반 게임 디자인 스킬" width="100%">
 </p>
 
 <p align="center">
@@ -7,14 +7,14 @@
   <img alt="Skills: 6" src="https://img.shields.io/badge/skills-6-fcbf49">
   <img alt="Genre playbooks: 26" src="https://img.shields.io/badge/genre%20playbooks-26-2a78d6">
   <img alt="Languages" src="https://img.shields.io/badge/answers%20in-EN%20%C2%B7%20KO%20%C2%B7%20JA%20%C2%B7%20ZH%20%C2%B7%20ES-1baf7a">
-  <img alt="Works in Claude Code and the Claude app" src="https://img.shields.io/badge/works%20in-Claude%20Code%20%7C%20Claude%20app-14213d">
+  <img alt="Works with Claude Code, Codex, Antigravity, Gemini CLI, Cursor, Copilot" src="https://img.shields.io/badge/works%20with-Claude%20Code%20%C2%B7%20Codex%20%C2%B7%20Antigravity%20%C2%B7%20Gemini%20CLI%20%C2%B7%20Cursor%20%C2%B7%20Copilot-14213d">
 </p>
 
 <p align="center"><a href="README.md">English</a> · <b>한국어</b></p>
 
-# claude-game-designer
+# ai-game-designer
 
-**근거를 대며 일하는 시니어 게임 디자이너를 Claude 안에.** 첫 콘셉트부터 소프트 런칭까지, 모든
+**어떤 AI 에이전트든 근거를 대며 일하는 시니어 게임 디자이너로.** 첫 콘셉트부터 소프트 런칭까지, 모든
 장르를 다루는 스킬 6개입니다. 그래프로 그려 보는 페이싱, 시뮬레이션으로 확인하는 수치, 팀이 실제로
 읽는 문서, 그리고 플레이어나 규제 기관보다 먼저 다크 패턴을 잡아내는 리뷰를 제공합니다.
 
@@ -28,10 +28,11 @@
   설계법까지 담았습니다.
 - **당신의 언어로 답합니다.** 질문한 언어를 감지해 그 언어로 답하고, 전문 용어는 처음 나올 때
   `관심 곡선 (Interest Curve)` 처럼 영어를 병기합니다. 5개 언어 용어집이 함께 들어 있습니다.
-- **어디서나 동작.** 스킬로만 구성되어 MCP 서버, API 키, 훅이 필요 없습니다. Claude Code에
-  설치하거나 Claude 앱에 업로드하면 됩니다.
+- **쓰는 에이전트 그대로.** Claude Code, OpenAI Codex, Antigravity, Gemini CLI용 네이티브 패키지와,
+  Cursor·Copilot·OpenCode 등 `SKILL.md` 폴더를 읽는 모든 에이전트용 설치 스크립트를 제공합니다.
+  스킬로만 구성되어 MCP 서버, API 키, 훅이 필요 없습니다.
 
-> 비공식 커뮤니티 프로젝트이며 Anthropic과 제휴하거나 보증받지 않았습니다.
+> 비공식 커뮤니티 프로젝트이며 Anthropic, OpenAI, Google과 제휴하거나 보증받지 않았습니다.
 
 ---
 
@@ -73,36 +74,61 @@
 
 <p align="center"><img src="docs/images/cost-curve.png" width="60%" alt="이상치가 표시된 카드 비용 곡선"></p>
 
+## 쇼케이스: 실제 세션 6개
+
+**Claude Code, Codex, Antigravity** 세 에이전트로 디자인 세션 6개를 **병렬로** 돌렸습니다. 한국어,
+영어, 일본어, 스페인어, 중국어로 진행했고, 세션마다 새 프로젝트 폴더에서 독창적인 콘셉트를 다뤘습니다.
+에이전트가 만든 결과물 전부가 [`showcase/`](showcase/)에 있습니다.
+
+| 에이전트 | 언어 | 콘셉트 | 결과 |
+|---|---|---|---|
+| Claude Code | 한국어 | 몬스터 농장 힐링 게임 | 하루 페이싱 29 → 92, 브리프와 원페이지 기획서 |
+| Claude Code | English | 조류 마법 덱빌더 | 비용 곡선 R² 0.71 → 0.96, 런 곡선 수정 |
+| Claude Code | 日本語 | F2P 가챠 RPG | 인플레이션 5.12:1 → 1.00, 최악의 경우 300 → 120연차, 과금 리뷰 |
+| Codex | English | 호러 등대 챕터 | 페이싱 문제 12 → 0, 접근성 체크리스트 |
+| Antigravity | Español | 정원 타워 디펜스 | 30레벨 성장 설계, 비용이 어긋난 타워 2개 수정 |
+| Codex | 中文 | 방치형 우주 채굴 | 환생 페이싱, 다크 패턴 점검이 포함된 리뷰 |
+
+실사용에서 빈틈도 하나 찾았습니다. 가챠 시뮬레이터에 50/50 보장과 교환(스파크) 천장이 없었는데,
+1.1.0에서 고쳤습니다 ([자세히](showcase/README.md#what-real-use-taught-us-and-what-changed-in-110)).
+
 ---
 
 ## 설치
 
-### Claude Code
+| 에이전트 | 방법 |
+|---|---|
+| **Claude Code** | `/plugin marketplace add bunhine0452/ai-game-designer` 후 `/plugin install game-designer@ai-game-designer` |
+| **OpenAI Codex** | `codex plugin marketplace add bunhine0452/ai-game-designer` 후 `codex plugin add game-designer@ai-game-designer` |
+| **Antigravity** | 저장소를 클론한 뒤 `agy plugin install ./ai-game-designer` |
+| **Gemini CLI** | `gemini extensions install https://github.com/bunhine0452/ai-game-designer` |
+| **Cursor, Copilot, OpenCode 등** | 클론 후 `./install.sh --agent cursor` (또는 `copilot`, `opencode`, `universal`). 아래 참고 |
+| **Claude 앱** (claude.ai / 데스크톱) | [최신 릴리스](https://github.com/bunhine0452/ai-game-designer/releases/latest)의 `game-designer.plugin` 또는 스킬별 zip 업로드 |
 
-```text
-/plugin marketplace add bunhine0452/claude-game-designer
-/plugin install game-designer@claude-game-designer
+### `SKILL.md` 폴더를 읽는 모든 에이전트
+
+```bash
+git clone https://github.com/bunhine0452/ai-game-designer
+cd your-game-project
+../ai-game-designer/install.sh                      # ./.agents/skills (Codex, Gemini CLI, Antigravity 등)
+../ai-game-designer/install.sh --agent claude --scope user
+../ai-game-designer/install.sh --list-agents        # 지원하는 대상과 경로 목록
 ```
 
-질문 내용에 맞춰 스킬이 자동으로 실행됩니다. `/game-designer:fun-curve` 처럼 직접 호출할 수도 있습니다.
+설치 스크립트는 스킬 6개를 복사하고, 스킬마다 공용 용어집을 함께 넣습니다. `--link`를 주면 복사 대신
+심볼릭 링크를 만듭니다. 다른 에이전트라면 `--dest <dir>`로 경로를 지정하세요. 저장소는 표준
+`skills/<name>/SKILL.md` 구조를 따르므로 커뮤니티 CLI인 `npx skills add bunhine0452/ai-game-designer`
+도 인식합니다 (이 프로젝트에서 직접 테스트하지는 않았습니다). 스킬을 지원하지 않는 에이전트는
+[`AGENTS.md`](AGENTS.md)를 따르면 됩니다.
 
-### Claude 앱 (claude.ai / 데스크톱)
+### Claude 앱 참고
 
-1. [최신 릴리스](https://github.com/bunhine0452/claude-game-designer/releases/latest)에서 파일을 내려받습니다.
-   - `game-designer.plugin`: 플러그인 업로드를 지원하는 앱용 (전체 플러그인)
-   - `skills/*.zip`: **설정 → 기능(Capabilities) → 스킬 → 스킬 업로드** 용 (스킬마다 zip 하나)
-2. 스크립트가 실행되도록 **코드 실행**을 켭니다. matplotlib이 있으면 차트가, 없으면 텍스트와 CSV가
-   나옵니다.
-3. 라우터이자 용어집을 담은 `game-design.zip`을 먼저 올리고, 나머지는 필요할 때 추가하세요. zip마다
-   필요한 파일이 모두 들어 있습니다.
+라우터이자 용어집을 담은 `game-design.zip`을 먼저 올리세요. 스크립트가 실행되도록 **코드 실행**을
+켭니다. matplotlib이 있으면 차트가, 없으면 텍스트와 CSV가 나옵니다. 메뉴 이름은 앱 버전에 따라 다를
+수 있으니 설정에서 "Skills"나 "Plugins"를 찾으세요.
 
-메뉴 이름은 앱 버전에 따라 다를 수 있습니다. 설정에서 "Skills"나 "Plugins"를 찾으세요.
-
-### `SKILL.md` 폴더를 읽는 다른 에이전트
-
-`skills/<name>/` 폴더를 에이전트의 스킬 디렉터리(예: `~/.claude/skills/`)에 복사하면 됩니다.
-스크립트는 일반 Python 3입니다.
-
+Claude Code에서는 질문 내용에 맞춰 스킬이 자동으로 실행되고, `/game-designer:fun-curve` 처럼 직접
+호출할 수도 있습니다.
 ---
 
 ## 사용 예시
@@ -162,13 +188,15 @@ Accessibility Guidelines, Xbox Accessibility Guidelines, APX. 모든 내용은 �
 
 인기 있는 게임 개발 에이전트 프로젝트들은 *제작 공정*(스튜디오 역할극 에이전트)이나
 *엔진*(Godot·Unity·Phaser 스킬)에 집중합니다. 이 플러그인은 **디자인 지식과 분석**에 집중합니다.
-출처가 달린 플레이북, 실행 가능한 모델, 윤리 점검 층이 핵심입니다. Claude Code와 Claude 앱 양쪽에서
-동작하고, 엔진·제작 플러그인과 함께 쓰기 좋습니다. 경쟁 분석은
+출처가 달린 플레이북, 실행 가능한 모델, 윤리 점검 층이 핵심입니다. 여러 에이전트에서 동작하고,
+엔진·제작 플러그인과 함께 쓰기 좋습니다. 경쟁 분석은
 [`research/RESEARCH_NOTES.md`](research/RESEARCH_NOTES.md#e-competitive-scan)에 있습니다.
 
 ## 품질 검증
 
-- `claude plugin validate .` 가 플러그인과 마켓플레이스 매니페스트 모두 통과합니다.
+- 각 에이전트의 검증 도구를 모두 통과했습니다: `claude plugin validate --strict`, `agy plugin validate`,
+  `gemini extensions validate`, Codex 마켓플레이스 설치(`codex plugin marketplace add` → `codex plugin add`).
+- Codex와 Antigravity 모두 프로젝트의 `.agents/skills` 폴더에서 스킬 6개를 전부 인식했습니다.
 - 모든 스크립트를 동봉된 예제로 실행해 확인했습니다 (matplotlib 유무 모두).
 - `evals/`: 스킬당 3개씩 총 18개의 트리거·언어 테스트 케이스가 있습니다 (영어, 한국어, 그리고 일본어·
   중국어·스페인어 중 하나). `claude plugin eval .` 로 실행합니다. v1.0.0 실행 결과(Sonnet, 케이스당 1회):
