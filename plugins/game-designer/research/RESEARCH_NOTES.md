@@ -128,6 +128,8 @@ secondary or low-trust sources, the note says so.
 
 ### A.9 What makes it fun: experiments and telemetry (2012–2025)
 
+For the longer treatment of why fun is hard to design, predict and measure, see `FUN_DEEP_DIVE.md`.
+
 The frameworks above describe how to shape experience. This pass collected evidence on what
 players enjoy. The details live in `fun-curve/references/what-makes-it-fun.md`, and the review
 procedure in `design-review/references/fun-diagnosis.md`.
