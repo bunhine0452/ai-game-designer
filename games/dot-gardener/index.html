@@ -216,7 +216,7 @@ const PAL = {
   z: "#0d0b14",                                                           // reserved: darkness
 };
 // bloom swaps the moss ramp for living greens and warms the stone (a separate table, as the art direction asks)
-const BLOOM = { ...PAL, N: "#2c4f2b", n: "#3f7a3a", M: "#79b84c", m: "#b8e07a", S: "#463c4f", g: "#76697a", l: "#ab9e9c", w: "#ddd2c3" };
+const BLOOM = { ...PAL, N: "#2c4f2b", n: "#3f7a3a", M: "#79b84c", m: "#b8e07a", S: "#503f52", g: "#76697a", l: "#ab9e9c", w: "#ddd2c3" };
 const hash = (x, y, s = 0) => { let h = (x * 374761393 + y * 668265263 + s * 2147483647) | 0; h = (h ^ (h >>> 13)) * 1274126177; return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
 function mk(w, h) { const c = document.createElement("canvas"); c.width = w; c.height = h; return c; }
 // sprites are rows of palette letters; "." is transparent. mirror() makes the left-facing copies.
@@ -297,7 +297,8 @@ function paintFloor(g, P, X, Y, tx, ty, raised) {   // worn flagstones with moss
   const off = hash(tx, ty) < 0.5 ? 0 : 8;
   for (let i = 0; i < 16; i++) { px(g, P, "S", X + i, Y + 7, 1, 1); px(g, P, "S", X + i, Y + 15, 1, 1); }
   px(g, P, "S", X + ((off + 3) % 16), Y, 1, 7); px(g, P, "S", X + ((off + 11) % 16), Y + 8, 1, 7);
-  for (let i = 0; i < 16; i++) { if (hash(tx, ty, i) < 0.3) px(g, P, hi, X + i, Y + (i % 2 ? 0 : 8), 1, 1); }
+  for (let row = 0; row < 16; row += 8) if (hash(tx, ty, 70 + row) < 0.6) {   // worn top edges catch the light: 2-3 px runs, never single specks
+    const len = 2 + (hash(tx, ty, 71 + row) < 0.4), i = 1 + Math.floor(hash(tx, ty, 72 + row) * (14 - len)); px(g, P, hi, X + i, Y + row, len, 1); }
   for (let i = 0; i < 6; i++) { const r = hash(tx, ty, 40 + i); if (r < 0.55) px(g, P, r < 0.25 ? "M" : "n", X + Math.floor(hash(tx, ty, 50 + i) * 16), Y + (hash(tx, ty, 60 + i) < 0.5 ? 7 : 15), 1 + (r < 0.15), 1); }
   if (hash(tx, ty, 9) < 0.18) { const cx = X + 3 + Math.floor(hash(tx, ty, 10) * 9), cy = Y + 2 + Math.floor(hash(tx, ty, 11) * 3); px(g, P, "M", cx, cy, 2, 1); px(g, P, "m", cx, cy - 1, 1, 1); px(g, P, "n", cx + 1, cy + 1, 1, 1); }
 }
@@ -305,8 +306,11 @@ function paintWall(g, P, X, Y, tx, ty, below, mural) {   // 3/4 view: a light to
   const front = below !== "#" && below !== "m" && below !== " ";
   px(g, P, "S", X, Y, 16, 16);
   const topH = front ? 6 : 16;
-  px(g, P, "g", X, Y, 16, topH); for (let i = 0; i < 16; i++) if (hash(tx, ty, i) < 0.25) px(g, P, "l", X + i, Y + Math.floor(hash(tx, ty, 20 + i) * topH), 1, 1);
-  if (!front) { for (let r = 0; r < 4; r++) for (let i = 0; i < 16; i += 8) px(g, P, "S", X + ((i + r * 4) % 16), Y + r * 4 + 3, 1, 1); return; }
+  px(g, P, "g", X, Y, 16, topH);
+  for (let k = 0; k < (front ? 1 : 2); k++) if (hash(tx, ty, 20 + k) < 0.7) {   // grain as small lit clusters (light top-left), with empty stone between
+    const x = X + 1 + Math.floor(hash(tx, ty, 22 + k) * 12), y = Y + 1 + Math.floor(hash(tx, ty, 24 + k) * Math.max(1, topH - 3)) + k * (front ? 0 : 6);
+    px(g, P, "l", x, y, 2, 1); px(g, P, "S", x + 1, y + 1, 2, 1); }
+  if (!front) return;
   px(g, P, "k", X, Y + topH, 16, 1);
   for (let r = 0; r < 3; r++) {   // bricks
     const yy = Y + topH + 1 + r * 3, sh = r % 2 ? 4 : 0;
@@ -351,7 +355,8 @@ function paintGoal(g, P, X, Y, tx, ty, raised, bloomed) {   // the dried basin o
 }
 function paintDeep(g, P, X, Y, tx, ty) {   // solid ruin mass beyond the walls: dark rubble with roots, so the play area reads at a glance
   px(g, P, "k", X, Y, 16, 16);
-  for (let i = 0; i < 7; i++) { const r = hash(tx, ty, 300 + i), x = X + Math.floor(hash(tx, ty, 310 + i) * 14), y = Y + Math.floor(hash(tx, ty, 320 + i) * 14); px(g, P, r < 0.5 ? "S" : r < 0.8 ? "N" : "g", x, y, r < 0.3 ? 2 : 1, 1); }
+  for (let i = 0; i < 3; i++) { const r = hash(tx, ty, 300 + i), x = X + 1 + Math.floor(hash(tx, ty, 310 + i) * 12), y = Y + 1 + i * 5 + Math.floor(hash(tx, ty, 320 + i) * 2);
+    if (r < 0.8) { px(g, P, r < 0.5 ? "S" : "N", x, y, 2, 1); px(g, P, "N", x + 1, y + 1, 2, 1); } }   // rubble chunks: a lit top over a darker side
   if (hash(tx, ty, 330) < 0.25) { const x = X + 2 + Math.floor(hash(tx, ty, 331) * 10); px(g, P, "N", x, Y, 1, 6); px(g, P, "n", x + 1, Y + 5, 1, 4); }
 }
 // the 3/4 faces that hang below raised floors and walls into the tile underneath
@@ -884,6 +889,15 @@ function selftest() {
   S = act(newState(room), room, "Ps").S; r = act(S, room, "R"); ok("a sunflower blocks its tile", r.S.x === 1 && r.ev.some((e) => e.e === "bump"));
   ok("integer scaling: 1280×720 → ×4, 1920×1080 → ×6, never below ×1", scaleFor(1280, 720) === 4 && scaleFor(1920, 1080) === 6 && scaleFor(300, 100) === 1);
   const base = new Set(Object.values(PAL)); ok("base palette stays within 32 colours (27 + reserved)", base.size <= 32, `${base.size} colours`);
+  {   // pixel contract: a real frame (room 4 mid-bloom, HUD, text) holds palette colours only
+    const keep = { scene: G.scene, ri: G.ri }, rgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)).join(",");
+    const allowed = new Set([...Object.values(PAL), ...Object.values(BLOOM)].map(rgb));
+    G.scene = "play"; enterRoom(3, false); G.bloomT = 0.4; render();
+    const d = b.getImageData(0, 0, VW, VH).data; let stray = 0, ex = "";
+    for (let i = 0; i < d.length; i += 4) { const k = d[i] + "," + d[i + 1] + "," + d[i + 2]; if (!allowed.has(k) || d[i + 3] !== 255) { stray++; ex = ex || k; } }
+    ok("a drawn frame (room 4 blooming, HUD and text) uses palette colours only (no anti-aliasing or blending)", stray === 0, `${stray} stray pixels ${ex}`);
+    G.scene = keep.scene; enterRoom(keep.ri, false);
+  }
   const pass = out.every((o) => o.pass), el = document.getElementById("selftest");
   el.textContent = JSON.stringify({ game: "dot-gardener", pass, results: out }, null, 1); el.hidden = false; document.title = "SELFTEST " + (pass ? "PASS" : "FAIL");
 }
