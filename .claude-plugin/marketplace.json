@@ -6,14 +6,14 @@
   },
   "metadata": {
     "description": "Game design skills for AI agents: pacing, genres, balance, documents, reviews and playable prototypes.",
-    "version": "1.8.0"
+    "version": "1.9.0"
   },
   "plugins": [
     {
       "name": "game-designer",
       "source": "./plugins/game-designer",
       "description": "Research-backed game design skills for every genre: fun curves and pacing diagnostics, 26 genre playbooks, progression/economy/gacha simulators, GDD and art-direction templates, design reviews with dark-pattern checks, and playable prototypes with self-tests. Answers in your language.",
-      "version": "1.8.0",
+      "version": "1.9.0",
       "author": {
         "name": "bunhine0452",
         "url": "https://github.com/bunhine0452"

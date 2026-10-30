@@ -8,6 +8,25 @@ enjoy*. Use it to choose between design options and to word fixes as testable pr
 and weak on another, so diagnose each one separately (see `design-review` →
 `references/fun-diagnosis.md`).
 
+## The common thread: uncertainty resolved faster than expected
+
+Predictive-processing research offers one account that ties most of the findings below
+together: play deliberately adds uncertainty, and pleasure comes when that uncertainty shrinks
+*faster than expected* [A50], [A51]. It matches Schmidhuber's "compression progress" [A53] and
+Koster's "fun is learning" [A10], and it explains enjoyable challenge, close finishes, curiosity,
+the sweet spot of recreational fear [A52] and why a mastered game gets boring. It does not cover
+everything, so keep four layers in mind:
+
+```
+fun ≈ a supply of resolvable uncertainty at the right rate
+      × a sensory layer that makes each action and outcome felt (feel, music, effectance [A61])
+      × people to share it with and something that matters (optional, but strong) [A42], [A60]
+      for a specific audience [A8]
+```
+
+Each factor can zero the product: brilliant systems with dead feel, or great feel with nothing in
+doubt, still aren't fun. The longer treatment is in `research/FUN_DEEP_DIVE.md`.
+
 ## Evidence at a glance
 
 Strength: **Strong** = large or pre-registered studies, or replicated. **Moderate** = one good
@@ -165,4 +184,5 @@ rule interactions in a greybox before building content.
 - [A42] Gajadhar, de Kort & IJsselsteijn (2008), shared fun. · [A43] Cardona-Rivera et al. (2014), meaningful choices.
 - [A44] Daneels et al. (2021), eudaimonic experiences in games. · [A45] Fujibayashi, Dohta & Takizawa (GDC 2017), BotW.
 - [A46] Koepp et al. (1998), dopamine release during a video game. · [A8] Quantic Foundry. · [A10] Koster.
+- [A50] Deterding et al. (2022) · [A51] Andersen et al. (2023) · [A52] Andersen et al. (2020) · [A53] Schmidhuber (2010) · [A60] Bopp et al. (2016) · [A61] Klimmt et al. (2007).
 - Full bibliography: `research/SOURCES.md` in the repository.

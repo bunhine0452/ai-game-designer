@@ -4,6 +4,26 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [1.9.0] - 2026-10-30
+
+### Added
+- **Fun hypothesis** (game-design): the design brief now states what players will want to find
+  out, how often it resolves, what makes it felt and for whom, and the next step is the smallest
+  toy with keep / pivot / kill thresholds written before anyone plays. `frameworks.md` has the
+  template and the loop.
+- **The common thread** (fun-curve): `what-makes-it-fun.md` opens with the unifying account
+  (uncertainty resolved faster than expected, times the sensory, social and meaning layers).
+- **Anti-fun screen** (playable-prototype): a standard set of bot checks for every prototype's
+  `?test=1`: beatable, not trivial, no dominant option, outcome in doubt, decisions and questions
+  keep coming. `template.html` demonstrates two of them.
+- **Free-choice play and A/B comparisons** (design-review): `free_play` and `prefer` events;
+  `playtest_report.py` reports both, with an exact sign test for two-way comparisons, and flags
+  `LOW_FREE_PLAY`.
+- **Curiosity gaps** (fun-curve): an optional `new` column and curiosity beat types;
+  `fun_curve.py` flags `CURIOSITY_GAP` when nothing new arrives for over 30% of the run before
+  the climax (`--curiosity-gap`). Beat lists without these markers report as before.
+- `research/FUN_DEEP_DIVE.md`: why fun is hard to design, predict and measure (sources A48–A68).
+
 ## [1.8.0] - 2026-10-30
 
 ### Added

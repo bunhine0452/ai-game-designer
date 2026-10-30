@@ -126,7 +126,36 @@ what a player is still learning at hours 1, 5, 20 and 100. An empty row predicts
 | Meta loop | Valley restoration map, monster codex, seasonal festivals |
 | Rejected by pillars | Combat arenas (no fail states), stamina timers that end the day early (punishes rather than detours) |
 
+## Fun hypothesis and keep/kill thresholds
+
+No document can show that a game will be fun: the effect emerges in play, pooled design rules
+transfer poorly between games, and even strong studios cancel most projects. Treat fun as a
+hypothesis and test it with the smallest playable toy.
+
+The best current account of fun is **uncertainty resolved faster than expected**: players enjoy
+having something in doubt and resolving it at a good rate. On top of that sit the sensory layer
+(feel, music, effects), other people, and meaning. Write the hypothesis in those terms:
+
+```
+Open question:   what will players want to find out? (where the exit is, which build wins,
+                 who survives the last lap, what the mural means)
+Rate:            how often a question resolves, and how often a new one arrives
+Felt as:         what makes each resolution land (feel, sound, a reveal, a number popping)
+For whom:        the audience and kind of fun (hard, easy, people, serious)
+Keep if:         a behavioural threshold, e.g. 4 of 6 testers keep playing 5+ min after
+                 "you can stop now", and A beats B in 8 of 12 comparisons
+Kill if:         the floor below which you stop, e.g. fewer than 2 of 6 keep playing
+```
+
+**Loop:** hypothesis → smallest toy (core verb plus one source of uncertainty, no content) →
+bot screen for anti-fun (`playable-prototype` → testing-and-bots, "anti-fun screen") → 5-8
+outsiders (free-choice play, an A/B comparison, observer notes; `design-review` → playtest kit) →
+keep, pivot or kill against the thresholds you wrote first → only then build content.
+
+Write the thresholds before the test. Thresholds chosen after seeing the data always pass.
+
 ## Sources
+- [A48]–[A68] the fun deep dive (`research/FUN_DEEP_DIVE.md`): why fun is hard, uncertainty resolution, measuring and studio practice.
 
 - [A5] Hunicke, LeBlanc & Zubek (2004), *MDA: A Formal Approach to Game Design and Game Research*. https://users.cs.northwestern.edu/~hunicke/MDA.pdf
 - [A6] Lazzaro (2004), *Why We Play Games: Four Keys to More Emotion Without Story*.

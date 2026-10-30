@@ -221,7 +221,7 @@ It also understands Japanese, Chinese and Spanish (e.g. 「ホラーの緩急を
 | `plugins/game-designer/skills/balance-economy/scripts/economy_sim.py` | economy JSON (currencies, archetypes, faucets, sinks, gacha) | per-session and per-player CSVs, exact pity CSV, report, charts |
 | `plugins/game-designer/skills/balance-economy/scripts/cost_curve.py` | items CSV (`name,cost,attributes…`) | fitted weights, fair costs, outliers, chart |
 | `plugins/game-designer/skills/balance-economy/scripts/export_engine.py` | a final design table (CSV/JSON) | Godot Resource + loader, Unity row + ScriptableObject, Unreal USTRUCT + DataTable CSV, typed JSON |
-| `plugins/game-designer/skills/design-review/scripts/playtest_report.py` | playtest event log CSV | funnel, deaths per level, drop-off, quit clusters, close vs. one-sided contests, exploration, questionnaire means, flags |
+| `plugins/game-designer/skills/design-review/scripts/playtest_report.py` | playtest event log CSV | funnel, deaths per level, drop-off, quit clusters, close vs. one-sided contests, exploration, free-choice play, A/B comparisons with a sign test, questionnaire means, flags |
 | `plugins/game-designer/skills/playable-prototype/scripts/check.py` | prototype folders or HTML files | self-test results per game, screenshots (headless Chrome) |
 
 All scripts use only the Python 3 standard library. When matplotlib isn't installed they

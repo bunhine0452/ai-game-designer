@@ -99,6 +99,11 @@ function selftest() {
     while (!S.pending && guard++ < 1000) { harvest(); while (upgrade()); }
     if (S.pending === "win") finished++; steps += S.harvests; }
   ok("bot reaches the goal on every seed", finished === seeds, `avg ${(steps / seeds).toFixed(1)} harvests`);
+  // Anti-fun screen (references/testing-and-bots.md): decisions must matter and keep coming.
+  rng = seeded(100); S = fresh(); let idle = 0; while (!S.pending && idle++ < 1000) { harvest(); if (S.coins >= cost(S.level) * 50) upgrade(); }
+  ok("anti-fun: hoarding instead of upgrading is much slower (the choice matters)", S.harvests >= 2 * (steps / seeds), `${S.harvests} vs ${(steps / seeds).toFixed(1)} harvests`);
+  rng = seeded(101); S = fresh(); let gap = 0, worst = 0; while (!S.pending && gap < 1000) { harvest(); if (upgrade()) { worst = Math.max(worst, gap); gap = 0; while (upgrade()); } else gap++; }
+  ok("anti-fun: an upgrade decision comes at least every 6 harvests", worst <= 6, `longest wait ${worst} harvests`);
   const pass = out.every((o) => o.pass);
   $("selftest").textContent = JSON.stringify({ game: "template", pass, results: out }, null, 1);
   $("selftest").hidden = false; document.title = `SELFTEST ${pass ? "PASS" : "FAIL"}`;

@@ -6,7 +6,7 @@ license: MIT
 compatibility: Any agent that reads SKILL.md folders (Claude Code, Claude apps, Codex, Antigravity, Cursor, Copilot). Scripts need Python 3; matplotlib optional.
 metadata:
   author: bunhine0452
-  version: "1.8.0"
+  version: "1.9.0"
   repository: https://github.com/bunhine0452/ai-game-designer
 ---
 

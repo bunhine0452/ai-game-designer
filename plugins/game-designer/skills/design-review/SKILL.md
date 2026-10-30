@@ -6,7 +6,7 @@ license: MIT
 compatibility: Any agent that reads SKILL.md folders (Claude Code, Claude apps, Codex, Antigravity, Cursor, Copilot). Scripts need Python 3; matplotlib optional.
 metadata:
   author: bunhine0452
-  version: "1.8.0"
+  version: "1.9.0"
   repository: https://github.com/bunhine0452/ai-game-designer
 ---
 
@@ -106,7 +106,8 @@ The cheapest experiment that addresses the top issue, with a pass criterion
 - `references/ethics-dark-patterns.md`: dark-pattern taxonomy, healthy alternatives, minors
   and compliance checklist.
 - `references/playtest-analysis.md`: turning raw notes and telemetry into findings.
-- `references/playtest-kit.md`: test plan, observer sheet, 7-point questionnaire and event-log format.
+- `references/playtest-kit.md`: test plan, observer sheet, 7-point questionnaire, event-log format,
+  free-choice play and A/B comparisons.
 - `references/fun-diagnosis.md`: scoring eight fun drivers (need satisfaction and frustration
   separately), finding the bottleneck, and measuring it in the next playtest.
 - `scripts/playtest_report.py`: event log → funnel, difficulty spikes, drop-off, quit clusters and questionnaire means (`python3 scripts/playtest_report.py examples/playtest-log.csv --out ./out`).

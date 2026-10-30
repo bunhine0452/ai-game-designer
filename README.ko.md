@@ -215,7 +215,7 @@ Claude Code에서는 질문 내용에 맞춰 스킬이 자동으로 실행되고
 | `plugins/game-designer/skills/balance-economy/scripts/economy_sim.py` | 경제 JSON (재화, 플레이어 유형, 유입처, 소모처, 가챠) | 세션별·플레이어별 CSV, 정확한 천장 분포 CSV, 리포트, 차트 |
 | `plugins/game-designer/skills/balance-economy/scripts/cost_curve.py` | 아이템 CSV (`name,cost,attributes…`) | 능력치별 가치, 적정 비용, 이상치, 차트 |
 | `plugins/game-designer/skills/balance-economy/scripts/export_engine.py` | 최종 기획 표 (CSV/JSON) | Godot Resource와 로더, Unity 행 클래스와 ScriptableObject, Unreal USTRUCT와 DataTable CSV, 타입이 지정된 JSON |
-| `plugins/game-designer/skills/design-review/scripts/playtest_report.py` | 플레이테스트 이벤트 로그 CSV | 퍼널, 레벨별 사망, 이탈, 종료 집중 구간, 접전과 일방적 승부, 탐색 행동, 설문 평균, 경고 플래그 |
+| `plugins/game-designer/skills/design-review/scripts/playtest_report.py` | 플레이테스트 이벤트 로그 CSV | 퍼널, 레벨별 사망, 이탈, 종료 집중 구간, 접전과 일방적 승부, 탐색 행동, 자유 선택 플레이, 부호검정이 붙은 A/B 비교, 설문 평균, 경고 플래그 |
 | `plugins/game-designer/skills/playable-prototype/scripts/check.py` | 프로토타입 폴더 또는 HTML 파일 | 게임별 자체 테스트 결과, 스크린샷 (헤드리스 Chrome) |
 
 모든 스크립트는 Python 3 표준 라이브러리만 사용합니다. matplotlib이 없으면 차트 대신 텍스트와

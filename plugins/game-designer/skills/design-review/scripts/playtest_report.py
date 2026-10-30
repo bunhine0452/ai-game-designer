@@ -17,17 +17,21 @@ are skipped). `t` is seconds since the player's session started.
   outcome        level id           -1..1      (final margin of a contest: + the player won, - lost;
                                                 0 = dead even, 1 = total. e.g. winner's health left)
   explore        level id           -          (an optional action: side path, unexplained mechanic, lore)
+  prefer         comparison id      variant    (which of two or more versions the player enjoyed more)
+  free_play      -                  seconds    (time played after "you can stop now"; 0 = stopped at once)
   rating         question id        1-7        (post-session questionnaire answer)
 
 Outputs (in --out): <stem>_report.md, <stem>_levels.csv, <stem>_ratings.csv and, when
 matplotlib is installed, <stem>_funnel.png. Flags: DROP_OFF, DIFFICULTY_SPIKE, SLOW_LEVEL,
-QUIT_CLUSTER, LOW_RATING, HINT_HEAVY, and from the fun-driver events ONE_SIDED, LOW_CURIOSITY
-and PRESSURE. Standard library only (matplotlib optional); no network.
+QUIT_CLUSTER, LOW_RATING, HINT_HEAVY, from the fun-driver events ONE_SIDED, LOW_CURIOSITY
+and PRESSURE, and LOW_FREE_PLAY. A/B comparisons get counts and an exact two-sided sign test.
+Standard library only (matplotlib optional); no network.
 """
 from __future__ import annotations
 
 import argparse
 import csv
+import math
 import os
 import statistics as st
 import sys
@@ -54,6 +58,26 @@ def median(xs):
 
 CLOSE, WIDE = 0.2, 0.6          # |margin| at or under CLOSE is a close contest; at or over WIDE is one-sided
 REVERSED = {"pressure"}         # questionnaire items where a HIGH mean is the warning
+
+
+def sign_test(k: int, n: int) -> float:
+    """Exact two-sided binomial test of k successes in n against p = 0.5."""
+    if n == 0:
+        return 1.0
+    tail = sum(math.comb(n, i) for i in range(0, min(k, n - k) + 1)) / 2 ** n
+    return min(1.0, 2 * tail)
+
+
+def choices(rows: list[dict]):
+    """A/B preferences per comparison and free-choice play seconds per player."""
+    prefs, free = defaultdict(lambda: defaultdict(int)), {}
+    for r in rows:
+        v = (r.get("value") or "").strip()
+        if r["event"] == "prefer" and v:
+            prefs[r["level"] or "comparison"][v] += 1
+        elif r["event"] == "free_play" and v:
+            free[r["player"]] = float(v)
+    return prefs, free
 
 
 def analyze(rows: list[dict], order: list[str] | None):
@@ -104,7 +128,7 @@ def analyze(rows: list[dict], order: list[str] | None):
     return players, table, quits, ratings
 
 
-def flags(players, table, quits, ratings) -> list[str]:
+def flags(players, table, quits, ratings, free=None) -> list[str]:
     out, n = [], len(players)
     for prev, cur in zip(table, table[1:]):
         if prev["reached"] and (prev["reached"] - cur["reached"]) / prev["reached"] > 0.25:
@@ -146,6 +170,11 @@ def flags(players, table, quits, ratings) -> list[str]:
         if len(vals) >= 3 and st.mean(vals) >= 4.5:
             out.append(f"PRESSURE: players report feeling they had to keep playing ('{q}' {st.mean(vals):.1f} / 7, n={len(vals)}). "
                        f"Read retention and session length with care.")
+    if free and len(free) >= 4:
+        kept = sum(v >= 60 for v in free.values())
+        if kept / len(free) < 0.25:
+            out.append(f"LOW_FREE_PLAY: only {kept} of {len(free)} players kept playing a minute or more after being told they could stop. "
+                       f"Free-choice play is the most direct behavioural sign of intrinsic motivation.")
     return out
 
 
@@ -157,7 +186,8 @@ def main() -> int:
     a = ap.parse_args()
     rows = load(a.log)
     players, table, quits, ratings = analyze(rows, [s.strip() for s in a.levels.split(",")] if a.levels else None)
-    fl = flags(players, table, quits, ratings)
+    prefs, free = choices(rows)
+    fl = flags(players, table, quits, ratings, free)
     os.makedirs(a.out, exist_ok=True)
     stem = os.path.splitext(os.path.basename(a.log))[0]
     with open(os.path.join(a.out, f"{stem}_levels.csv"), "w", newline="", encoding="utf-8") as f:
@@ -181,6 +211,19 @@ def main() -> int:
         for t in table:
             md.append(f"| {t['level']} | {t['outcomes']} | {t['close_share']:.0%} | {t['one_sided_share']:.0%} | {t['wins']} / {t['losses']} | "
                       f"{t['explore_per_player']:.1f} |" if t["outcomes"] else f"| {t['level']} | 0 | – | – | – | {t['explore_per_player']:.1f} |")
+    if prefs or free:
+        md += ["", "## Choices: free play and A/B comparisons", ""]
+        if free:
+            fv = sorted(free.values())
+            md += [f"- **Free-choice play** (after \"you can stop now\"): {sum(v >= 60 for v in fv)} of {len(fv)} kept playing 1+ min, "
+                   f"{sum(v >= 300 for v in fv)} played 5+ min; median {median(fv) / 60:.1f} min."]
+        for cmp_id, counts in sorted(prefs.items()):
+            n = sum(counts.values()); ranked = sorted(counts.items(), key=lambda kv: -kv[1])
+            line = f"- **{cmp_id}**: " + ", ".join(f"{v} chosen {c} of {n}" for v, c in ranked)
+            if len(counts) == 2:
+                line += f" (exact sign test p = {sign_test(ranked[0][1], n):.3f}{'' if sign_test(ranked[0][1], n) < 0.05 else ', not conclusive'})"
+            md.append(line + ".")
+        md += ["", "Comparisons are more reliable than ratings; counterbalance which version each player sees first."]
     if ratings:
         md += ["", "## Questionnaire (1–7)", "", "| Question | n | Mean | Range |", "|---|---|---|---|"]
         md += [f"| {q}{' (reversed: high is bad)' if q in REVERSED else ''} | {len(v)} | {st.mean(v):.1f} | {min(v):g}–{max(v):g} |" for q, v in sorted(ratings.items())]

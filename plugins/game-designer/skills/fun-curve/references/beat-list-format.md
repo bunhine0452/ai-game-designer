@@ -17,6 +17,12 @@ time,intensity,type,label
   any more are folded into "other".
 - `label` (optional): a short description. By default only peaks, the first beat and the
   climax are labeled on the chart; `--label-all` labels every beat.
+- `new` (optional): mark a beat that puts something new in front of the player (a rule twist,
+  an enemy, a place, a story question) with `1`, `yes` or a short note. Beats of type `reveal`,
+  `discovery`, `twist`, `mystery`, `new`, `unlock`, `surprise` or `question` count too. With two
+  or more such beats, the script flags `CURIOSITY_GAP` when over 30% of the run before the climax
+  passes with nothing new (`--curiosity-gap`). Fun comes from uncertainty being resolved, so the
+  supply of fresh questions matters as much as intensity.
 - Comment lines start with `#`. `# title:` and `# unit:` are read as metadata.
 - Accepted column aliases: `t`/`minute` for time; `interest`/`tension`/`value` for
   intensity; `kind` for type; `name`/`note` for label.
@@ -51,10 +57,11 @@ anchors.
 
 `setup`, `tutorial`, `explore`, `traversal`, `combat`, `elite`, `boss`, `puzzle`, `story`,
 `reveal`, `reward`, `shop`, `rest`, `event`, `scare`, `chase`, `stealth`, `social`,
-`build`, `menu`. Use whichever set fits the game, but keep it to about 8 per chart.
+`build`, `menu`, plus the curiosity types above (`twist`, `discovery`, `mystery`, `unlock`). Use whichever set fits the game, but keep it to about 8 per chart.
 
 ## Sources
 
 - [A1] Schell: interest curves and scoring experiences over time.
 - [A4] Booth (2009): modelling intensity from player state.
+- [A50] Deterding et al. (2022) and [A35] Kao et al. (2024): uncertainty, curiosity and enjoyment.
 - Full bibliography: `research/SOURCES.md` in the repository.

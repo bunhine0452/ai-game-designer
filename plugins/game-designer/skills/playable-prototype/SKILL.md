@@ -6,7 +6,7 @@ license: MIT
 compatibility: Any agent that reads SKILL.md folders. Scripts need Python 3; check.py also needs a local Chrome, Chromium or Edge.
 metadata:
   author: bunhine0452
-  version: "1.8.0"
+  version: "1.9.0"
   repository: https://github.com/bunhine0452/ai-game-designer
 ---
 
@@ -74,6 +74,8 @@ riskiest assumption**, built so the numbers can be trusted and the result can be
 - Header line linking the design document it implements.
 - `?test=1` writes JSON `{game, pass, results:[{name, pass, info}]}` into `<pre id="selftest">`
   and sets `document.title` to `SELFTEST PASS|FAIL`.
+- `?test=1` includes the **anti-fun screen** that applies (`references/testing-and-bots.md`):
+  beatable, not trivial, no dominant option, outcome in doubt, decisions and questions keep coming.
 - `?shot=1` builds a deterministic, representative mid-game state for the screenshot.
 - Optional storage wrapped in try/catch; the game works without it.
 - Screen-first layout: a fixed 16:9 stage scaled to fit the window, with the play space as the

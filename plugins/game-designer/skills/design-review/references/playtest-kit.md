@@ -65,6 +65,8 @@ Log these events, from the build or by hand from video. Columns: `player,t,event
 | `quit` | the player stops by choice | level id | – |
 | `outcome` | a contest ends (fight, race, match, boss) | level id | final margin −1..1: + the player won, − lost, 0 = dead even (e.g. the winner's health left) |
 | `explore` | an optional action: a side path, an unexplained mechanic tried, lore read | level id | – |
+| `prefer` | after playing two versions, which one the player enjoyed more | comparison id | variant (`A`, `B`, …) |
+| `free_play` | time played after "you can stop now" (see below) | – | seconds (0 = stopped at once) |
 | `rating` | each questionnaire answer | item id (`fun`, …) | 1–7 |
 
 ```bash
@@ -83,7 +85,30 @@ against a median of 0.6, and a low fairness score. Its duel is also one-sided (1
 contests decided by a wide margin) and nobody explores there, while the Market chase is close
 every time.
 
-## 5. From flags to fixes
+## 5. Watch free choice, and compare instead of rating
+
+Two measures are more trustworthy than any rating:
+
+- **Free-choice play.** When the planned tasks are done, say: "That's everything we needed. You
+  can stop now, or keep playing as long as you like." Leave the room or look away, and log how
+  long they keep going as `free_play`. Playing without being asked is the standard behavioural
+  sign of intrinsic motivation; in one study children chose the intrinsically motivating version
+  of a game seven times longer [A63].
+- **A/B comparisons.** When you are deciding between two versions (a telegraph timing, a camera,
+  a reward), let each player try both in counterbalanced order (half see A first) and ask
+  "Which did you enjoy more?". Log it as `prefer`. Rank-based answers are more reliable than
+  ratings [A54]. With two versions, the report adds an exact sign test; at 12 players, 10 of 12
+  is the first clear result (p ≈ 0.04), so treat 8 or 9 of 12 as a lead to re-test, not a verdict.
+
+Memory favours peaks and endings [A62], so keep the observer's moment-by-moment notes beside the
+questionnaire, and don't let a strong ending hide a weak middle.
+
+The report flags `LOW_FREE_PLAY` when fewer than a quarter of players keep going for a minute.
+The example log compares the Bell Tower as it is (A) with the bell swing telegraphed 0.5 s
+earlier (B): 9 of 12 chose B (p = 0.15, a lead), and half the players kept playing a minute or
+more.
+
+## 6. From flags to fixes
 
 1. **Locate** with the numbers (which level, which players).
 2. **Explain** with the observer notes and quotes. Numbers say *where*, people say *why*.
@@ -103,4 +128,5 @@ every time.
 - [A21] Drachen, Mirza-Babaei & Nacke (eds., 2018), *Games User Research*.
 - [A22] Seif El-Nasr, Drachen & Canossa (eds., 2013), *Game Analytics*.
 - [A34] outcome uncertainty · [A35] curiosity · [A38] BANGS · [A39] motivation and well-being · [A47] miniPXI.
+- [A54] ranks over ratings · [A62] peak-end effects · [A63] free-choice play.
 - Full bibliography: `research/SOURCES.md` in the repository.

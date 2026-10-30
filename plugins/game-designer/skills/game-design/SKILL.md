@@ -6,7 +6,7 @@ license: MIT
 compatibility: Any agent that reads SKILL.md folders (Claude Code, Claude apps, Codex, Antigravity, Cursor, Copilot). Scripts need Python 3; matplotlib optional.
 metadata:
   author: bunhine0452
-  version: "1.8.0"
+  version: "1.9.0"
   repository: https://github.com/bunhine0452/ai-game-designer
 ---
 
@@ -121,9 +121,17 @@ Target aesthetics: 2-3 from MDA, ranked
 Pillars: 3-5, each with its test question
 Core loops: moment-to-moment / session / meta  (verb → feedback → reward → reinvestment)
 Reference games: 2-4, each with the ONE thing to learn from it
+Fun hypothesis: what players will want to find out, how often it resolves, what makes each
+                resolution felt, and for whom (falsifiable, 1-2 sentences)
 Biggest risks: 3, ranked (fun, scope, market/tech), each with the cheapest test
-Next step: the smallest prototype that tests risk #1, with a pass criterion
+Next step: the smallest toy that tests the fun hypothesis, with keep / pivot / kill thresholds
 ```
+
+Fun can't be read off a document, so the brief states it as a hypothesis and sets the
+thresholds *before* anyone plays (`references/frameworks.md` → "Fun hypothesis"). Example: "Players
+will want to learn which updraft gets them furthest, a new route question every 30-60 s, felt
+through the climb and the FOV rush. Keep if 4 of 6 testers keep flying 5+ min after we say
+they can stop; kill if fewer than 2 do."
 
 Then offer the natural next skill: a pacing pass, the genre playbook, a balance model, a
 one-page design, or a review.
@@ -148,7 +156,7 @@ one-page design, or a review.
 
 ## References
 
-- `references/frameworks.md`: MDA, aesthetics, pillars, loops, interesting decisions,
+- `references/frameworks.md` (includes the fun hypothesis and keep/kill thresholds): MDA, aesthetics, pillars, loops, interesting decisions,
   skill atoms, with worked examples.
 - `references/player-motivation.md`: Bartle, Quantic Foundry, SDT/PENS, and how to apply
   them without stereotyping.

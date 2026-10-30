@@ -25,6 +25,13 @@ Close = final margin within ±0.2; one-sided = ±0.6 or more. Optional actions c
 | Bell Tower | 11 | 0% | 100% | 4 / 7 | 0.2 |
 | Rooftops | 0 | – | – | – | 1.0 |
 
+## Choices: free play and A/B comparisons
+
+- **Free-choice play** (after "you can stop now"): 6 of 12 kept playing 1+ min, 1 played 5+ min; median 1.1 min.
+- **bell-telegraph**: B chosen 9 of 12, A chosen 3 of 12 (exact sign test p = 0.146, not conclusive).
+
+Comparisons are more reliable than ratings; counterbalance which version each player sees first.
+
 ## Questionnaire (1–7)
 
 | Question | n | Mean | Range |

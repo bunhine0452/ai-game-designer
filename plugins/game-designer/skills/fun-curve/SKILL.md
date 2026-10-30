@@ -1,12 +1,12 @@
 ---
 name: fun-curve
-description: Designs, plots and critiques interest curves (fun curves), flow and pacing for a play session, level, run, chapter or whole game. Use when the user asks about pacing, tension and release, intensity graphs, difficulty curves, flow channel, boredom or frustration points, a boring middle, climax placement, session length, game feel or juice, or wants a beat list plotted and diagnosed, or wants playtest or telemetry data turned into a curve, or asks what the research says makes games fun. Runs a script that flags missing hooks, flat zones, peaks without relief, early climaxes and non-escalating peaks. Also triggers on 재미 곡선, 관심 곡선, 재미의 원리, 페이싱, 완급 조절, 긴장과 이완, 난이도 곡선, 몰입, 지루한 구간, 타격감; 面白さの曲線, 興味曲線, ペーシング, 緩急, 緊張と緩和, 難易度曲線, 手触り; 趣味曲线, 兴趣曲线, 节奏, 心流, 难度曲线, 打击感; curva de diversión, ritmo, curva de dificultad.
+description: Designs, plots and critiques interest curves (fun curves), flow and pacing for a play session, level, run, chapter or whole game. Use when the user asks about pacing, tension and release, intensity graphs, difficulty curves, flow channel, boredom or frustration points, a boring middle, climax placement, session length, game feel or juice, or wants a beat list plotted and diagnosed, or wants playtest or telemetry data turned into a curve, or asks what the research says makes games fun. Runs a script that flags missing hooks, flat zones, peaks without relief, early climaxes, non-escalating peaks and curiosity gaps. Also triggers on 재미 곡선, 관심 곡선, 재미의 원리, 페이싱, 완급 조절, 긴장과 이완, 난이도 곡선, 몰입, 지루한 구간, 타격감; 面白さの曲線, 興味曲線, ペーシング, 緩急, 緊張と緩和, 難易度曲線, 手触り; 趣味曲线, 兴趣曲线, 节奏, 心流, 难度曲线, 打击感; curva de diversión, ritmo, curva de dificultad.
 argument-hint: "[beats CSV/JSON path, or a level or session to pace]"
 license: MIT
 compatibility: Any agent that reads SKILL.md folders (Claude Code, Claude apps, Codex, Antigravity, Cursor, Copilot). Scripts need Python 3; matplotlib optional.
 metadata:
   author: bunhine0452
-  version: "1.8.0"
+  version: "1.9.0"
   repository: https://github.com/bunhine0452/ai-game-designer
 ---
 
@@ -61,7 +61,7 @@ python3 scripts/fun_curve.py beats.csv --out ./fun_curve_out --reference
 Useful flags: `--title`, `--unit s`, `--label-all`, `--format svg`, `--no-plot`. All
 thresholds can be changed (`--hook-window`, `--hook-min`, `--flat-tolerance`, `--flat-min`,
 `--peak-min`, `--relief-window`, `--relief-drop`, `--climax-min`, `--high`, `--low`,
-`--sustain-max`). Adjust them for the genre: horror tolerates longer low-intensity dread,
+`--sustain-max`, `--curiosity-gap`). Adjust them for the genre: horror tolerates longer low-intensity dread,
 and arcade loops may end on the peak with no resolution.
 
 The script writes `<stem>_curve.png` (if matplotlib is installed), `<stem>_report.md`,
@@ -81,6 +81,7 @@ the findings.
 | Escalation | peaks after the hook trend upward |
 | Monotony | no ≥ 4 consecutive beats of one type, and no single-type run covering ≥ 25% |
 | Load | ≤ 35% of the time at ≥ 8, and ≤ 40% of the time at ≤ 3 |
+| Curiosity supply | when beats marking something new exist (types like `reveal`, `twist`, `discovery`, or a `new` column), no stretch over 30% of the run before the climax goes without one |
 
 ### 4. Interpret and fix
 For each finding, explain **why it hurts the experience** (flow, fatigue, anticipation,
@@ -90,7 +91,7 @@ the new time and intensity. Prioritize:
    is remembered).
 2. Low flat zones (boredom and quit risk), then peaks without relief and sustained peaks
    (fatigue).
-3. Escalation, monotony and load balance.
+3. Escalation, monotony, curiosity gaps and load balance.
 
 Then **write the revised beat list, re-run the script and show before/after metrics.**
 Changing a curve on paper is cheap. Say plainly that the curve is a prediction to be

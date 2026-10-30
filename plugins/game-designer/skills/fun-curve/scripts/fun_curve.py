@@ -50,6 +50,11 @@ class Beat:
     intensity: float
     type: str = ""
     label: str = ""
+    new: bool = False      # introduces something new: a rule, enemy, place or open question
+
+
+# Beat types that put a fresh question in front of the player (curiosity supply).
+CURIOSITY_TYPES = {"reveal", "discovery", "twist", "mystery", "new", "unlock", "surprise", "question"}
 
 
 @dataclass
@@ -118,9 +123,11 @@ def load_beats(path: str) -> tuple[list[Beat], dict]:
         if not 0 <= value <= 10:
             print(f"warning: row {i} intensity {value} clamped to 0-10", file=sys.stderr)
             value = min(10.0, max(0.0, value))
+        flag = _pick(row, "new", "novel", "question").strip().lower()
         beats.append(Beat(parse_time(t_raw), value,
                           _pick(row, "type", "kind", "category").lower(),
-                          _pick(row, "label", "name", "note", "description")))
+                          _pick(row, "label", "name", "note", "description"),
+                          flag not in ("", "0", "no", "n", "false", "-")))
     beats.sort(key=lambda b: b.time)
     if len(beats) < 3:
         raise ValueError("need at least 3 beats to analyse a curve")
@@ -326,7 +333,22 @@ def analyse(beats: list[Beat], cfg: argparse.Namespace) -> dict:
             f"{low_share:.0%} of the time is at intensity {cfg.low:g} or below.",
             "Shorten low stretches or give them a purpose (anticipation, planning, curiosity)."))
 
-    # 7. Data density
+    # 7. Curiosity supply: fun is uncertainty resolved faster than expected, so new questions
+    #    must keep arriving. Only checked when the beat list marks them (types or a `new` column).
+    fresh = [b.time for b in beats if b.new or b.type in CURIOSITY_TYPES]
+    if len(fresh) >= 2:
+        stop = climax.time if climax.time > fresh[-1] else fresh[-1]   # nothing new is needed after the climax
+        marks = [t0] + fresh + [stop]
+        gap, gs, ge = max((marks[k + 1] - marks[k], marks[k], marks[k + 1]) for k in range(len(marks) - 1))
+        if gap > cfg.curiosity_gap * dur:
+            findings.append(Finding(
+                "CURIOSITY_GAP", "medium" if gap > 0.4 * dur else "low",
+                f"Nothing new arrives between {fmt(gs)} and {fmt(ge)} ({gap / dur:.0%} of the run): no fresh "
+                "question for the player to resolve.",
+                "Introduce a rule twist, enemy, place or story question in that stretch, or plant a visible "
+                "unexplained thing earlier that pays off there.", gs, ge))
+
+    # 8. Data density
     gaps = [(beats[k + 1].time - beats[k].time, beats[k].time, beats[k + 1].time)
             for k in range(len(beats) - 1)]
     gap, gs, ge = max(gaps)
@@ -341,6 +363,7 @@ def analyse(beats: list[Beat], cfg: argparse.Namespace) -> dict:
     metrics = {
         "duration": round(dur, 2),
         "beats": len(beats),
+        "curiosity_beats": len(fresh),
         "mean_intensity": round(sum(values) / len(values), 2),
         "peak_count": len(peaks),
         "climax_time": climax.time,
@@ -561,6 +584,7 @@ def main(argv=None) -> int:
     g.add_argument("--sustain-max", type=float, default=0.15, help="max continuous high stretch (fraction)")
     g.add_argument("--max-run", type=int, default=4, help="max consecutive beats of one type")
     g.add_argument("--sparse-gap", type=float, default=0.15, help="flag gaps longer than this fraction")
+    g.add_argument("--curiosity-gap", type=float, default=0.30, help="max stretch with nothing new (fraction)")
     args = ap.parse_args(argv)
 
     try:
