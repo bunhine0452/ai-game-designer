@@ -203,6 +203,8 @@ It also understands Japanese, Chinese and Spanish (e.g. 「ホラーの緩急を
 | `plugins/game-designer/skills/balance-economy/scripts/progression_curve.py` | CLI flags (curve family, levels, first, total, income) | XP tables (CSV), report, chart |
 | `plugins/game-designer/skills/balance-economy/scripts/economy_sim.py` | economy JSON (currencies, archetypes, faucets, sinks, gacha) | per-session and per-player CSVs, exact pity CSV, report, charts |
 | `plugins/game-designer/skills/balance-economy/scripts/cost_curve.py` | items CSV (`name,cost,attributes…`) | fitted weights, fair costs, outliers, chart |
+| `plugins/game-designer/skills/balance-economy/scripts/export_engine.py` | a final design table (CSV/JSON) | Godot Resource + loader, Unity row + ScriptableObject, Unreal USTRUCT + DataTable CSV, typed JSON |
+| `plugins/game-designer/skills/design-review/scripts/playtest_report.py` | playtest event log CSV | funnel, deaths per level, drop-off, quit clusters, questionnaire means, flags |
 | `plugins/game-designer/skills/playable-prototype/scripts/check.py` | prototype folders or HTML files | self-test results per game, screenshots (headless Chrome) |
 
 All scripts use only the Python 3 standard library. When matplotlib isn't installed they
@@ -242,7 +244,12 @@ with engine or production plugins. See the competitive scan in
 - `plugins/game-designer/evals/`: 21 trigger-and-language cases (3 per skill: English, Korean, and Japanese, Chinese or
   Spanish), run with `claude plugin eval plugins/game-designer`. In the v1.0.0 run (Sonnet, 1 run per case), the right
   skill fired 18/18, the answer was in the user's language 18/18, answers were judged useful 18/18,
-  and terms were localized with the English in parentheses 12/12. The three `playable-prototype`
+  and terms were localized with the English in parentheses 12/12.
+- **With vs. without the plugin** (v1.5.0, all 21 cases, Sonnet, 1 run per arm, Haiku judge):
+  mean score **0.984 with the plugin vs. 0.778 without**. Answering in the user's language:
+  21/21 vs. 19/21. Localized terms with the English in parentheses: **13/14 vs. 2/14**. Useful,
+  concrete answers: 21/21 in both arms, so this grader doesn't separate them; the difference shows
+  in language handling and in the exact numbers the scripts compute. The three `playable-prototype`
   cases added in v1.3.0 passed every grader, and the router cases still pass after adding its new route.
 
 ## What it runs, sends, and fetches

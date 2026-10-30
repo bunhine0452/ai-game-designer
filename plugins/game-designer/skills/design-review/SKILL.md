@@ -55,7 +55,8 @@ includes an ethics pass.
 | Concept / pitch | Fantasy clarity, aesthetics ↔ pillars ↔ loops, differentiation, scope, ethics | 5–8 issues, 3 strengths, the riskiest assumption plus the cheapest test |
 | GDD / feature spec | Internal consistency, edge cases, pillar alignment, missing systems (save, accessibility, localization) | Issue table plus a missing-section list |
 | Prototype / build notes | Core verb feel, readability, onboarding, pacing, balance hot spots | Issues ranked by player impact |
-| Playtest notes | Observed vs. intended experience, frequency, severity | Clustered findings (n of N), fixes, next test plan (`references/playtest-analysis.md`) |
+| Playtest notes | Observed vs. intended experience, frequency, severity | Clustered findings (n of N), fixes, next test plan (`references/playtest-analysis.md`); with an event log, run `scripts/playtest_report.py` first |
+| Planning a playtest | The question, players, tasks, what to collect | A one-page plan and kit (`references/playtest-kit.md`) |
 | Monetization plan | Value perception, fairness, dark patterns, legal compliance | Ethics table plus compliance checklist plus healthy alternatives |
 
 ## Output format
@@ -104,5 +105,7 @@ The cheapest experiment that addresses the top issue, with a pass criterion
 - `references/ethics-dark-patterns.md`: dark-pattern taxonomy, healthy alternatives, minors
   and compliance checklist.
 - `references/playtest-analysis.md`: turning raw notes and telemetry into findings.
+- `references/playtest-kit.md`: test plan, observer sheet, 7-point questionnaire and event-log format.
+- `scripts/playtest_report.py`: event log → funnel, difficulty spikes, drop-off, quit clusters and questionnaire means (`python3 scripts/playtest_report.py examples/playtest-log.csv --out ./out`).
 - `examples/concept-review-example.md`: a full review of a fictional mobile concept with
   monetization issues.

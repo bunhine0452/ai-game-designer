@@ -81,6 +81,16 @@ cost ≈ intercept + Σ weight × attribute, reports the cost value of each attr
 **undercosted** (too strong) and **overcosted** (too weak) items. Use `--robust` so the
 outliers don't bend the curve they're judged against.
 
+### Engine hand-off: `scripts/export_engine.py`
+```bash
+python3 scripts/export_engine.py examples/card-set.csv --name Card --engine all --out ./export
+```
+Turns a final table (CSV, or JSON with `--key` for one list) into engine-ready data and code:
+Godot (`Resource` class, JSON and a typed loader), Unity (a `[Serializable]` row and a
+`ScriptableObject` table with a JSON loader), Unreal (a `USTRUCT : FTableRowBase` header and a
+DataTable CSV), or plain typed JSON. Every file names its source table. See
+`references/engine-handoff.md`, which covers engine MCP servers too.
+
 ## Choosing the model
 
 | Question | Reference | Tool |
@@ -91,6 +101,7 @@ outliers don't bend the curve they're judged against.
 | Is this card or unit fairly costed? Is there a dominant option? | `references/cost-curves-and-balance.md` | `cost_curve.py` |
 | Drop rates, pity, input vs. output randomness, legal limits | `references/randomness-and-loot.md` | `economy_sim.py` (gacha) |
 | How to run a balancing process (spreadsheets, sims, metrics) | `references/balancing-practice.md` | all |
+| Move final numbers into Godot, Unity or Unreal | `references/engine-handoff.md` | `export_engine.py` |
 
 ## Output format
 

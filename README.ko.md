@@ -199,6 +199,8 @@ Claude Code에서는 질문 내용에 맞춰 스킬이 자동으로 실행되고
 | `plugins/game-designer/skills/balance-economy/scripts/progression_curve.py` | CLI 옵션 (곡선 계열, 레벨 수, 첫 레벨, 총량, 수입) | 경험치 테이블(CSV), 리포트, 차트 |
 | `plugins/game-designer/skills/balance-economy/scripts/economy_sim.py` | 경제 JSON (재화, 플레이어 유형, 유입처, 소모처, 가챠) | 세션별·플레이어별 CSV, 정확한 천장 분포 CSV, 리포트, 차트 |
 | `plugins/game-designer/skills/balance-economy/scripts/cost_curve.py` | 아이템 CSV (`name,cost,attributes…`) | 능력치별 가치, 적정 비용, 이상치, 차트 |
+| `plugins/game-designer/skills/balance-economy/scripts/export_engine.py` | 최종 기획 표 (CSV/JSON) | Godot Resource와 로더, Unity 행 클래스와 ScriptableObject, Unreal USTRUCT와 DataTable CSV, 타입이 지정된 JSON |
+| `plugins/game-designer/skills/design-review/scripts/playtest_report.py` | 플레이테스트 이벤트 로그 CSV | 퍼널, 레벨별 사망, 이탈, 종료 집중 구간, 설문 평균, 경고 플래그 |
 | `plugins/game-designer/skills/playable-prototype/scripts/check.py` | 프로토타입 폴더 또는 HTML 파일 | 게임별 자체 테스트 결과, 스크린샷 (헤드리스 Chrome) |
 
 모든 스크립트는 Python 3 표준 라이브러리만 사용합니다. matplotlib이 없으면 차트 대신 텍스트와
@@ -235,7 +237,10 @@ Accessibility Guidelines, Xbox Accessibility Guidelines, APX. 모든 내용은 �
 - 게임 6개 모두 로컬과 GitHub Pages에서 자체 테스트를 통과합니다 (`plugins/game-designer/skills/playable-prototype/scripts/check.py games/`).
 - `plugins/game-designer/evals/`: 스킬당 3개씩 총 21개의 트리거·언어 테스트 케이스가 있습니다 (영어, 한국어, 그리고 일본어·
   중국어·스페인어 중 하나). `claude plugin eval plugins/game-designer` 로 실행합니다. v1.0.0 실행 결과(Sonnet, 케이스당 1회):
-  올바른 스킬 실행 18/18, 사용자 언어로 답변 18/18, 유용한 답변 18/18, 영어 병기 용어 표기 12/12. v1.3.0에서 추가한
+  올바른 스킬 실행 18/18, 사용자 언어로 답변 18/18, 유용한 답변 18/18, 영어 병기 용어 표기 12/12.
+- **플러그인 유무 비교** (v1.5.0, 21개 케이스 전체, Sonnet, 양쪽 각 1회, Haiku 채점): 평균 점수 **플러그인 있음 0.984 대 없음 0.778**.
+  사용자 언어로 답변 21/21 대 19/21, 용어 현지화와 영어 병기 **13/14 대 2/14**. 구체적이고 유용한 답변은 양쪽 모두
+  21/21이라 이 항목으로는 차이가 드러나지 않았습니다. 차이는 언어 처리와 스크립트가 계산하는 정확한 수치에서 납니다. v1.3.0에서 추가한
   `playable-prototype` 케이스 3개도 모든 채점 항목을 통과했고, 새 경로를 넣은 뒤에도 라우터 케이스는 그대로 통과합니다.
 
 ## 실행·전송·다운로드하는 것

@@ -1,0 +1,230 @@
+# Fictional playtest of the vertical slice of "Lanternfall": 12 players, 5 levels, a 7-point questionnaire.
+player,t,event,level,value
+P01,0,session_start,,
+P01,0.0,level_start,Docks,
+P01,262.3,level_complete,Docks,
+P01,262.3,level_start,Market,
+P01,305.9,death,Market,
+P01,618.3,level_complete,Market,
+P01,618.3,level_start,Sewers,
+P01,887.8,level_complete,Sewers,
+P01,887.8,level_start,Bell Tower,
+P01,949.5,death,Bell Tower,
+P01,993.0,death,Bell Tower,
+P01,1037.5,death,Bell Tower,
+P01,1042.5,hint,Bell Tower,
+P01,1529.8,level_complete,Bell Tower,
+P01,1529.8,level_start,Rooftops,
+P01,1601.2,death,Rooftops,
+P01,2042.7,level_complete,Rooftops,
+P01,2072.7,rating,fun,6
+P01,2072.7,rating,clarity,4
+P01,2072.7,rating,fairness,3
+P01,2072.7,rating,want_more,5
+P02,0,session_start,,
+P02,0.0,level_start,Docks,
+P02,284.7,level_complete,Docks,
+P02,284.7,level_start,Market,
+P02,540.6,level_complete,Market,
+P02,540.6,level_start,Sewers,
+P02,596.0,death,Sewers,
+P02,886.9,level_complete,Sewers,
+P02,886.9,level_start,Bell Tower,
+P02,945.5,death,Bell Tower,
+P02,1012.9,death,Bell Tower,
+P02,1017.9,hint,Bell Tower,
+P02,1360.2,level_complete,Bell Tower,
+P02,1360.2,level_start,Rooftops,
+P02,1681.5,level_complete,Rooftops,
+P02,1711.5,rating,fun,5
+P02,1711.5,rating,clarity,3
+P02,1711.5,rating,fairness,3
+P02,1711.5,rating,want_more,6
+P03,0,session_start,,
+P03,0.0,level_start,Docks,
+P03,277.8,level_complete,Docks,
+P03,277.8,level_start,Market,
+P03,612.2,level_complete,Market,
+P03,612.2,level_start,Sewers,
+P03,678.4,death,Sewers,
+P03,1050.7,level_complete,Sewers,
+P03,1050.7,level_start,Bell Tower,
+P03,1105.1,death,Bell Tower,
+P03,1194.1,death,Bell Tower,
+P03,1240.0,death,Bell Tower,
+P03,1301.0,death,Bell Tower,
+P03,1344.6,quit,Bell Tower,
+P03,1374.6,rating,fun,4
+P03,1374.6,rating,clarity,3
+P03,1374.6,rating,fairness,2
+P03,1374.6,rating,want_more,2
+P04,0,session_start,,
+P04,0.0,level_start,Docks,
+P04,225.9,level_complete,Docks,
+P04,225.9,level_start,Market,
+P04,559.7,level_complete,Market,
+P04,559.7,level_start,Sewers,
+P04,564.7,hint,Sewers,
+P04,948.5,level_complete,Sewers,
+P04,948.5,level_start,Bell Tower,
+P04,1035.7,death,Bell Tower,
+P04,1099.4,death,Bell Tower,
+P04,1446.9,level_complete,Bell Tower,
+P04,1446.9,level_start,Rooftops,
+P04,1895.8,level_complete,Rooftops,
+P04,1925.8,rating,fun,4
+P04,1925.8,rating,clarity,5
+P04,1925.8,rating,fairness,3
+P04,1925.8,rating,want_more,4
+P05,0,session_start,,
+P05,0.0,level_start,Docks,
+P05,41.1,death,Docks,
+P05,283.0,level_complete,Docks,
+P05,283.0,level_start,Market,
+P05,531.0,level_complete,Market,
+P05,531.0,level_start,Sewers,
+P05,609.4,death,Sewers,
+P05,614.4,hint,Sewers,
+P05,910.1,level_complete,Sewers,
+P05,910.1,level_start,Bell Tower,
+P05,954.2,death,Bell Tower,
+P05,1016.6,death,Bell Tower,
+P05,1519.6,level_complete,Bell Tower,
+P05,1519.6,level_start,Rooftops,
+P05,1600.5,death,Rooftops,
+P05,1683.7,death,Rooftops,
+P05,2016.8,level_complete,Rooftops,
+P05,2046.8,rating,fun,4
+P05,2046.8,rating,clarity,5
+P05,2046.8,rating,fairness,5
+P05,2046.8,rating,want_more,3
+P06,0,session_start,,
+P06,0.0,level_start,Docks,
+P06,217.1,level_complete,Docks,
+P06,217.1,level_start,Market,
+P06,268.7,death,Market,
+P06,574.2,level_complete,Market,
+P06,574.2,level_start,Sewers,
+P06,579.2,hint,Sewers,
+P06,900.4,level_complete,Sewers,
+P06,900.4,level_start,Bell Tower,
+P06,958.9,death,Bell Tower,
+P06,1027.2,death,Bell Tower,
+P06,1114.8,death,Bell Tower,
+P06,1548.3,level_complete,Bell Tower,
+P06,1548.3,level_start,Rooftops,
+P06,1845.0,level_complete,Rooftops,
+P06,1875.0,rating,fun,4
+P06,1875.0,rating,clarity,6
+P06,1875.0,rating,fairness,3
+P06,1875.0,rating,want_more,6
+P07,0,session_start,,
+P07,0.0,level_start,Docks,
+P07,234.4,level_complete,Docks,
+P07,234.4,level_start,Market,
+P07,560.0,level_complete,Market,
+P07,560.0,level_start,Sewers,
+P07,603.1,death,Sewers,
+P07,608.1,hint,Sewers,
+P07,898.1,level_complete,Sewers,
+P07,898.1,level_start,Bell Tower,
+P07,940.7,death,Bell Tower,
+P07,980.8,death,Bell Tower,
+P07,1028.3,death,Bell Tower,
+P07,1033.3,hint,Bell Tower,
+P07,1091.0,quit,Bell Tower,
+P07,1121.0,rating,fun,5
+P07,1121.0,rating,clarity,5
+P07,1121.0,rating,fairness,3
+P07,1121.0,rating,want_more,3
+P08,0,session_start,,
+P08,0.0,level_start,Docks,
+P08,219.2,level_complete,Docks,
+P08,219.2,level_start,Market,
+P08,475.8,level_complete,Market,
+P08,475.8,level_start,Sewers,
+P08,558.3,death,Sewers,
+P08,891.5,level_complete,Sewers,
+P08,891.5,level_start,Bell Tower,
+P08,936.6,death,Bell Tower,
+P08,993.7,death,Bell Tower,
+P08,1047.0,death,Bell Tower,
+P08,1413.5,level_complete,Bell Tower,
+P08,1413.5,level_start,Rooftops,
+P08,1454.6,death,Rooftops,
+P08,1896.7,level_complete,Rooftops,
+P08,1926.7,rating,fun,5
+P08,1926.7,rating,clarity,4
+P08,1926.7,rating,fairness,3
+P08,1926.7,rating,want_more,5
+P09,0,session_start,,
+P09,0.0,level_start,Docks,
+P09,285.2,level_complete,Docks,
+P09,285.2,level_start,Market,
+P09,619.2,level_complete,Market,
+P09,619.2,level_start,Sewers,
+P09,624.2,hint,Sewers,
+P09,718.7,quit,Sewers,
+P09,748.7,rating,fun,6
+P09,748.7,rating,clarity,3
+P09,748.7,rating,fairness,3
+P09,748.7,rating,want_more,5
+P10,0,session_start,,
+P10,0.0,level_start,Docks,
+P10,279.6,level_complete,Docks,
+P10,279.6,level_start,Market,
+P10,359.9,death,Market,
+P10,440.9,death,Market,
+P10,780.7,level_complete,Market,
+P10,780.7,level_start,Sewers,
+P10,785.7,hint,Sewers,
+P10,1121.6,level_complete,Sewers,
+P10,1121.6,level_start,Bell Tower,
+P10,1163.0,death,Bell Tower,
+P10,1217.0,death,Bell Tower,
+P10,1269.9,death,Bell Tower,
+P10,1786.7,level_complete,Bell Tower,
+P10,1786.7,level_start,Rooftops,
+P10,1849.1,death,Rooftops,
+P10,2288.9,level_complete,Rooftops,
+P10,2318.9,rating,fun,7
+P10,2318.9,rating,clarity,4
+P10,2318.9,rating,fairness,3
+P10,2318.9,rating,want_more,6
+P11,0,session_start,,
+P11,0.0,level_start,Docks,
+P11,214.1,level_complete,Docks,
+P11,214.1,level_start,Market,
+P11,285.3,death,Market,
+P11,646.8,level_complete,Market,
+P11,646.8,level_start,Sewers,
+P11,719.5,death,Sewers,
+P11,996.1,level_complete,Sewers,
+P11,996.1,level_start,Bell Tower,
+P11,1069.1,death,Bell Tower,
+P11,1154.6,death,Bell Tower,
+P11,1252.1,quit,Bell Tower,
+P11,1282.1,rating,fun,3
+P11,1282.1,rating,clarity,3
+P11,1282.1,rating,fairness,3
+P11,1282.1,rating,want_more,3
+P12,0,session_start,,
+P12,0.0,level_start,Docks,
+P12,234.8,level_complete,Docks,
+P12,234.8,level_start,Market,
+P12,528.9,level_complete,Market,
+P12,528.9,level_start,Sewers,
+P12,577.4,death,Sewers,
+P12,623.8,death,Sewers,
+P12,628.8,hint,Sewers,
+P12,1022.2,level_complete,Sewers,
+P12,1022.2,level_start,Bell Tower,
+P12,1102.5,death,Bell Tower,
+P12,1149.8,death,Bell Tower,
+P12,1671.1,level_complete,Bell Tower,
+P12,1671.1,level_start,Rooftops,
+P12,2048.0,level_complete,Rooftops,
+P12,2078.0,rating,fun,4
+P12,2078.0,rating,clarity,5
+P12,2078.0,rating,fairness,4
+P12,2078.0,rating,want_more,6
