@@ -40,10 +40,10 @@ def find_browser():
     return next((p for p in CANDIDATES if os.path.exists(p)), None)
 
 
-def run(browser, args, budget_ms):
+def run(browser, args, budget_ms, size="1280,720"):
     with tempfile.TemporaryDirectory() as profile:
         cmd = [browser, "--headless=new", "--disable-gpu", "--hide-scrollbars", "--no-first-run",
-               "--no-default-browser-check", f"--user-data-dir={profile}", "--window-size=1280,860",
+               "--no-default-browser-check", f"--user-data-dir={profile}", f"--window-size={size}",
                f"--virtual-time-budget={budget_ms}", "--allow-file-access-from-files"] + args
         return subprocess.run(cmd, capture_output=True, text=True, timeout=180)
 
@@ -74,6 +74,7 @@ def main():
     ap.add_argument("--shots", help="screenshot folder (default: <parent>/screenshots)")
     ap.add_argument("--no-shot", action="store_true", help="only run self-tests")
     ap.add_argument("--budget", type=int, default=8000, help="virtual time budget for tests (ms)")
+    ap.add_argument("--size", default="1280,720", help="screenshot window size, WIDTH,HEIGHT (default 1280,720: a 16:9 stage)")
     a = ap.parse_args()
     browser = find_browser()
     if not browser:
@@ -103,7 +104,7 @@ def main():
             out = os.path.abspath(a.shots) if a.shots else shot_dir
             os.makedirs(out, exist_ok=True)
             path = os.path.join(out, f"{name}.png")
-            run(browser, [f"--screenshot={path}", url + "?shot=1"], 5000)
+            run(browser, [f"--screenshot={path}", url + "?shot=1"], 5000, a.size)
             print(f"    screenshot: {path} ({os.path.getsize(path) // 1024} KB)" if os.path.exists(path) else "    screenshot FAILED")
     return 1 if failed else 0
 
