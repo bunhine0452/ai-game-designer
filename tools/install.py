@@ -20,7 +20,7 @@ import shutil
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SKILLS = os.path.join(ROOT, "skills")
+SKILLS = os.path.join(ROOT, "plugins", "game-designer", "skills")
 GLOSSARY = os.path.join(SKILLS, "game-design", "references", "glossary.md")
 
 # agent: (project dir, user dir, note)

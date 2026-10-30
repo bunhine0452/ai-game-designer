@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build release artifacts into dist/.
 
-  dist/game-designer.plugin   zip of the plugin root (manifests, skills, docs, research)
+  dist/game-designer.plugin   zip of the plugin folder plugins/game-designer/ (manifests, skills, research)
   dist/skills/<skill>.zip     one self-contained zip per skill for the Claude app; each
                               includes the shared glossary at references/glossary.md
 
@@ -16,10 +16,8 @@ import zipfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DIST = os.path.join(ROOT, "dist")
-GLOSSARY = os.path.join(ROOT, "skills", "game-design", "references", "glossary.md")
-PLUGIN_INCLUDE = [".claude-plugin", ".codex-plugin", ".agents", "plugin.json", "gemini-extension.json",
-                  "assets", "skills", "research", "docs", "tools", "install.sh", "AGENTS.md", "README.md",
-                  "README.ko.md", "CHANGELOG.md", "CONTRIBUTING.md", "LICENSE"]
+PLUGIN = os.path.join(ROOT, "plugins", "game-designer")
+GLOSSARY = os.path.join(PLUGIN, "skills", "game-design", "references", "glossary.md")
 SKIP_DIRS = {"__pycache__", ".git", "dist", "results"}
 SKIP_FILES = {".DS_Store"}
 
@@ -33,21 +31,18 @@ def walk(path: str):
 
 
 def build_plugin() -> str:
-    name = json.load(open(os.path.join(ROOT, ".claude-plugin", "plugin.json")))["name"]
+    name = json.load(open(os.path.join(PLUGIN, ".claude-plugin", "plugin.json")))["name"]
     out = os.path.join(DIST, f"{name}.plugin")
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as zf:
-        for item in PLUGIN_INCLUDE:
-            src = os.path.join(ROOT, item)
-            files = walk(src) if os.path.isdir(src) else [src]
-            for f in files:
-                zf.write(f, os.path.relpath(f, ROOT))
+        for f in walk(PLUGIN):
+            zf.write(f, os.path.relpath(f, PLUGIN))
     return out
 
 
 def build_skill_zips() -> list[str]:
     outs = []
     os.makedirs(os.path.join(DIST, "skills"), exist_ok=True)
-    skills_dir = os.path.join(ROOT, "skills")
+    skills_dir = os.path.join(PLUGIN, "skills")
     for skill in sorted(os.listdir(skills_dir)):
         src = os.path.join(skills_dir, skill)
         if not os.path.isfile(os.path.join(src, "SKILL.md")):

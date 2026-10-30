@@ -1,0 +1,30 @@
+{
+  "name": "game-designer",
+  "displayName": "AI Game Designer",
+  "version": "1.5.0",
+  "description": "Research-backed game design skills for every genre: fun curves and pacing diagnostics, 26 genre playbooks, progression/economy/gacha simulators, GDD and art-direction templates, design reviews with dark-pattern checks, and playable prototypes with self-tests. Answers in your language.",
+  "author": {
+    "name": "bunhine0452",
+    "url": "https://github.com/bunhine0452"
+  },
+  "homepage": "https://github.com/bunhine0452/ai-game-designer",
+  "repository": "https://github.com/bunhine0452/ai-game-designer",
+  "license": "MIT",
+  "icon": "assets/icon.png",
+  "documentationUrl": "https://github.com/bunhine0452/ai-game-designer#readme",
+  "supportUrl": "https://github.com/bunhine0452/ai-game-designer/issues",
+  "privacyPolicyUrl": "https://github.com/bunhine0452/ai-game-designer/blob/main/plugins/game-designer/PRIVACY.md",
+  "keywords": [
+    "game-design",
+    "gamedev",
+    "game-balance",
+    "level-design",
+    "pacing",
+    "economy",
+    "gacha",
+    "gdd",
+    "art-direction",
+    "accessibility",
+    "skills"
+  ]
+}

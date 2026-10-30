@@ -5,7 +5,7 @@ welcome.
 
 ## Good first contributions
 
-- **Glossary fixes** by native speakers (`skills/game-design/references/glossary.md`), or a
+- **Glossary fixes** by native speakers (`plugins/game-designer/skills/game-design/references/glossary.md`), or a
   new language column.
 - **Better sources** for weakly sourced areas (racing, battle royale, party games,
   metroidvania, puzzle). Primary sources are preferred: talks, postmortems, papers, designer
@@ -15,7 +15,7 @@ welcome.
 
 ## Rules
 
-1. **Cite everything.** Add new sources to `research/SOURCES.md` with an ID and a trust level
+1. **Cite everything.** Add new sources to `plugins/game-designer/research/SOURCES.md` with an ID and a trust level
    (P/S/L), and reference that ID in the file's `## Sources` section.
 2. **Paraphrase.** Don't copy text verbatim from copyrighted books, talks or articles. Short
    quotes need attribution and must be necessary.
@@ -31,13 +31,14 @@ welcome.
 ## Before opening a pull request
 
 ```bash
-claude plugin validate .                     # Claude Code manifests and skills
-agy plugin validate . && gemini extensions validate .   # other agents, if installed
-python3 skills/fun-curve/scripts/fun_curve.py skills/fun-curve/examples/roguelite-20min-run.csv --out /tmp/fc
-python3 skills/balance-economy/scripts/economy_sim.py skills/balance-economy/examples/f2p-economy.json --out /tmp/eco
-python3 skills/playable-prototype/scripts/check.py games/   # game self-tests + screenshots
+claude plugin validate plugins/game-designer  # the plugin (manifests and skills)
+claude plugin validate .                     # the marketplace
+agy plugin validate plugins/game-designer      # other agents, if installed
+python3 plugins/game-designer/skills/fun-curve/scripts/fun_curve.py plugins/game-designer/skills/fun-curve/examples/roguelite-20min-run.csv --out /tmp/fc
+python3 plugins/game-designer/skills/balance-economy/scripts/economy_sim.py plugins/game-designer/skills/balance-economy/examples/f2p-economy.json --out /tmp/eco
+python3 plugins/game-designer/skills/playable-prototype/scripts/check.py games/   # game self-tests + screenshots
 python3 tools/package.py                     # builds dist/ (plugin + per-skill zips)
-claude plugin eval . --runs 1                # optional: multilingual trigger evals
+claude plugin eval plugins/game-designer --runs 1   # optional: multilingual trigger evals
 ```
 
 Use conventional commits: `feat(scope): …`, `fix(scope): …`, `docs(scope): …`.

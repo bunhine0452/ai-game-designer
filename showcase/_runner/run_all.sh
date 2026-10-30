@@ -10,7 +10,7 @@ run_claude() {
   cd "$ROOT/$1" || return
   meta "agent: claude-code" "start: $(date -u +%FT%TZ)"
   MPLCONFIGDIR="$PWD/.mpl" claude -p "$(cat PROMPT.md)" \
-    --plugin-dir "$REPO" --add-dir "$REPO" --permission-mode acceptEdits \
+    --plugin-dir "$REPO/plugins/game-designer" --add-dir "$REPO" --permission-mode acceptEdits \
     --allowedTools "Bash(python3:*)" "Bash(python:*)" "Bash(ls:*)" "Bash(mkdir:*)" "Bash(head:*)" \
                    "Bash(cat:*)" Write Edit Read Glob Grep Skill \
     --max-budget-usd 5 --output-format json < /dev/null > session.json 2> session.err

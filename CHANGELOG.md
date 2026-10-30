@@ -4,6 +4,25 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [1.5.0] - 2026-10-30
+
+### Changed
+- **The plugin now lives in `plugins/game-designer/`.** The folder holds the skills, the
+  research, the evals, and the manifests for Claude Code, Codex, Antigravity and Gemini CLI. The
+  repo root keeps the marketplaces, docs, games and showcase. Installs are now lean (about 150
+  files instead of the whole repo), and the Claude plugin directory scans only the plugin.
+- Both marketplaces (`.claude-plugin/marketplace.json`, `.agents/plugins/marketplace.json`)
+  point at the new folder, so the install commands are unchanged. Antigravity and Gemini CLI now
+  install from `./ai-game-designer/plugins/game-designer`.
+- Example charts moved to `docs/images/examples/`, and the walkthroughs link to them. The
+  scripts still write charts to `examples/output/`, but those files are git-ignored.
+- `tools/install.py` and `tools/package.py` read from the new folder. The plugin zip now
+  contains only the plugin.
+
+### Added
+- A listing README for the plugin folder, with example prompts and a disclosure of what the
+  plugin runs.
+
 ## [1.4.1] - 2026-10-30
 
 ### Added

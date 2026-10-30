@@ -20,7 +20,7 @@ team will actually read, and reviews that catch dark patterns before players or 
 
 - **Research-backed.** Every reference file cites its sources: GDC talks, designer postmortems,
   books and peer-reviewed games research. A 120+ entry bibliography with trust levels is in
-  [`research/`](research/).
+  [`plugins/game-designer/research/`](plugins/game-designer/research/).
 - **Runs real analysis.** It ships with a fun-curve plotter with pacing diagnostics, an XP curve
   solver, a Monte Carlo economy and gacha simulator with exact pity math, and a cost-curve
   outlier finder. They need only Python 3; matplotlib is optional.
@@ -53,7 +53,7 @@ team will actually read, and reviews that catch dark patterns before players or 
 
 **Diagnose pacing, fix it, prove it.** A flawed horror chapter (left) becomes a healthy one
 (right). The script found the missing hook, an 11-minute chase plateau, and a climax at 58%.
-([walkthrough](skills/fun-curve/examples/horror-fix-walkthrough.md))
+([walkthrough](plugins/game-designer/skills/fun-curve/examples/horror-fix-walkthrough.md))
 
 <p align="center">
   <img src="docs/images/fun-curve-horror-flawed.png" width="49%" alt="Flawed horror chapter interest curve">
@@ -64,8 +64,8 @@ team will actually read, and reviews that catch dark patterns before players or 
 from pull 74 and hard pity at 90: a mean of 62.3 pulls and a consolidated rate of 1.61%. Four
 XP curve families solved to the same first level and the same total XP, compared on what players
 actually feel, which is time per level.
-([economy walkthrough](skills/balance-economy/examples/economy-walkthrough.md) ·
-[XP table](skills/balance-economy/examples/rpg-xp-table.md))
+([economy walkthrough](plugins/game-designer/skills/balance-economy/examples/economy-walkthrough.md) ·
+[XP table](plugins/game-designer/skills/balance-economy/examples/rpg-xp-table.md))
 
 <p align="center">
   <img src="docs/images/gacha-pity.png" width="49%" alt="Exact pity distribution">
@@ -74,7 +74,7 @@ actually feel, which is time per level.
 
 **Find the broken cards.** A least-squares cost curve recovers what each attribute is worth
 and flags undercosted and overcosted cards.
-([walkthrough](skills/balance-economy/examples/card-cost-curve.md))
+([walkthrough](plugins/game-designer/skills/balance-economy/examples/card-cost-curve.md))
 
 <p align="center"><img src="docs/images/cost-curve.png" width="60%" alt="Card cost curve with outliers"></p>
 
@@ -117,8 +117,8 @@ fixed in 1.1.0 ([details](showcase/README.md#what-real-use-taught-us-and-what-ch
 |---|---|
 | **Claude Code** | `/plugin marketplace add bunhine0452/ai-game-designer` then `/plugin install game-designer@ai-game-designer` |
 | **OpenAI Codex** | `codex plugin marketplace add bunhine0452/ai-game-designer` then `codex plugin add game-designer@ai-game-designer` |
-| **Antigravity** | Clone the repo, then `agy plugin install ./ai-game-designer` |
-| **Gemini CLI** | `gemini extensions install https://github.com/bunhine0452/ai-game-designer` |
+| **Antigravity** | Clone the repo, then `agy plugin install ./ai-game-designer/plugins/game-designer` |
+| **Gemini CLI** | Clone the repo, then `gemini extensions install ./ai-game-designer/plugins/game-designer` |
 | **Cursor, Copilot, OpenCode, others** | Clone, then `./install.sh --agent cursor` (or `copilot`, `opencode`, `universal`). See below |
 | **Claude app** (claude.ai / desktop) | Upload `game-designer.plugin` or the per-skill zips from the [latest release](https://github.com/bunhine0452/ai-game-designer/releases/latest) |
 
@@ -132,9 +132,9 @@ cd your-game-project
 ../ai-game-designer/install.sh --list-agents        # every known target and its paths
 ```
 
-The installer copies the six skills (each with the shared glossary), or symlinks them with
+The installer copies the seven skills (each with the shared glossary), or symlinks them with
 `--link`. Use `--dest <dir>` for any other agent. The repo also follows the standard
-`skills/<name>/SKILL.md` layout that the community `npx skills add bunhine0452/ai-game-designer`
+`plugins/game-designer/skills/<name>/SKILL.md` layout that the community `npx skills add bunhine0452/ai-game-designer`
 CLI scans (not tested here). Agents without skill support can follow [`AGENTS.md`](AGENTS.md).
 
 ### Claude app notes
@@ -171,7 +171,7 @@ It also understands Japanese, Chinese and Spanish (e.g. 「ホラーの緩急を
 - On first use in a non-English answer, each technical term is written as
   **localized (English)**, e.g. `관심 곡선 (Interest Curve)`, `天井 (Pity)`, `心流 (Flow)`,
   `bucle principal (Core Loop)`. After that, only the localized term is used.
-- Terms come from a [glossary](skills/game-design/references/glossary.md) of 130+ terms in
+- Terms come from a [glossary](plugins/game-designer/skills/game-design/references/glossary.md) of 130+ terms in
   EN, KO, JA, ZH-Hans and ES.
 - Code, file names, CLI flags and script outputs stay in English; Claude summarizes them in
   your language.
@@ -180,19 +180,19 @@ It also understands Japanese, Chinese and Spanish (e.g. 「ホラーの緩急を
 
 | Script | Input | Output |
 |---|---|---|
-| `skills/fun-curve/scripts/fun_curve.py` | beats CSV/JSON (`time,intensity,type,label`) | chart, report (MD/JSON), resampled CSV, ASCII curve |
-| `skills/balance-economy/scripts/progression_curve.py` | CLI flags (curve family, levels, first, total, income) | XP tables (CSV), report, chart |
-| `skills/balance-economy/scripts/economy_sim.py` | economy JSON (currencies, archetypes, faucets, sinks, gacha) | per-session and per-player CSVs, exact pity CSV, report, charts |
-| `skills/balance-economy/scripts/cost_curve.py` | items CSV (`name,cost,attributes…`) | fitted weights, fair costs, outliers, chart |
-| `skills/playable-prototype/scripts/check.py` | prototype folders or HTML files | self-test results per game, screenshots (headless Chrome) |
+| `plugins/game-designer/skills/fun-curve/scripts/fun_curve.py` | beats CSV/JSON (`time,intensity,type,label`) | chart, report (MD/JSON), resampled CSV, ASCII curve |
+| `plugins/game-designer/skills/balance-economy/scripts/progression_curve.py` | CLI flags (curve family, levels, first, total, income) | XP tables (CSV), report, chart |
+| `plugins/game-designer/skills/balance-economy/scripts/economy_sim.py` | economy JSON (currencies, archetypes, faucets, sinks, gacha) | per-session and per-player CSVs, exact pity CSV, report, charts |
+| `plugins/game-designer/skills/balance-economy/scripts/cost_curve.py` | items CSV (`name,cost,attributes…`) | fitted weights, fair costs, outliers, chart |
+| `plugins/game-designer/skills/playable-prototype/scripts/check.py` | prototype folders or HTML files | self-test results per game, screenshots (headless Chrome) |
 
 All scripts use only the Python 3 standard library. When matplotlib isn't installed they
 write text and CSV outputs instead of charts.
 
 ## Research
 
-The research phase came first: [`research/RESEARCH_NOTES.md`](research/RESEARCH_NOTES.md)
-(findings by area) and [`research/SOURCES.md`](research/SOURCES.md) (full bibliography with
+The research phase came first: [`plugins/game-designer/research/RESEARCH_NOTES.md`](plugins/game-designer/research/RESEARCH_NOTES.md)
+(findings by area) and [`plugins/game-designer/research/SOURCES.md`](plugins/game-designer/research/SOURCES.md) (full bibliography with
 trust levels). Highlights: Schell's interest curves, Csikszentmihalyi and Chen on flow, the Left
 4 Dead AI Director, MDA, Lazzaro's four keys, Quantic Foundry, SDT/PENS, Koster, Swink, *Juice
 it or lose it*, Valve's playtesting, RITE, PXI vs. GEQ, Schreiber's *Game Balance*, Sirlin,
@@ -210,7 +210,7 @@ Popular game-dev agent projects focus on *production* (studio role-play agents) 
 (Godot, Unity and Phaser skills). This plugin focuses on **design knowledge and analysis**:
 cited playbooks, runnable models and an ethics layer. It works across agents, and it pairs well
 with engine or production plugins. See the competitive scan in
-[`research/RESEARCH_NOTES.md`](research/RESEARCH_NOTES.md#e-competitive-scan).
+[`plugins/game-designer/research/RESEARCH_NOTES.md`](plugins/game-designer/research/RESEARCH_NOTES.md#e-competitive-scan).
 
 ## Quality checks
 
@@ -219,9 +219,9 @@ with engine or production plugins. See the competitive scan in
   (`codex plugin marketplace add` then `codex plugin add`).
 - Codex and Antigravity both discovered all six skills from a project's `.agents/skills` folder.
 - Every script runs against the bundled examples (with and without matplotlib).
-- All six games pass their self-tests locally and on GitHub Pages (`skills/playable-prototype/scripts/check.py games/`).
-- `evals/`: 21 trigger-and-language cases (3 per skill: English, Korean, and Japanese, Chinese or
-  Spanish), run with `claude plugin eval .`. In the v1.0.0 run (Sonnet, 1 run per case), the right
+- All six games pass their self-tests locally and on GitHub Pages (`plugins/game-designer/skills/playable-prototype/scripts/check.py games/`).
+- `plugins/game-designer/evals/`: 21 trigger-and-language cases (3 per skill: English, Korean, and Japanese, Chinese or
+  Spanish), run with `claude plugin eval plugins/game-designer`. In the v1.0.0 run (Sonnet, 1 run per case), the right
   skill fired 18/18, the answer was in the user's language 18/18, answers were judged useful 18/18,
   and terms were localized with the English in parentheses 12/12. The three `playable-prototype`
   cases added in v1.3.0 passed every grader, and the router cases still pass after adding its new route.
@@ -229,15 +229,15 @@ with engine or production plugins. See the competitive scan in
 ## What it runs, sends, and fetches
 
 - **Skills** are Markdown instructions. They don't execute anything by themselves.
-- **Python scripts** (`skills/*/scripts/*.py`) run only when you or your agent call them. They use
+- **Python scripts** (`plugins/game-designer/skills/*/scripts/*.py`) run only when you or your agent call them. They use
   the standard library (matplotlib optional for charts), read the files you pass, write to the
   output folder you choose, and make **no network requests**.
-- **`skills/playable-prototype/scripts/check.py`** starts your locally installed Chrome, Chromium
+- **`plugins/game-designer/skills/playable-prototype/scripts/check.py`** starts your locally installed Chrome, Chromium
   or Edge in headless mode with a throwaway profile, to run a prototype's self-tests and take a
   screenshot. It deletes the profile afterwards.
 - **`install.sh` / `tools/install.py`** copy skill folders into an agent's skills directory.
   **`tools/package.py`** builds zip files in `dist/`. Both are local-only.
-- **No hooks, no MCP servers, no telemetry, no data collection.** See [PRIVACY.md](PRIVACY.md).
+- **No hooks, no MCP servers, no telemetry, no data collection.** See [PRIVACY.md](plugins/game-designer/PRIVACY.md).
 - The demo pages in `games/` load fonts from Google Fonts when opened in a browser.
 
 ## Contributing
