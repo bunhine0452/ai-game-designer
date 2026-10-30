@@ -77,6 +77,19 @@ and flags undercosted and overcosted cards.
 
 <p align="center"><img src="docs/images/cost-curve.png" width="60%" alt="Card cost curve with outliers"></p>
 
+## Play the games
+
+Six original browser games built from the showcase design documents, with one game per session,
+agent and language. Each is a single HTML file: no install, and it works on desktop or phone.
+Every number comes from the design docs, and each game ships self-tests (open it with `?test=1`).
+
+**▶ [Open the arcade](https://bunhine0452.github.io/ai-game-designer/games/)**
+
+<table>
+<tr><td align="center" width="33%"><a href="https://bunhine0452.github.io/ai-game-designer/games/monster-farm/"><img src="games/screenshots/monster-farm.png" alt="Monster Farm"></a><br><b>Monster Farm</b></td><td align="center" width="33%"><a href="https://bunhine0452.github.io/ai-game-designer/games/tidecaller/"><img src="games/screenshots/tidecaller.png" alt="Tidecaller"></a><br><b>Tidecaller</b></td><td align="center" width="33%"><a href="https://bunhine0452.github.io/ai-game-designer/games/hoshiyobi-island/"><img src="games/screenshots/hoshiyobi-island.png" alt="Hoshiyobi Island"></a><br><b>Hoshiyobi Island</b></td></tr>
+<tr><td align="center" width="33%"><a href="https://bunhine0452.github.io/ai-game-designer/games/low-tide/"><img src="games/screenshots/low-tide.png" alt="Low Tide"></a><br><b>Low Tide</b></td><td align="center" width="33%"><a href="https://bunhine0452.github.io/ai-game-designer/games/garden-guardians/"><img src="games/screenshots/garden-guardians.png" alt="Garden Guardians"></a><br><b>Garden Guardians</b></td><td align="center" width="33%"><a href="https://bunhine0452.github.io/ai-game-designer/games/stardust-mine/"><img src="games/screenshots/stardust-mine.png" alt="Stardust Mine"></a><br><b>Stardust Mine</b></td></tr>
+</table>
+
 ## Showcase: six real sessions
 
 We ran six design sessions **in parallel** across **Claude Code, Codex and Antigravity**, in

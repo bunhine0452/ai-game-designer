@@ -4,6 +4,19 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [1.2.0] - 2026-10-30
+
+### Added
+- `games/`: six original, playable browser prototypes built from the showcase design documents:
+  Monster Farm, Tidecaller, Hoshiyobi Island, Low Tide, Garden Guardians and Stardust Mine. Each is
+  a single HTML file with procedural art (and sound in Low Tide), uses the design docs' numbers,
+  and ships self-tests (`?test=1`) including bots that play it start to finish. There is an
+  arcade gallery at `games/index.html`, served by GitHub Pages.
+- `games/tools/check.py`: runs every game's self-tests and captures screenshots with headless
+  Chrome, using a throwaway profile.
+- New visual identity, "Measured Wonder": `docs/design/banner-philosophy.md`, a reproducible
+  `docs/design/make_banner.py`, a new README banner and a 1280×640 social preview image.
+
 ## [1.1.0] - 2026-10-30
 
 ### Changed

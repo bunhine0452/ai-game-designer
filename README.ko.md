@@ -74,6 +74,19 @@
 
 <p align="center"><img src="docs/images/cost-curve.png" width="60%" alt="이상치가 표시된 카드 비용 곡선"></p>
 
+## 게임 플레이
+
+쇼케이스 기획 문서로 만든 오리지널 브라우저 게임 6개입니다. 세션, 에이전트, 언어마다 하나씩
+만들었습니다. 모두 HTML 파일 하나라서 설치 없이 데스크톱과 휴대폰에서 바로 실행됩니다. 게임 속 숫자는
+전부 기획 문서에서 가져왔고, 게임마다 자체 테스트가 들어 있습니다 (`?test=1`을 붙여 열기).
+
+**▶ [아케이드 열기](https://bunhine0452.github.io/ai-game-designer/games/?lang=ko)**
+
+<table>
+<tr><td align="center" width="33%"><a href="https://bunhine0452.github.io/ai-game-designer/games/monster-farm/"><img src="games/screenshots/monster-farm.png" alt="Monster Farm"></a><br><b>몬스터 팜</b></td><td align="center" width="33%"><a href="https://bunhine0452.github.io/ai-game-designer/games/tidecaller/"><img src="games/screenshots/tidecaller.png" alt="Tidecaller"></a><br><b>Tidecaller</b></td><td align="center" width="33%"><a href="https://bunhine0452.github.io/ai-game-designer/games/hoshiyobi-island/"><img src="games/screenshots/hoshiyobi-island.png" alt="Hoshiyobi Island"></a><br><b>호시요비 섬</b></td></tr>
+<tr><td align="center" width="33%"><a href="https://bunhine0452.github.io/ai-game-designer/games/low-tide/"><img src="games/screenshots/low-tide.png" alt="Low Tide"></a><br><b>Low Tide</b></td><td align="center" width="33%"><a href="https://bunhine0452.github.io/ai-game-designer/games/garden-guardians/"><img src="games/screenshots/garden-guardians.png" alt="Garden Guardians"></a><br><b>정원 수호자</b></td><td align="center" width="33%"><a href="https://bunhine0452.github.io/ai-game-designer/games/stardust-mine/"><img src="games/screenshots/stardust-mine.png" alt="Stardust Mine"></a><br><b>스타더스트 마인</b></td></tr>
+</table>
+
 ## 쇼케이스: 실제 세션 6개
 
 **Claude Code, Codex, Antigravity** 세 에이전트로 디자인 세션 6개를 **병렬로** 돌렸습니다. 한국어,
