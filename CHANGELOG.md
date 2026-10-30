@@ -4,6 +4,24 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [1.4.0] - 2026-10-30
+
+### Changed
+- **All six games rebuilt to the Tidecaller bar.** Each now has an illustrated scene as the
+  hero, animation and feedback, synthesized sound, and title, play and end screens, with the
+  design numbers and rules unchanged:
+  - **Garden Guardians:** painted garden and plants, animated pests, projectiles, pollen
+    threads, and a hover preview of range and pollination.
+  - **Stardust Mine:** five painted planets, multiplying rigs, ore streaming to an orbiting
+    hauler, warp transitions, and English/中文.
+  - **Hoshiyobi Island:** an aurora shrine, sixteen individually drawn creatures, plain
+    flip-card reveals, and English/日本語.
+  - **Monster Farm:** a cozy farm with four animated monsters, day light, letter-style reports,
+    and Korean/English.
+  - **Low Tide:** dynamic lighting in a camera-followed lighthouse, spatial audio, a minimap, and
+    touch controls.
+- Self-tests grew from 66 to 81 across the six games, with render, translation and preview checks.
+
 ## [1.3.1] - 2026-10-30
 
 ### Changed

@@ -24,7 +24,7 @@
   .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(330px,1fr)); gap:22px; padding-bottom:40px; }
   .card { background:var(--card); border:1px solid var(--line); border-radius:16px; overflow:hidden; display:flex; flex-direction:column; transition:border-color .2s, transform .2s; }
   .card:hover { border-color:#3a4864; transform:translateY(-2px); }
-  .shot { aspect-ratio:16/10.75; background:#000 center/cover no-repeat; border-bottom:1px solid var(--line); }
+  .shot { aspect-ratio:16/9; background:#000 center/cover no-repeat; border-bottom:1px solid var(--line); }
   .body { padding:18px 18px 16px; display:flex; flex-direction:column; gap:8px; flex:1; }
   .meta { color:var(--slate); display:flex; justify-content:space-between; gap:10px; letter-spacing:.06em; font-size:11px; }
   h2 { font-family:"Instrument Serif",Georgia,serif; font-weight:400; font-size:30px; line-height:1.05; margin:4px 0 0; }
@@ -75,10 +75,10 @@ const GAMES = [
     en: "Summon at an aurora-lit shrine. Sixteen hand-drawn creatures, plain card reveals, and the reviewed v2 banner: odds, 50/50 guarantee and exchange always visible, plus your exact chance. Free stars only. English/日本語.",
     ko: "오로라가 흐르는 신사에서 별을 불러 소환합니다. 손으로 그린 크리처 16종과 담백한 카드 공개, 리뷰를 거친 v2 배너(확률·50/50 확정·교환 항상 표시, 정확한 획득 확률)를 담았습니다. 무료 재화만 써요. 영어/일본어.",
     from: { en: "v2 economy config + monetization review", ko: "v2 경제 설정 + 과금 설계 리뷰" } },
-  { slug: "low-tide", title: "Low Tide", orig: "", genre: { en: "Horror chapter", ko: "호러 챕터" }, checks: 9, session: "04-codex-en-horror-lighthouse",
+  { slug: "low-tide", title: "Low Tide", orig: "", genre: { en: "Horror chapter", ko: "호러 챕터" }, checks: 11, session: "04-codex-en-horror-lighthouse",
     agent: "Codex · English",
-    en: "Restore the pump, work the lens, signal the boat. The keeper hunts by sound. Directional captions and reduced flashing built in.",
-    ko: "펌프를 되살리고 렌즈를 돌려 보트에 신호를 보내세요. 관리자는 소리로 쫓아옵니다. 방향 자막과 섬광 줄이기를 기본 지원해요.",
+    en: "Explore a flooding lighthouse by lantern light while the keeper hunts by sound. Lighting, a minimap, spatial audio with directional captions, reduced flashing and touch controls.",
+    ko: "물이 차오르는 등대를 랜턴 불빛에 의지해 탐색하세요. 관리자는 소리로 쫓아옵니다. 조명, 미니맵, 방향 자막이 붙은 공간 음향, 섬광 줄이기, 터치 조작을 갖췄습니다.",
     from: { en: "revised 40-min beat list + accessibility checklist", ko: "수정된 40분 비트 리스트 + 접근성 체크리스트" } },
   { slug: "garden-guardians", title: "Garden Guardians", orig: "Jardín de Guardianes", genre: { en: "Tower defense", ko: "타워 디펜스" }, checks: 12, session: "05-agy-es-garden-td",
     agent: "Antigravity · Español",
