@@ -13,19 +13,31 @@ Letterbox the rest. Never draw sprites directly at fractional scales.
 **Positions.** Simulate in sub-pixel floats if you like, but draw at `Math.round(x)`. Snap the
 camera the same way, so sprites and tiles never shimmer against each other.
 
-**Sprites without files.** Store sprites as strings of palette indices and decode them once
-into offscreen canvases:
+**Sprites without files.** Store sprites as rows of palette letters and decode each once into an
+offscreen canvas **at native size**: one sprite pixel is one buffer pixel. Baking a sprite at 2×
+into a 1× buffer creates mixels.
 
 ```js
-const PAL = ["", "#1a1c2c", "#5d275d", "#b13e53", "#ef7d57", "#ffcd75"];   // index 0 = transparent
-const HERO = ["..11..", ".1551.", "155551", ".1441.", "..11.."];              // '.' or '0' = transparent
+const PAL = { k: "#1a1c2c", r: "#b13e53", o: "#ef7d57", y: "#ffcd75" };   // '.' = transparent
+const COIN = ["..kkkk..", ".kyyyyk.", "kyyyyyok", ".kooook.", "..kkkk.."];   // light top-left, shade bottom-right
 ```
 
-Keep one palette for the whole game, and check the art against the style guide (ramps,
-reserved colors).
+Keep one palette for the whole game, organised as ramps (see `gdd-art-direction` →
+`references/pixel-art-craft.md`). Apply the drawing rules there: clusters instead of single-pixel
+speckle, one light direction, an outline policy, no outer anti-aliasing.
 
-**Text.** Use a tiny bitmap font drawn from the same kind of strings, or a pixel webfont at
-integer sizes only.
+**Text.** Use a tiny bitmap font drawn from the same kind of strings (the template has a 3×5
+font). `fillText` anti-aliases, even at small sizes, and leaks colours that are not in the
+palette. A pixel webfont must be thresholded to palette colours before it touches the buffer.
+
+**The pixel contract test.** In `?test=1`, draw a representative frame (text, effects, a
+fractional position), read the buffer with `getImageData`, and assert that every pixel is a
+palette colour with full alpha. This one check catches anti-aliased text, smoothing, rotation,
+alpha fades and sub-pixel drawing. Then audit the `?shot=1` screenshot:
+
+```bash
+python3 ../gdd-art-direction/scripts/pixel_audit.py audit screenshots/my-game.png --palette palette.hex
+```
 
 **Feel at low resolution.** Screen shake moves in whole pixels. Use flash frames with a
 reserved color for hits, and short freeze frames (2–4 ticks) for impact. Particles are single
@@ -62,5 +74,6 @@ still run its `?test=1` logic tests and show a clear message instead of a blank 
 
 ## Sources
 - [D16] Azzi, *Pixel Logic*; [D17] Medeiros (Saint11) tutorials; [D20] Haigh-Hutchinson, *Real-Time Cameras*.
+- [D23] Pixel Joint, *The Pixel Art Tutorial*; [D25] Schlitter (SLYNYRD), *Pixelblog*; [D36] Sweetie 16 palette (GrafxKid).
 - [A11] Swink, *Game Feel*; [A12] Jonasson & Purho, *Juice it or lose it*.
 - Full bibliography: `research/SOURCES.md` in the repository.

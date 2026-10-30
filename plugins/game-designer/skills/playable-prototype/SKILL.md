@@ -6,7 +6,7 @@ license: MIT
 compatibility: Any agent that reads SKILL.md folders. Scripts need Python 3; check.py also needs a local Chrome, Chromium or Edge.
 metadata:
   author: bunhine0452
-  version: "1.9.0"
+  version: "1.10.0"
   repository: https://github.com/bunhine0452/ai-game-designer
 ---
 
@@ -77,6 +77,10 @@ riskiest assumption**, built so the numbers can be trusted and the result can be
 - `?test=1` includes the **anti-fun screen** that applies (`references/testing-and-bots.md`):
   beatable, not trivial, no dominant option, outcome in doubt, decisions and questions keep coming.
 - `?shot=1` builds a deterministic, representative mid-game state for the screenshot.
+- Pixel-art prototypes keep the **pixel contract**: sprites drawn at native size, whole-pixel
+  positions, integer upscaling and bitmap text. `?test=1` asserts that a drawn frame holds
+  palette colours only. Audit the screenshot with
+  `gdd-art-direction/scripts/pixel_audit.py audit` and fix every fail flag.
 - Optional storage wrapped in try/catch; the game works without it.
 - Screen-first layout: a fixed 16:9 stage scaled to fit the window, with the play space as the
   hero. No sidebar of stat text. Numbers live on the units, cards and diegetic gauges.
@@ -107,7 +111,7 @@ riskiest assumption**, built so the numbers can be trusted and the result can be
 - `references/testing-and-bots.md`: self-test categories, bot design, real pitfalls found.
 - `references/assets-and-feel.md`: procedural art, WebAudio, juice, captions, hand-off.
 - `assets/template.html`: starter file with the full contract. `template-pixel.html` (integer-scaled
-  pixel pipeline, palette sprites, BFS bot) and `template-3d.html` (pinned three.js, fixed-step
+  pixel pipeline, native-size palette sprites, 3×5 bitmap font, pixel-contract test, BFS bot) and `template-3d.html` (pinned three.js, fixed-step
   simulation separate from rendering, draw-call budget test).
 - `references/3d-and-pixel-prototypes.md`: pixel rendering pipeline and feel; three.js setup, physics, camera and headless WebGL tests.
 - `scripts/check.py`: headless self-test runner and screenshotter.

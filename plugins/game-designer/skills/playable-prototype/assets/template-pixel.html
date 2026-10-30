@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Pixel prototype</title>
 <style>
-  html, body { margin:0; height:100%; background:#0b0b12; overflow:hidden; }
+  html, body { margin:0; height:100%; background:#1a1c2c; overflow:hidden; }
   canvas#screen { position:absolute; image-rendering:pixelated; image-rendering:crisp-edges; }
 </style>
 </head>
@@ -14,22 +14,50 @@
 <pre id="selftest" hidden></pre>
 <script>
 "use strict";
-// Pixel pipeline: draw into a 320x180 buffer, then scale it up by the largest integer that fits.
+// Pixel contract (see gdd-art-direction references/pixel-art-craft.md):
+// one buffer at VW x VH, every sprite drawn at its native size (1 sprite pixel = 1 buffer pixel),
+// whole-pixel positions, integer upscaling, palette colours only (no browser fonts, no smoothing, no rotation).
 const VW = 320, VH = 180, TILE = 16;
-const PAL = ["", "#1a1c2c", "#5d275d", "#b13e53", "#ef7d57", "#ffcd75", "#a7f070", "#38b764", "#257179", "#29366f", "#3b5dc9", "#41a6f6", "#73eff7", "#f4f4f4", "#94b0c2", "#566c86"];
-// Sprites are strings of palette indices in hex; '.' is transparent. One palette for everything.
+// Palette: Sweetie 16 by GrafxKid (Lospec). Ramps share the darkest colour k:
+//   warm  k P r o y   ·   green k t g l y   ·   blue k N b s c w   ·   grey k D G L w
+const PAL = { k: "#1a1c2c", P: "#5d275d", r: "#b13e53", o: "#ef7d57", y: "#ffcd75", l: "#a7f070", g: "#38b764", t: "#257179",
+  N: "#29366f", b: "#3b5dc9", s: "#41a6f6", c: "#73eff7", w: "#f4f4f4", L: "#94b0c2", G: "#566c86", D: "#333c57" };
+// Sprites: rows of palette letters, '.' transparent. Light from the top-left; dark outline k on characters,
+// none on tiles; highlights shift warm (r->o), shadows shift cool (r->P).
 const SPR = {
-  hero: ["..1111..", ".1dddd1.", "1dd1d1d1", "1dddddd1", ".1bbbb1.", "1bb11bb1", ".1b..b1.", ".11..11."],
-  coin: ["..1111..", ".155551.", "15555551", "15545551", "15545551", "15555551", ".155551.", "..1111.."],
-  wall: ["ffffffff", "f8888888", "f8999998", "f8988898", "f8988898", "f8999998", "f8888888", "88888888"],
+  hero: ["................", "......kkkk......", "....kkrrrrkk....", "...krroorrrrk...", "..krroorrrrrPk..", "..krrkkkkkkrPk..",
+    "..krkyyyyyykPk..", "..kkyykyykyyk...", "...kyyyyyyyyk...", "...kPkkkkkkPk...", "..kbbsbbbbbbbk..", ".kybbsbbbbbbNyk.",
+    ".kkkbbbbbbbNkkk.", "...kNNNkkNNNk...", "...kGGk..kGGk...", "...kkk....kkk..."],
+  coin: ["..kkkk..", ".kywyyk.", "kywyyyok", "kyyyyyok", "kyyyyyok", "kyyyyook", ".kooook.", "..kkkk.."],
+  wall: ["LLLLLLLkLLLLLLLk", "LGGGGGDkLGGGGGDk", "LGGGGGDkLGGGGGDk", "LGGGGGDkLGGGGGDk", "LGGGGGDkLGGGGGDk", "LGGGGGDkLGGGGGDk",
+    "DDDDDDDkDDDDDDDk", "kkkkkkkkkkkkkkkk", "LLLkLLLLLLLkLLLL", "GGDkLGGGGGDkLGGG", "GGDkLGGGGGDkLGGG", "GGDkLGGGGGDkLGGG",
+    "GGDkLGGGGGDkLGGG", "GGDkLGGGGGDkLGGG", "DDDkDDDDDDDkDDDD", "kkkkkkkkkkkkkkkk"],
+  floor: ["NNNNNNNNNNNNNNNN", "NNNNNNNNNNNNNNNN", "NNNDDNNNNNNNNNNN", "NNNNDDNNNNNNNNNN", "NNNNNNNNNNNNNNNN", "NNNNNNNNNNNNNNNN",
+    "NNNNNNNNNNNNNNNN", "NNNNNNNNNNNNDDNN", "NNNNNNNNNNNNNNNN", "NNNNNNNNNNNNNNNN", "NNNNNNNNNNNNNNNN", "NNNNNNNNNNNNNNNN",
+    "NNNNNNNDDDNNNNNN", "NNNNNNNNDNNNNNNN", "NNNNNNNNNNNNNNNN", "NNNNNNNNNNNNNNNN"],
 };
-function bake(rows, scale) {
-  const c = document.createElement("canvas"); c.width = rows[0].length * scale; c.height = rows.length * scale;
+function bake(rows) {   // native size only: scaling happens once, for the whole buffer
+  const c = document.createElement("canvas"); c.width = rows[0].length; c.height = rows.length;
   const g = c.getContext("2d");
-  rows.forEach((row, y) => [...row].forEach((ch, x) => { if (ch !== "." && ch !== "0") { g.fillStyle = PAL[parseInt(ch, 16)]; g.fillRect(x * scale, y * scale, scale, scale); } }));
+  rows.forEach((row, y) => [...row].forEach((ch, x) => { if (ch !== ".") { g.fillStyle = PAL[ch]; g.fillRect(x, y, 1, 1); } }));
   return c;
 }
-const IMG = { hero: bake(SPR.hero, 2), coin: bake(SPR.coin, 2), wall: bake(SPR.wall, 2) };
+const IMG = Object.fromEntries(Object.entries(SPR).map(([k, rows]) => [k, bake(rows)]));
+// 3x5 bitmap font (rows of 3 bits). Text is drawn pixel by pixel in palette colours, never with fillText.
+const FONT = { A: "010101111101101", B: "110101110101110", C: "011100100100011", D: "110101101101110", E: "111100110100111", F: "111100110100100",
+  G: "011100101101011", H: "101101111101101", I: "111010010010111", J: "001001001101010", K: "101101110101101", L: "100100100100111",
+  M: "101111111101101", N: "110101101101101", O: "010101101101010", P: "110101110100100", Q: "010101101110011", R: "110101110101101",
+  S: "011100010001110", T: "111010010010010", U: "101101101101111", V: "101101101101010", W: "101101111111101", X: "101101010101101",
+  Y: "101101010010010", Z: "111001010100111", 0: "111101101101111", 1: "010110010010111", 2: "110001010100111", 3: "110001010001110",
+  4: "101101111001001", 5: "111100110001110", 6: "011100111101111", 7: "111001010010010", 8: "111101111101111", 9: "111101111001110",
+  "!": "010010010000010", ".": "000000000000010", ":": "000010000010000", "-": "000000111000000", "/": "001001010100100", " ": "000000000000000" };
+function text(g, str, x, y, col = "w", shadow = "k") {
+  [...String(str).toUpperCase()].forEach((ch, i) => { const bits = FONT[ch] || FONT[" "];
+    for (let k = 0; k < 15; k++) if (bits[k] === "1") {
+      const px = x + i * 4 + (k % 3), py = y + Math.floor(k / 3);
+      if (shadow) { g.fillStyle = PAL[shadow]; g.fillRect(px + 1, py + 1, 1, 1); }
+      g.fillStyle = PAL[col]; g.fillRect(px, py, 1, 1); } });
+}
 
 // DATA: the level comes from the design (a source comment belongs here). # wall, o coin, @ start.
 const MAP = [
@@ -42,7 +70,7 @@ const MAP = [
   "#.....o.......o....#",
   "#..................#",
   "#..........#.......#",
-  "#####################".slice(0, 20),
+  "####################",
 ];
 const solid = (tx, ty) => (MAP[ty] || "")[tx] === "#";
 const fresh = () => { const s = { x: 0, y: 0, coins: [], got: 0, t: 0, flash: 0 };
@@ -50,39 +78,53 @@ const fresh = () => { const s = { x: 0, y: 0, coins: [], got: 0, t: 0, flash: 0 
   return s; };
 let S = fresh();
 
-// Rules: movement with tile collision; coins collected on overlap.
+// Rules: movement with tile collision; coins collected on overlap. Positions may be fractional; drawing rounds.
 function move(dx, dy) {
-  const nx = S.x + dx, ny = S.y + dy, box = (x, y) => [[x + 2, y + 2], [x + 13, y + 2], [x + 2, y + 13], [x + 13, y + 13]];
+  const nx = S.x + dx, ny = S.y + dy, box = (x, y) => [[x + 3, y + 3], [x + 12, y + 3], [x + 3, y + 14], [x + 12, y + 14]];
   if (!box(nx, S.y).some(([px, py]) => solid(Math.floor(px / TILE), Math.floor(py / TILE)))) S.x = nx;
   if (!box(S.x, ny).some(([px, py]) => solid(Math.floor(px / TILE), Math.floor(py / TILE)))) S.y = ny;
   S.coins = S.coins.filter((c) => { const hit = Math.abs(c.x - S.x) < 12 && Math.abs(c.y - S.y) < 12; if (hit) { S.got++; S.flash = 6; } return !hit; });
 }
 
-// Rendering: buffer at VW x VH, integer upscale, positions rounded to whole pixels.
+// Rendering: buffer at VW x VH, integer upscale, whole-pixel positions.
 const buf = document.createElement("canvas"); buf.width = VW; buf.height = VH;
 const b = buf.getContext("2d"), screen = document.getElementById("screen"), sg = screen.getContext("2d");
 function scaleFor(w, h) { return Math.max(1, Math.floor(Math.min(w / VW, h / VH))); }
 function fit() { const k = scaleFor(innerWidth, innerHeight); screen.width = VW * k; screen.height = VH * k;
   screen.style.left = Math.floor((innerWidth - VW * k) / 2) + "px"; screen.style.top = Math.floor((innerHeight - VH * k) / 2) + "px"; sg.imageSmoothingEnabled = false; }
 function draw() {
-  b.fillStyle = PAL[9]; b.fillRect(0, 0, VW, VH);
-  MAP.forEach((row, y) => [...row].forEach((ch, x) => { if (ch === "#") b.drawImage(IMG.wall, x * TILE, y * TILE); }));
-  const bob = Math.round(Math.sin(S.t * 6));
-  S.coins.forEach((c) => b.drawImage(IMG.coin, Math.round(c.x), Math.round(c.y) + bob));
+  b.fillStyle = PAL.k; b.fillRect(0, 0, VW, VH);
+  MAP.forEach((row, y) => [...row].forEach((ch, x) => b.drawImage(ch === "#" ? IMG.wall : IMG.floor, x * TILE, y * TILE)));
+  const bob = Math.floor(S.t * 4) % 2;   // a 1 px, two-frame bob: motion in whole pixels
+  S.coins.forEach((c) => b.drawImage(IMG.coin, Math.round(c.x) + 4, Math.round(c.y) + 4 - bob));
   b.drawImage(IMG.hero, Math.round(S.x), Math.round(S.y));
-  if (S.flash > 0) { b.fillStyle = PAL[5]; b.fillRect(0, 0, VW, 2); }
-  b.fillStyle = PAL[13]; b.font = "8px monospace"; b.fillText("COINS " + S.got, 4, VH - 4);
+  if (S.flash > 0) { b.fillStyle = PAL.y; b.fillRect(0, 0, VW, 1); }
+  text(b, "COINS " + S.got + "/" + (S.got + S.coins.length), 4, VH - 9);
   sg.drawImage(buf, 0, 0, screen.width, screen.height);
 }
 const keys = {};
 addEventListener("keydown", (e) => (keys[e.key] = true)); addEventListener("keyup", (e) => (keys[e.key] = false));
 addEventListener("resize", fit);
 
+const hexRGB = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+const lum = (h) => { const [r, g, bl] = hexRGB(h).map((v) => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r + 0.7152 * g + 0.0722 * bl; };
 function selftest() {
   const out = [], ok = (name, cond, info = "") => out.push({ name, pass: !!cond, info });
-  ok("palette stays small (16 colors)", PAL.length - 1 <= 16, PAL.length - 1 + " colors");
+  ok("palette stays small (16 colours)", Object.keys(PAL).length <= 16, Object.keys(PAL).length + " colours");
   ok("integer scaling: 1920x1080 gives x6", scaleFor(1920, 1080) === 6);
   ok("integer scaling never goes below 1", scaleFor(200, 100) === 1);
+  ok("sprites are baked at native size (no mixels)", Object.entries(SPR).every(([k, rows]) => IMG[k].width === rows[0].length && IMG[k].height === rows.length));
+  ok("every sprite row has the same width", Object.values(SPR).every((rows) => rows.every((r) => r.length === rows[0].length)));
+  // pixel contract: a drawn frame (with text, a fractional hero position and the flash) holds palette colours only
+  S = fresh(); S.x += 0.4; S.y += 0.6; S.flash = 3; S.t = 0.3; draw();
+  const allowed = new Set(Object.values(PAL).map((h) => hexRGB(h).join(","))), d = b.getImageData(0, 0, VW, VH).data;
+  let stray = 0, first = "";
+  for (let i = 0; i < d.length; i += 4) { const k = d[i] + "," + d[i + 1] + "," + d[i + 2]; if (!allowed.has(k) || d[i + 3] !== 255) { stray++; first = first || k; } }
+  ok("frame uses palette colours only (no anti-aliasing from text, scaling or sub-pixel drawing)", stray === 0, stray + " stray pixels " + first);
+  // value check: in greyscale the hero must stand apart from the floor it walks on
+  const heroCols = SPR.hero.join("").replace(/\./g, ""), heroL = [...heroCols].reduce((a, ch) => a + lum(PAL[ch]), 0) / heroCols.length;
+  const floorL = lum(PAL.N), ratio = (Math.max(heroL, floorL) + 0.05) / (Math.min(heroL, floorL) + 0.05);
+  ok("hero stands out from the floor in greyscale (mean luminance contrast >= 2:1)", ratio >= 2, ratio.toFixed(2) + ":1");
   S = fresh(); const x0 = S.x; move(-4, 0); ok("walls block movement", S.x === x0);
   // Bot: BFS over tiles to the next coin, then walk tile centre to tile centre with the real move().
   S = fresh(); const total = S.coins.length; let guard = 0;
@@ -104,7 +146,7 @@ if (params.has("test")) selftest();
 if (params.has("shot")) { move(40, 20); S.t = 0.3; }
 let last = performance.now();
 (function frame(now) {
-  const dt = Math.min(0.05, (now - last) / 1000); last = now; S.t += dt; S.flash = Math.max(0, S.flash - 1);
+  const dt = Math.max(0, Math.min(0.05, (now - last) / 1000)); last = now; S.t += dt; S.flash = Math.max(0, S.flash - 1);
   const sp = 70 * dt; move(((keys.ArrowRight || keys.d) ? sp : 0) - ((keys.ArrowLeft || keys.a) ? sp : 0), ((keys.ArrowDown || keys.s) ? sp : 0) - ((keys.ArrowUp || keys.w) ? sp : 0));
   draw(); requestAnimationFrame(frame);
 })(last);
