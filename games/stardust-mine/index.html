@@ -2,276 +2,593 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Stardust Mine · 星尘矿场</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Stardust Mine</title>
+<meta name="description" content="An idle space-mining game across five planets. Original prototype designed with ai-game-designer.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Noto+Sans+SC:wght@500;700&display=swap" rel="stylesheet">
 <style>
-  :root { --bg:#0b1020; --panel:#141b33; --ink:#eef1ff; --ink2:#a9b1d6; --accent:#fcbf49; --good:#3ddc97; --line:#26305a; }
+  :root { --ink:#eef2ff; --ink2:#a9b3d6; --ink3:#6b759c; --glass:rgba(14,18,42,.74); --line:rgba(170,185,255,.16); --acc:#7ce0ff; --gold:#ffd166; --good:#7cf2b5;
+    --font:"Space Grotesk","Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif; }
   * { box-sizing:border-box; }
-  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.45 system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; }
-  header { display:flex; flex-wrap:wrap; gap:8px 16px; align-items:baseline; padding:12px 16px; border-bottom:1px solid var(--line); }
-  header h1 { margin:0; font-size:20px; } header .sub { color:var(--ink2); font-size:13px; } header a { color:var(--accent); }
-  main { display:grid; grid-template-columns:minmax(0,1.4fr) minmax(280px,1fr); gap:16px; padding:16px; max-width:1200px; margin:0 auto; }
-  @media (max-width:820px){ main { grid-template-columns:1fr; } }
-  canvas { width:100%; aspect-ratio:16/11; background:#050814; border-radius:14px; display:block; }
-  .panel { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:14px 16px; }
-  .stats { display:grid; grid-template-columns:1fr 1fr; gap:8px 14px; margin:8px 0 12px; }
-  .stat .k { color:var(--ink2); font-size:12px; } .stat .v { font-size:20px; font-weight:650; font-variant-numeric:tabular-nums; }
-  .bar { height:10px; background:#0d1430; border-radius:6px; overflow:hidden; } .bar > i { display:block; height:100%; background:linear-gradient(90deg,#4cc9f0,var(--accent)); width:0; }
-  button { font:inherit; cursor:pointer; border-radius:10px; border:1px solid var(--line); background:#1d2650; color:var(--ink); padding:9px 12px; }
-  button.primary { background:var(--accent); color:#1b1300; border-color:var(--accent); font-weight:700; }
-  button:disabled { opacity:.45; cursor:not-allowed; }
-  button.on { outline:2px solid var(--good); }
-  .row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:8px 0; }
-  .muted { color:var(--ink2); font-size:13px; }
-  #log { max-height:180px; overflow:auto; padding-left:18px; margin:6px 0 0; }
-  #log li { margin:4px 0; }
-  .modal { position:fixed; inset:0; background:rgba(3,6,18,.78); display:none; align-items:center; justify-content:center; padding:16px; }
-  .modal.show { display:flex; }
-  .modal .panel { max-width:640px; width:100%; }
-  .cols { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; } @media (max-width:560px){ .cols { grid-template-columns:1fr; } }
-  .cols div { background:#0e1530; border-radius:10px; padding:10px; } .cols h3 { margin:0 0 6px; font-size:14px; }
-  .toast { position:fixed; left:50%; bottom:18px; transform:translateX(-50%); background:#1d2650; border:1px solid var(--line); padding:10px 14px; border-radius:10px; display:none; }
+  html,body { margin:0; height:100%; overflow:hidden; background:#04050f; color:var(--ink); font:15px/1.4 var(--font); -webkit-user-select:none; user-select:none; }
+  #stage { position:absolute; left:0; top:0; width:1280px; height:720px; transform-origin:0 0; overflow:hidden; background:#060818; }
+  #cv { position:absolute; inset:0; width:1280px; height:720px; }
+  .hud { position:absolute; z-index:5; }
+  #top { left:0; right:0; top:0; height:70px; display:flex; align-items:center; gap:12px; padding:0 22px; background:linear-gradient(rgba(4,5,15,.85),rgba(4,5,15,0)); }
+  .brand { font:700 22px/1 var(--font); letter-spacing:.02em; white-space:nowrap; }
+  .brand small { display:block; margin-top:4px; font:500 12px var(--font); color:var(--ink2); letter-spacing:.18em; }
+  .chip { display:flex; align-items:center; gap:8px; height:38px; padding:0 14px; border-radius:19px; background:rgba(255,255,255,.07); border:1px solid var(--line); font:600 14px var(--font); white-space:nowrap; }
+  .chip .dot { width:10px; height:10px; border-radius:50%; background:var(--hue); box-shadow:0 0 10px var(--hue); }
+  .cores { color:var(--gold); } .cores svg { width:18px; height:18px; }
+  .sp { margin-left:auto; display:flex; align-items:center; gap:2px; padding:3px; border-radius:12px; background:rgba(255,255,255,.07); border:1px solid var(--line); }
+  .sp span { font:600 11px var(--font); color:var(--ink3); letter-spacing:.12em; text-transform:uppercase; padding:0 8px 0 6px; }
+  .sp button { border:0; background:none; color:var(--ink2); font:600 13px var(--font); padding:7px 11px; border-radius:9px; cursor:pointer; }
+  .sp button.on { background:var(--acc); color:#04202c; }
+  .ib { height:38px; min-width:38px; padding:0 10px; border-radius:11px; border:1px solid var(--line); background:rgba(255,255,255,.07); color:var(--ink); font:600 13px var(--font); cursor:pointer; display:grid; place-items:center; }
+  .ib svg { width:18px; height:18px; } .ib.off { color:var(--ink3); }
+
+  #panel { left:860px; top:84px; width:396px; height:618px; padding:20px 22px; border-radius:22px; background:var(--glass); border:1px solid var(--line); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    box-shadow:0 20px 60px rgba(0,0,0,.45); display:flex; flex-direction:column; gap:12px; }
+  .ph { display:flex; justify-content:space-between; align-items:baseline; }
+  .ph b { font:700 21px var(--font); } .ph b small { font:500 15px var(--font); color:var(--ink2); margin-left:6px; } .ph span { font:600 12px var(--font); color:var(--ink3); letter-spacing:.1em; text-transform:uppercase; }
+  .lab { font:600 11px var(--font); color:var(--ink3); letter-spacing:.16em; text-transform:uppercase; }
+  .credits { display:flex; align-items:baseline; gap:10px; }
+  .credits b { font:700 46px/1 var(--font); letter-spacing:-.01em; font-variant-numeric:tabular-nums; }
+  .credits span { font:600 16px var(--font); color:var(--good); }
+  .lvl { display:flex; justify-content:space-between; align-items:baseline; } .lvl b { font:700 22px var(--font); } .lvl b small { font:600 14px var(--font); color:var(--ink2); }
+  .bar { position:relative; height:10px; border-radius:5px; background:rgba(255,255,255,.08); overflow:visible; }
+  .bar i { position:absolute; left:0; top:0; bottom:0; border-radius:5px; background:linear-gradient(90deg,var(--hue2),var(--hue)); box-shadow:0 0 12px var(--hue); transition:width .3s; }
+  .bar .tick { position:absolute; top:-5px; width:2px; height:20px; background:var(--gold); border-radius:1px; } .bar .tick::after { content:attr(data-l); position:absolute; top:-15px; left:-12px; width:30px; text-align:center; font:700 10px var(--font); color:var(--gold); }
+  #buy { position:relative; overflow:hidden; height:76px; border-radius:18px; border:0; cursor:pointer; color:#03141c; text-align:left; padding:0 20px; background:#2a3358; font:inherit; }
+  #buy .fill { position:absolute; inset:0; width:0; background:linear-gradient(90deg,#7ce0ff,#a6f0ff); transition:width .15s linear; }
+  #buy .tx { position:relative; display:flex; justify-content:space-between; align-items:center; }
+  #buy .tx b { font:700 21px var(--font); } #buy .tx span { font:700 18px var(--font); font-variant-numeric:tabular-nums; }
+  #buy .tx small { display:block; font:600 12px var(--font); opacity:.75; }
+  #buy:disabled { cursor:default; color:var(--ink); } #buy:disabled .fill { background:linear-gradient(90deg,rgba(124,224,255,.4),rgba(166,240,255,.55)); }
+  #buy.can { box-shadow:0 0 0 2px #a6f0ff,0 0 30px rgba(124,224,255,.55); } #buy:not(:disabled):active { transform:translateY(2px); }
+  .row { display:flex; gap:10px; align-items:center; }
+  .switch { display:flex; align-items:center; gap:10px; flex:1; padding:11px 14px; border-radius:14px; background:rgba(255,255,255,.05); border:1px solid var(--line); cursor:pointer; color:var(--ink); font:600 14px var(--font); }
+  .switch i { position:relative; width:42px; height:24px; border-radius:12px; background:rgba(255,255,255,.15); flex:none; transition:background .2s; }
+  .switch i::after { content:""; position:absolute; left:3px; top:3px; width:18px; height:18px; border-radius:50%; background:#fff; transition:left .2s; }
+  .switch.on i { background:var(--good); } .switch.on i::after { left:21px; }
+  .switch:disabled { opacity:.55; cursor:default; } .switch small { display:block; font:500 11.5px var(--font); color:var(--ink2); }
+  .info { font:500 13px/1.45 var(--font); color:var(--ink2); padding:11px 14px; border-radius:14px; background:rgba(255,255,255,.04); border:1px solid var(--line); }
+  .info b { color:var(--ink); }
+  #migrate { height:52px; border-radius:15px; border:1px solid var(--line); background:rgba(255,255,255,.05); color:var(--ink2); font:700 15px var(--font); cursor:pointer; }
+  #migrate:disabled { cursor:default; opacity:.55; }
+  #migrate.ready { color:#1e1300; background:linear-gradient(90deg,#ffd166,#ffe39a); border-color:transparent; animation:ready 1.4s ease-in-out infinite; }
+  @keyframes ready { 50% { box-shadow:0 0 30px rgba(255,209,102,.7); } }
+  .fine { margin-top:auto; font:500 11.5px var(--font); color:var(--ink3); text-align:center; }
+
+  #log { left:28px; bottom:22px; width:800px; display:flex; align-items:center; gap:16px; padding:12px 18px; border-radius:16px; background:var(--glass); border:1px solid var(--line); }
+  #map { display:flex; align-items:center; flex:none; } #map i { width:14px; height:14px; border-radius:50%; border:2px solid var(--ink3); } #map i.done { background:var(--c); border-color:var(--c); box-shadow:0 0 8px var(--c); } #map i.cur { border-color:var(--c); box-shadow:0 0 0 4px rgba(255,255,255,.08); } #map s { width:22px; height:2px; background:var(--line); }
+  #logTxt { font:500 14px/1.4 var(--font); color:var(--ink2); } #logTxt b { color:var(--ink); }
+
+  .float { position:absolute; z-index:6; transform:translate(-50%,-50%); font:700 20px var(--font); color:var(--gold); text-shadow:0 2px 10px rgba(0,0,0,.6); pointer-events:none; animation:float 1.2s ease-out forwards; white-space:nowrap; }
+  @keyframes float { 0% { opacity:0; transform:translate(-50%,-30%) scale(.7); } 15% { opacity:1; transform:translate(-50%,-60%) scale(1.1); } 100% { opacity:0; transform:translate(-50%,-220%); } }
+  #toast { position:absolute; z-index:7; left:50%; top:86px; transform:translateX(-50%); padding:10px 18px; border-radius:14px; background:rgba(14,18,42,.92); border:1px solid var(--line); font:600 14px var(--font); display:none; white-space:nowrap; }
+  #toast.show { display:block; animation:fade .3s; }
+  #screen, #modal { position:absolute; inset:0; display:none; align-items:center; justify-content:center; z-index:8; }
+  #screen { background:radial-gradient(ellipse at 40% 50%,rgba(6,8,24,.2),rgba(4,5,15,.85)); }
+  #modal { z-index:9; background:rgba(4,5,15,.72); }
+  #screen.show, #modal.show { display:flex; animation:fade .35s; } @keyframes fade { from { opacity:0; } }
+  .card { width:min(820px,90%); padding:30px 34px; border-radius:24px; background:rgba(14,18,42,.94); border:1px solid var(--line); box-shadow:0 30px 80px rgba(0,0,0,.6); text-align:center; }
+  .kicker { font:600 12px var(--font); letter-spacing:.3em; text-transform:uppercase; color:var(--acc); }
+  .card h2 { margin:10px 0 8px; font:700 40px/1.1 var(--font); }
+  .muted { color:var(--ink2); max-width:600px; margin:0 auto; }
+  .btn { display:inline-block; text-decoration:none; padding:14px 28px; border-radius:15px; border:0; cursor:pointer; font:700 17px var(--font); color:#03141c; background:linear-gradient(90deg,#7ce0ff,#a6f0ff); }
+  .btn.alt { background:rgba(255,255,255,.08); color:var(--ink); border:1px solid var(--line); }
+  .btn.gold { background:linear-gradient(90deg,#ffd166,#ffe39a); color:#1e1300; }
+  .btns { display:flex; gap:12px; justify-content:center; margin-top:24px; }
+  .cols { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:20px; text-align:left; }
+  .cols div { padding:14px 16px; border-radius:16px; background:rgba(255,255,255,.05); border:1px solid var(--line); font:500 14px/1.6 var(--font); color:var(--ink2); }
+  .cols b { display:block; font:700 13px var(--font); letter-spacing:.14em; text-transform:uppercase; margin-bottom:6px; }
+  .cols .r b { color:#ff9aa8; } .cols .k b { color:var(--good); } .cols .n b { color:var(--acc); }
+  .cols em { font-style:normal; color:var(--ink); }
+  .story { margin:18px auto 4px; max-width:560px; font:500 20px/1.5 var(--font); color:var(--ink); }
+  .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:20px; }
+  .stat { padding:14px; border-radius:16px; background:rgba(255,255,255,.05); border:1px solid var(--line); } .stat b { display:block; font:700 28px var(--font); } .stat span { font:600 11px var(--font); color:var(--ink3); letter-spacing:.14em; text-transform:uppercase; }
+  .title-wrap { position:absolute; left:80px; top:170px; width:560px; }
+  .title-wrap h1 { margin:0; font:700 92px/0.95 var(--font); letter-spacing:-.02em; background:linear-gradient(180deg,#ffffff 30%,#9fe6ff); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .title-wrap .zh { font:700 30px var(--font); color:var(--gold); letter-spacing:.3em; margin-top:10px; }
+  .title-wrap p { font:500 19px/1.5 var(--font); color:var(--ink2); margin:18px 0 0; }
+  .title-wrap .btns { justify-content:flex-start; }
+  .foot { position:absolute; left:0; right:0; bottom:18px; text-align:center; font:500 12.5px var(--font); color:var(--ink3); } .foot a { color:var(--ink2); }
+  .how { display:grid; grid-template-columns:1fr 1fr; gap:12px; text-align:left; margin-top:18px; }
+  .how div { padding:14px 16px; border-radius:16px; background:rgba(255,255,255,.05); border:1px solid var(--line); font:500 14px/1.5 var(--font); color:var(--ink2); }
+  .how b { display:block; font:700 16px var(--font); color:var(--ink); margin-bottom:3px; }
+  #tip { position:absolute; z-index:10; max-width:260px; padding:9px 12px; border-radius:12px; background:rgba(10,13,32,.97); border:1px solid var(--line); font:500 13px/1.45 var(--font); pointer-events:none; display:none; }
+  #tip.show { display:block; } #tip b { color:var(--acc); }
+  #rotate { position:fixed; left:12px; right:12px; top:12px; z-index:20; padding:12px 14px; border-radius:12px; background:#14183a; font:600 14px var(--font); display:none; }
+  #rotate.show { display:block; } #rotate button { float:right; background:none; border:0; color:var(--ink2); font-size:18px; cursor:pointer; }
+  .shot #screen.show, .shot #modal.show { animation:none; }
 </style>
 </head>
 <body>
-<header>
-  <h1>Stardust Mine <span class="sub">星尘矿场 · idle space mining</span></h1>
-  <span class="sub">Playable prototype of the <a href="../../showcase/06-codex-zh-idle-mining/">showcase design</a> made with <a href="../../">ai-game-designer</a> · numbers taken straight from the design doc</span>
-</header>
-<main>
-  <section>
-    <canvas id="view" width="960" height="660" aria-label="Your mining station orbiting the current planet"></canvas>
-    <p class="muted" id="planetLine"></p>
-  </section>
-  <section class="panel">
-    <div class="row" style="justify-content:space-between"><strong id="chapterName"></strong><span class="muted" id="coreLine"></span></div>
-    <div class="bar" aria-label="Chapter progress"><i id="progress"></i></div>
-    <div class="stats">
-      <div class="stat"><div class="k">Rig level</div><div class="v" id="lv"></div></div>
-      <div class="stat"><div class="k">Credits</div><div class="v" id="cr"></div></div>
-      <div class="stat"><div class="k">Output / s</div><div class="v" id="rate"></div></div>
-      <div class="stat"><div class="k">Next upgrade</div><div class="v" id="cost"></div></div>
-    </div>
-    <div class="muted" id="eta"></div>
-    <div class="row">
-      <button class="primary" id="buy">Upgrade rig</button>
-      <button id="auto" disabled title="Unlocks at level 10">Auto-upgrade 🔒</button>
-    </div>
-    <div class="row"><span class="muted">Demo speed:</span>
-      <button data-speed="1" class="on">1× (design pace)</button><button data-speed="10">10×</button><button data-speed="60">60×</button>
-    </div>
-    <p class="muted">Design pace: chapter 1 takes about 41 minutes of production, and offline time counts 100%. No ads, no paid speed-ups, no daily login rewards.</p>
-    <h3 style="margin:12px 0 0;font-size:15px">Survey log</h3>
-    <ol id="log"></ol>
-    <div class="row"><button id="migrate" disabled>Migrate to next planet</button><button id="reset">Reset save</button></div>
-  </section>
-</main>
-
-<div class="modal" id="confirm" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
-  <div class="panel">
-    <h2 id="confirmTitle" style="margin-top:0">Migrate to <span id="nextPlanet"></span>?</h2>
-    <div class="cols">
-      <div><h3>Will reset</h3><span id="willReset"></span></div>
-      <div><h3>Will keep</h3><span id="willKeep"></span></div>
-      <div><h3>Next chapter</h3><span id="nextInfo"></span></div>
-    </div>
-    <p class="muted">You can keep mining here as long as you like. The migrate button stays available and won't nag you.</p>
-    <div class="row"><button class="primary" id="doMigrate">Migrate</button><button id="cancelMigrate">Stay here</button></div>
+<div id="stage">
+  <canvas id="cv"></canvas>
+  <div class="hud" id="top">
+    <div class="brand" data-t="title"></div>
+    <div class="chip" id="chChip"></div>
+    <div class="chip cores" id="coreChip"></div>
+    <div class="sp" data-tipk="speedTip"><span data-t="speed"></span><button data-speed="1">1×</button><button data-speed="10">10×</button><button data-speed="60">60×</button></div>
+    <button class="ib" id="bLang">中文</button>
+    <button class="ib" id="bSound"></button>
+    <button class="ib" id="bHelp">?</button>
   </div>
+  <div class="hud" id="panel">
+    <div class="ph"><b id="pName"></b><span id="pCh"></span></div>
+    <div><div class="lab" data-t="credits"></div><div class="credits"><b id="cr">0</b><span id="rate"></span></div></div>
+    <div><div class="lvl"><span class="lab" data-t="level"></span><b id="lv"></b></div><div class="bar" id="lvBar"><i></i></div></div>
+    <button id="buy"><div class="fill"></div><div class="tx"><div><b data-t="upgrade"></b><small id="eta"></small></div><span id="cost"></span></div></button>
+    <div class="row"><button class="switch" id="auto"><i></i><div><span data-t="auto"></span><small id="autoSub"></small></div></button></div>
+    <div class="info" id="chInfo"></div>
+    <button id="migrate"></button>
+    <div class="fine" data-t="fine"></div>
+  </div>
+  <div class="hud" id="log"><div id="map"></div><div id="logTxt"></div></div>
+  <div id="toast"></div>
+  <div id="screen"></div>
+  <div id="modal"></div>
+  <div id="tip"></div>
 </div>
-<div class="toast" id="toast" role="status"></div>
+<div id="rotate"><button id="rotX" aria-label="Dismiss">×</button>Turn your phone sideways for the best view.</div>
+<div style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)" aria-live="polite" id="live"></div>
 <pre id="selftest" hidden></pre>
 
 <script>
 "use strict";
-// Rebuild DOM only when the markup changes (ui() runs every frame; rebuilding would eat clicks).
-const setHTML = (el, html) => { if (el._html !== html) { el._html = html; el.innerHTML = html; } };
-// ---- Design numbers (showcase/06 docs/economy-design.md) -------------------------------
+// =====================================================================================
+// RULES. Numbers from the design (showcase/06-codex-zh-idle-mining docs/economy-design.md).
+// =====================================================================================
 const TARGET = [40, 55, 70, 85, 100];          // chapter goal level
 const REWARD = [1, 2, 4, 8];                   // research cores awarded once per chapter
 const PLANETS = [
-  { name: "Cinder Moon", zh: "余烬之月", hue: 18,  survey: "The core is still warm. Someone left old rigs running here." },
-  { name: "Glass Dunes", zh: "玻璃沙丘", hue: 190, survey: "The dunes sing when the wind turns. Ore fuses into glass veins." },
-  { name: "Ringwell",    zh: "环井",     hue: 265, survey: "A ring of shafts, drilled by someone else, centuries ago." },
-  { name: "Hollow Comet",zh: "空心彗星", hue: 140, survey: "The comet is hollow, with a chamber sealed from the inside." },
-  { name: "Starheart",   zh: "星核",     hue: 48,  survey: "Survey complete: the signal was a map home." },
+  { name: "Cinder Moon",  zh: "余烬之月", hue: 18,  survey: "The core is still warm. Someone left old rigs running here.", surveyZh: "核心仍有余温。有人留下了还在运转的旧钻机。" },
+  { name: "Glass Dunes",  zh: "玻璃沙丘", hue: 190, survey: "The dunes sing when the wind turns. Ore fuses into glass veins.", surveyZh: "风向一变，沙丘便会歌唱。矿石熔成了玻璃矿脉。" },
+  { name: "Ringwell",     zh: "环井",     hue: 265, survey: "A ring of shafts, drilled by someone else, centuries ago.", surveyZh: "一圈竖井，是几个世纪前别人钻下的。" },
+  { name: "Hollow Comet", zh: "空心彗星", hue: 140, survey: "The comet is hollow, with a chamber sealed from the inside.", surveyZh: "彗星是空心的，里面有一间从内部封死的密室。" },
+  { name: "Starheart",    zh: "星核",     hue: 48,  survey: "Survey complete: the signal was a map home.", surveyZh: "勘测完成：那个信号是一张回家的地图。" },
 ];
 const cost = (L) => 200 * Math.pow(1.18, L - 1);
 const rate = (L, P) => 10 * Math.pow(1.12, L - 1) * (1 + P);
 const chapterTime = (c, P) => { let s = 0; for (let L = 1; L < TARGET[c]; L++) s += cost(L) / rate(L, P); return s; };
 
+let fxOn = true, EV = [];
+const emit = (e) => { if (fxOn) EV.push(e); };
 const fresh = () => ({ ch: 0, L: 1, credits: 0, P: 0, auto: false, autoUnlocked: false, rewarded: [false, false, false, false],
-                       surveyed: [], saved: Date.now() });
+                       surveyed: [], saved: Date.now(), stats: { buys: 0, time: 0, mined: 0 } });
 let S = fresh(), speed = 1;
+const target = () => TARGET[S.ch];
+const done = () => S.L >= target();
+function tryBuy() {
+  if (done() || S.credits < cost(S.L)) return false;
+  S.credits -= cost(S.L); S.L++; S.stats.buys++;
+  if (S.L >= 10 && !S.autoUnlocked) { S.autoUnlocked = true; emit({ t: "autoUnlock" }); }
+  emit({ t: "level", L: S.L });
+  if (done() && !S.surveyed.includes(S.ch)) { S.surveyed.push(S.ch); emit({ t: "survey", ch: S.ch }); }
+  return true;
+}
+// Advance production by dt seconds, buying at the exact moment it becomes affordable (event-based).
+function advance(dt) {
+  S.stats.time += dt;
+  while (dt > 0) {
+    const r = rate(S.L, S.P);
+    if (S.auto && !done()) {
+      const need = Math.max(0, (cost(S.L) - S.credits) / r);
+      if (need <= dt) { S.credits += r * need; S.stats.mined += r * need; dt -= need; tryBuy(); continue; }
+    }
+    S.credits += r * dt; S.stats.mined += r * dt; dt = 0;
+  }
+}
+function migrate() {
+  if (!done() || S.ch >= 4) return;
+  if (!S.rewarded[S.ch]) { S.P += REWARD[S.ch]; S.rewarded[S.ch] = true; }   // once per chapter
+  S.ch++; S.L = 1; S.credits = 0; emit({ t: "arrive", ch: S.ch });
+}
 
+// Persistence is optional: the game works without storage.
+const KEY = "stardust-mine-v1";
+function save() { try { S.saved = Date.now(); localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* storage is optional */ } }
+function hasSave() { try { return !!localStorage.getItem(KEY); } catch (e) { return false; } }
+function load() {
+  try {
+    const raw = localStorage.getItem(KEY); if (!raw) return null;
+    S = Object.assign(fresh(), JSON.parse(raw)); S.stats = Object.assign(fresh().stats, S.stats || {});
+    const away = Math.min((Date.now() - S.saved) / 1000, 7 * 86400);
+    if (away > 30) { const L0 = S.L, c0 = S.credits; fxOn = false; advance(away); fxOn = true; return { away, levels: S.L - L0, credits: Math.max(0, S.credits - c0) }; }
+  } catch (e) { /* ignore a broken save */ }
+  return null;
+}
+
+// =====================================================================================
+// PRESENTATION
+// =====================================================================================
+const $ = (id) => document.getElementById(id);
+const setHTML = (el, html) => { if (el._html !== html) { el._html = html; el.innerHTML = html; } };
+const STW = 1280, STH = 720, PC = { x: 440, y: 392, R: 176 };
+const rnd = (a, b) => a + Math.random() * (b - a);
+function seeded(a) { return () => { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+const SET = (() => { const d = { sound: true, lang: (navigator.language || "").startsWith("zh") ? "zh" : "en" }; try { return { ...d, ...JSON.parse(localStorage.getItem(KEY + "-settings") || "{}") }; } catch (e) { return d; } })();
+function saveSet() { try { localStorage.setItem(KEY + "-settings", JSON.stringify(SET)); } catch (e) { /* optional */ } }
+const UI = { screen: "title", ore: [], parts: [], rigs: [], prevRigs: 0, warp: -1, warpCh: 0, oreAcc: 0, lastLvlFx: 0, shown: 0, rateShown: 0 };
+
+// ---- language -----------------------------------------------------------------------------
+const STR = {
+  en: { title: "Stardust Mine<small>星尘矿场 · IDLE SPACE MINING</small>", speed: "Demo speed", speedTip: "<b>Demo speed</b><br>1× is the designed pace (chapter one takes about 41 minutes). 10× and 60× are for trying it out.",
+    credits: "Credits", level: "Rig level", upgrade: "Upgrade rig", auto: "Auto-upgrade", autoLocked: "Unlocks at rig level 10", autoOn: "Buys the instant it's affordable", autoOff: "Off",
+    fine: "Offline time counts 100%. No ads, no paid speed-ups, no daily chores.", chapter: "Chapter", goalTxt: "Reach rig level <b>{g}</b> to complete the survey of {p}.",
+    chTakes: "This chapter takes <b>{t}</b> of production at 1×.", goalDone: "Survey complete. Migrate when you're ready: spare credits are not converted.", finalDone: "You found the Starheart. The mine is yours to enjoy.",
+    migrate: "Migrate to the next planet →", migrateLocked: "Migrate (reach level {g})", nextIn: "next in {t}", ready: "ready now", maxed: "chapter goal reached",
+    output: "Output ×{n}", cores: "{n} research cores", logEmpty: "Reach the chapter goal to log the first survey.", tagline: "Five planets. Exponential rigs. One signal to follow home.",
+    start: "Start mining", cont: "Continue", how: "How to play", howTitle: "Mine, upgrade, migrate", surveyKicker: "Survey complete", welcome: "Welcome back",
+    awayTxt: "Your rigs mined for <b>{t}</b> while you were away.", gained: "Levels gained", creditsGained: "Credits mined", collect: "Collect",
+    migTitle: "Migrate to {p}?", resets: "Resets", keeps: "Keeps", next: "Next planet", go: "Migrate", notYet: "Not yet",
+    rs1: "Rig level {l} → 1", rs2: "Credits {c} → 0", rs3: "Spare credits are not converted", kp1: "Research cores: +{a} (total {n})", kp2: "Star map and survey log", kp3: "Settings and auto-upgrade",
+    nx1: "Output ×{n}", nx2: "Goal: rig level {g}", nx3: "Rebuild ≈ {t} at 1×", endTitle: "The signal was a map home", endTxt: "Five planets surveyed. The rigs keep humming, and the way home is on the map.",
+    stTime: "Production time", stBuys: "Upgrades bought", stCores: "Research cores", again: "Start a new survey", arcade: "Back to the arcade",
+    h1: "Mine", h1t: "Rigs produce credits every second, even while the tab is closed.", h2: "Upgrade", h2t: "Each rig level costs 18% more and produces 12% more. Watch the bar fill.",
+    h3: "Automate", h3t: "At rig level 10 you can let the rigs buy upgrades the instant they're affordable.", h4: "Migrate", h4t: "At the chapter goal, move to the next planet. You restart at level 1 but keep research cores that multiply output.",
+    arrived: "Arrived at {p}. Output ×{n}.", autoUnlocked: "Auto-upgrade unlocked", lv: "Level {l}" },
+  zh: { title: "星尘矿场<small>STARDUST MINE · 放置挖矿</small>", speed: "演示速度", speedTip: "<b>演示速度</b><br>1× 是设计节奏（第一章约 41 分钟）。10× 和 60× 便于试玩。",
+    credits: "信用点", level: "钻机等级", upgrade: "升级钻机", auto: "自动升级", autoLocked: "钻机 10 级解锁", autoOn: "一旦买得起立即购买", autoOff: "关闭",
+    fine: "离线时间 100% 计入。无广告、无付费加速、无每日任务。", chapter: "第", goalTxt: "将钻机升到 <b>{g}</b> 级，完成 {p} 的勘测。",
+    chTakes: "本章在 1× 下约需 <b>{t}</b> 的产出时间。", goalDone: "勘测完成。准备好后即可迁移：剩余信用点不会转换。", finalDone: "你找到了星核。这座矿场归你了。",
+    migrate: "迁往下一颗星球 →", migrateLocked: "迁移（需达到 {g} 级）", nextIn: "{t} 后可升级", ready: "现在可以升级", maxed: "已达章节目标",
+    output: "产出 ×{n}", cores: "{n} 个研究核心", logEmpty: "达成章节目标后，将记录第一份勘测报告。", tagline: "五颗星球，指数增长的钻机，一道指引归途的信号。",
+    start: "开始挖矿", cont: "继续", how: "玩法说明", howTitle: "挖矿、升级、迁移", surveyKicker: "勘测完成", welcome: "欢迎回来",
+    awayTxt: "你离开期间，钻机持续挖矿 <b>{t}</b>。", gained: "提升等级", creditsGained: "获得信用点", collect: "收下",
+    migTitle: "迁往{p}？", resets: "重置", keeps: "保留", next: "下一颗星球", go: "迁移", notYet: "再等等",
+    rs1: "钻机等级 {l} → 1", rs2: "信用点 {c} → 0", rs3: "剩余信用点不会转换", kp1: "研究核心：+{a}（共 {n}）", kp2: "星图与勘测日志", kp3: "设置与自动升级",
+    nx1: "产出 ×{n}", nx2: "目标：钻机 {g} 级", nx3: "重建约需 {t}（1×）", endTitle: "那个信号是回家的地图", endTxt: "五颗星球勘测完毕。钻机仍在嗡鸣，归途已在星图之上。",
+    stTime: "产出时间", stBuys: "购买升级", stCores: "研究核心", again: "开始新的勘测", arcade: "返回游戏厅",
+    h1: "挖矿", h1t: "钻机每秒产出信用点，关闭页面后也会继续。", h2: "升级", h2t: "每级价格 +18%，产出 +12%。看着进度条填满。",
+    h3: "自动化", h3t: "钻机 10 级后，可以让钻机在买得起的瞬间自动升级。", h4: "迁移", h4t: "达到章节目标后前往下一颗星球。等级回到 1 级，但保留可倍增产出的研究核心。",
+    arrived: "已抵达{p}。产出 ×{n}。", autoUnlocked: "自动升级已解锁", lv: "{l} 级" },
+};
+const T = (k, v = {}) => (STR[SET.lang][k] || STR.en[k] || k).replace(/\{(\w+)\}/g, (_, n) => v[n]);
+const pname = (c) => SET.lang === "zh" ? PLANETS[c].zh : PLANETS[c].name;
+const pnameBoth = (c) => SET.lang === "zh" ? `${PLANETS[c].zh}<small>${PLANETS[c].name}</small>` : `${PLANETS[c].name}<small>${PLANETS[c].zh}</small>`;
 function fmt(n) {
   if (n < 1000) return n.toFixed(n < 10 ? 1 : 0);
   const u = ["K", "M", "B", "T", "Qa", "Qi"]; let i = -1;
   while (n >= 1000 && i < u.length - 1) { n /= 1000; i++; }
   return n.toFixed(n < 10 ? 2 : n < 100 ? 1 : 0) + u[i];
 }
-const fmtTime = (s) => s < 60 ? `${Math.ceil(s)} s` : s < 3600 ? `${(s / 60).toFixed(1)} min` : `${(s / 3600).toFixed(2)} h`;
-const target = () => TARGET[S.ch];
-const done = () => S.L >= target();
+const fmtTime = (s) => SET.lang === "zh" ? (s < 60 ? `${Math.ceil(s)} 秒` : s < 3600 ? `${(s / 60).toFixed(1)} 分钟` : `${(s / 3600).toFixed(2)} 小时`)
+  : s < 60 ? `${Math.ceil(s)} s` : s < 3600 ? `${(s / 60).toFixed(1)} min` : `${(s / 3600).toFixed(2)} h`;
+const hueOf = (c) => PLANETS[c].hue;
 
-function tryBuy() {
-  if (done() || S.credits < cost(S.L)) return false;
-  S.credits -= cost(S.L); S.L++;
-  if (S.L >= 10) S.autoUnlocked = true;
-  if (done() && !S.surveyed.includes(S.ch)) { S.surveyed.push(S.ch); toast(`Survey complete: ${PLANETS[S.ch].name}`); }
-  bump = 1; return true;
-}
-
-// Advance production by dt seconds, buying at the exact moment it becomes affordable (event-based).
-function advance(dt) {
-  while (dt > 0) {
-    const r = rate(S.L, S.P);
-    if (S.auto && !done()) {
-      const need = Math.max(0, (cost(S.L) - S.credits) / r);
-      if (need <= dt) { S.credits += r * need; dt -= need; tryBuy(); continue; }
-    }
-    S.credits += r * dt; dt = 0;
-  }
-}
-
-function migrate() {
-  if (!done() || S.ch >= 4) return;
-  if (!S.rewarded[S.ch]) { S.P += REWARD[S.ch]; S.rewarded[S.ch] = true; }   // once per chapter
-  S.ch++; S.L = 1; S.credits = 0;
-  toast(`Arrived at ${PLANETS[S.ch].name}. Output ×${1 + S.P}.`);
-}
-
-// ---- Persistence (optional: the game works without storage) ----------------------------
-const KEY = "stardust-mine-v1";
-function save() { try { S.saved = Date.now(); localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
-function load() {
+// ---- sound ---------------------------------------------------------------------------------
+const AU = { ctx: null, out: null, nbuf: null, last: {} };
+function audioInit() {
+  if (AU.ctx) { if (AU.ctx.state === "suspended") AU.ctx.resume(); return; }
   try {
-    const raw = localStorage.getItem(KEY); if (!raw) return;
-    S = Object.assign(fresh(), JSON.parse(raw));
-    const away = Math.min((Date.now() - S.saved) / 1000, 7 * 86400);
-    if (away > 30) {
-      const L0 = S.L, c0 = S.credits; advance(away);
-      toast(`Welcome back: ${fmtTime(away)} of mining, +${S.L - L0} levels, +${fmt(Math.max(0, S.credits - c0))} credits.`);
-    }
-  } catch (e) {}
+    const ctx = new (window.AudioContext || window.webkitAudioContext)(); AU.ctx = ctx;
+    AU.out = ctx.createGain(); AU.out.gain.value = SET.sound ? 0.5 : 0; AU.out.connect(ctx.destination);
+    const n = ctx.sampleRate * 2, b = ctx.createBuffer(1, n, ctx.sampleRate), d = b.getChannelData(0); for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1; AU.nbuf = b;
+    // a slow space drone: two detuned low tones and filtered noise
+    const gn = ctx.createGain(); gn.gain.value = 0.04; gn.connect(AU.out);
+    for (const f of [55, 82.6]) { const o = ctx.createOscillator(); o.type = "sine"; o.frequency.value = f; o.detune.value = rnd(-8, 8); o.connect(gn); o.start(); }
+    const src = ctx.createBufferSource(), lp = ctx.createBiquadFilter(), ng = ctx.createGain(); src.buffer = b; src.loop = true; lp.type = "lowpass"; lp.frequency.value = 500; ng.gain.value = 0.015; src.connect(lp); lp.connect(ng); ng.connect(AU.out); src.start();
+  } catch (e) { AU.ctx = null; }
 }
-
-// ---- Rendering --------------------------------------------------------------------------
-const cv = document.getElementById("view"), g = cv.getContext("2d");
-const stars = Array.from({ length: 140 }, (_, i) => ({ x: (i * 97.3) % 960, y: (i * 61.7) % 660, r: (i % 3) * .5 + .4, t: i }));
-let particles = [], tAnim = 0, bump = 0;
-function draw(dt) {
-  tAnim += dt; bump = Math.max(0, bump - dt * 2);
-  const P = PLANETS[S.ch], W = cv.width, H = cv.height, cx = W * .42, cy = H * .55, R = 150;
-  g.fillStyle = "#050814"; g.fillRect(0, 0, W, H);
-  for (const s of stars) { g.globalAlpha = .4 + .4 * Math.sin(tAnim * .8 + s.t); g.fillStyle = "#dfe6ff"; g.fillRect(s.x, s.y, s.r * 2, s.r * 2); }
-  g.globalAlpha = 1;
-  const grd = g.createRadialGradient(cx - 50, cy - 60, 20, cx, cy, R);
-  grd.addColorStop(0, `hsl(${P.hue} 70% 62%)`); grd.addColorStop(1, `hsl(${P.hue} 55% 18%)`);
-  g.fillStyle = grd; g.beginPath(); g.arc(cx, cy, R + bump * 6, 0, Math.PI * 2); g.fill();
-  g.strokeStyle = `hsla(${P.hue} 80% 70% / .25)`; g.lineWidth = 2;
-  for (let k = 0; k < 4; k++) { g.beginPath(); g.arc(cx, cy, R * (0.35 + k * .17), tAnim * .1 + k, tAnim * .1 + k + 2.2); g.stroke(); }
-  // Station
-  const sx = W * .83, sy = H * .25;
-  g.fillStyle = "#c9d3ff"; g.fillRect(sx - 28, sy - 8, 56, 16); g.fillRect(sx - 6, sy - 30, 12, 60);
-  g.fillStyle = "#fcbf49"; g.fillRect(sx - 4, sy - 4, 8, 8);
-  // Rigs: one more rig structure every 10 levels
-  const rigs = 1 + Math.floor((S.L - 1) / 10);
-  for (let i = 0; i < rigs; i++) {
-    const a = tAnim * .25 + (i / rigs) * Math.PI * 2, rx = cx + Math.cos(a) * (R + 26), ry = cy + Math.sin(a) * (R + 26);
-    g.save(); g.translate(rx, ry); g.rotate(a + Math.PI / 2);
-    g.fillStyle = "#fcbf49"; g.fillRect(-9, -6, 18, 12); g.fillStyle = "#4cc9f0"; g.fillRect(-3, 6, 6, 10); g.restore();
-    if (Math.random() < dt * (1.5 + S.L / 25)) particles.push({ x: rx, y: ry, t: 0 });
-  }
-  particles = particles.filter((p) => p.t < 1);
-  for (const p of particles) {
-    p.t += dt * .8; const x = p.x + (sx - p.x) * p.t, y = p.y + (sy - p.y) * p.t - Math.sin(p.t * Math.PI) * 60;
-    g.fillStyle = `hsl(${P.hue} 90% 70%)`; g.beginPath(); g.arc(x, y, 3, 0, Math.PI * 2); g.fill();
-  }
-  g.fillStyle = "#eef1ff"; g.font = "600 30px system-ui, 'PingFang SC', sans-serif"; g.fillText(`${P.name}  ${P.zh}`, 28, 50);
-  g.fillStyle = "#a9b1d6"; g.font = "20px system-ui"; g.fillText(`Chapter ${S.ch + 1} / 5 · ${rigs} rig${rigs > 1 ? "s" : ""} · output ×${1 + S.P}`, 28, 82);
+function tone(f, dur, type = "sine", peak = 0.12, delay = 0, f2 = 0) {
+  if (!AU.ctx) return; const t0 = AU.ctx.currentTime + delay, o = AU.ctx.createOscillator(), gn = AU.ctx.createGain();
+  o.type = type; o.frequency.setValueAtTime(f, t0); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t0 + dur);
+  gn.gain.setValueAtTime(0.0001, t0); gn.gain.exponentialRampToValueAtTime(peak, t0 + 0.01); gn.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  o.connect(gn); gn.connect(AU.out); o.start(t0); o.stop(t0 + dur + 0.05);
 }
-
-// ---- UI ---------------------------------------------------------------------------------
-const $ = (id) => document.getElementById(id);
-function toast(msg) { const t = $("toast"); t.textContent = msg; t.style.display = "block"; clearTimeout(toast.h); toast.h = setTimeout(() => (t.style.display = "none"), 3200); }
-function ui() {
-  const P = PLANETS[S.ch], r = rate(S.L, S.P);
-  $("chapterName").textContent = `Chapter ${S.ch + 1}: ${P.name} (${P.zh})`;
-  $("coreLine").textContent = `Research cores: ${S.P}`;
-  $("progress").style.width = `${(S.L - 1) / (target() - 1) * 100}%`;
-  $("lv").textContent = `${S.L} / ${target()}`; $("cr").textContent = fmt(S.credits); $("rate").textContent = fmt(r);
-  $("cost").textContent = done() ? "—" : fmt(cost(S.L));
-  const need = done() ? 0 : Math.max(0, (cost(S.L) - S.credits) / r);
-  $("eta").textContent = done() ? (S.ch < 4 ? "Chapter goal reached. Migrate whenever you're ready." : "You found Starheart. The mine is yours to enjoy.")
-    : `Next upgrade in ${fmtTime(need / speed)} at ${speed}× · this chapter takes ${fmtTime(chapterTime(S.ch, S.P))} of production at 1×`;
-  $("buy").disabled = done() || S.credits < cost(S.L);
-  $("auto").disabled = !S.autoUnlocked; $("auto").textContent = S.autoUnlocked ? `Auto-upgrade: ${S.auto ? "on" : "off"}` : "Auto-upgrade 🔒 (level 10)";
-  $("auto").classList.toggle("on", S.auto);
-  $("migrate").disabled = !(done() && S.ch < 4);
-  $("planetLine").textContent = `Survey route: ${P.name} — ${S.surveyed.includes(S.ch) ? P.survey : "survey in progress…"}`;
-  setHTML($("log"), S.surveyed.map((c) => `<li><strong>${PLANETS[c].name}</strong>: ${PLANETS[c].survey}</li>`).join("") || "<li class='muted'>Reach the chapter goal to complete the first survey.</li>");
+function hiss(dur, f1, f2, peak = 0.1, delay = 0) {
+  if (!AU.ctx) return; const t0 = AU.ctx.currentTime + delay, s = AU.ctx.createBufferSource(), fl = AU.ctx.createBiquadFilter(), gn = AU.ctx.createGain();
+  s.buffer = AU.nbuf; fl.type = "bandpass"; fl.Q.value = 1.2; fl.frequency.setValueAtTime(f1, t0); fl.frequency.exponentialRampToValueAtTime(f2, t0 + dur);
+  gn.gain.setValueAtTime(0.0001, t0); gn.gain.exponentialRampToValueAtTime(peak, t0 + dur * .3); gn.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  s.connect(fl); fl.connect(gn); gn.connect(AU.out); s.start(t0, Math.random()); s.stop(t0 + dur + 0.05);
 }
-$("buy").onclick = () => { tryBuy(); ui(); save(); };
-$("auto").onclick = () => { S.auto = !S.auto; ui(); save(); };
-document.querySelectorAll("[data-speed]").forEach((b) => b.onclick = () => {
-  speed = +b.dataset.speed; document.querySelectorAll("[data-speed]").forEach((x) => x.classList.toggle("on", x === b)); ui();
-});
-$("migrate").onclick = () => {
-  const n = PLANETS[S.ch + 1], nextP = S.P + (S.rewarded[S.ch] ? 0 : REWARD[S.ch]);
-  $("nextPlanet").textContent = `${n.name} (${n.zh})`;
-  $("willReset").innerHTML = `Rig level ${S.L} → 1<br>Credits ${fmt(S.credits)} → 0<br>(spare credits are not converted)`;
-  $("willKeep").innerHTML = `Research cores (+${S.rewarded[S.ch] ? 0 : REWARD[S.ch]}, total ${nextP})<br>Star map and survey log<br>Settings`;
-  $("nextInfo").innerHTML = `Output ×${1 + nextP}<br>Goal level ${TARGET[S.ch + 1]}<br>Rebuild ≈ ${fmtTime(chapterTime(S.ch + 1, nextP))} at 1×`;
-  $("confirm").classList.add("show");
+const thr = (k, ms) => { const n = performance.now(); if (n - (AU.last[k] || 0) < ms) return false; AU.last[k] = n; return true; };
+const sfx = {
+  ore() { if (thr("ore", 140)) tone(rnd(1400, 2200), 0.05, "sine", 0.025); },
+  level() { if (!thr("lvl", 120)) return; tone(660, 0.12, "triangle", 0.08); tone(990, 0.16, "triangle", 0.07, 0.06); },
+  unlock() { [523, 784, 1047, 1568].forEach((f, i) => tone(f, 0.4, "triangle", 0.08, i * 0.08)); },
+  survey() { [392, 523, 659, 784, 1047].forEach((f, i) => tone(f, 0.8, "sine", 0.08, i * 0.12)); },
+  warp() { hiss(2.0, 200, 4000, 0.18); tone(80, 2, "sawtooth", 0.05, 0, 320); },
+  ui() { tone(880, 0.05, "sine", 0.05); }, nope() { tone(220, 0.1, "square", 0.04); },
 };
-$("doMigrate").onclick = () => { migrate(); $("confirm").classList.remove("show"); ui(); save(); };
-$("cancelMigrate").onclick = () => $("confirm").classList.remove("show");
-$("reset").onclick = () => { S = fresh(); try { localStorage.removeItem(KEY); } catch (e) {} ui(); };
 
-// ---- Self-test (?test=1) and screenshot state (?shot=1) ---------------------------------
+// ---- scene: stars, nebula, planet, rigs, hauler, ore ---------------------------------------------
+const cv = $("cv"), g = cv.getContext("2d"); let K = 1;
+function fit() {
+  const W = innerWidth, H = innerHeight; K = Math.min(W / STW, H / STH);
+  const st = $("stage"); st.style.transform = `scale(${K})`; st.style.left = `${(W - STW * K) / 2}px`; st.style.top = `${(H - STH * K) / 2}px`;
+  const R = Math.min(2, (devicePixelRatio || 1) * K); cv.width = Math.round(STW * R); cv.height = Math.round(STH * R); g.setTransform(R, 0, 0, R, 0, 0);
+  $("rotate").classList.toggle("show", W < H && W < 760 && !UI.rotX);
+}
+const SR = seeded(11);
+const STARS = Array.from({ length: 260 }, () => ({ x: SR() * STW, y: SR() * STH, z: .2 + SR() * .8, p: SR() * 6 }));
+const FEAT = PLANETS.map((P, c) => { const r = seeded(100 + c); return Array.from({ length: 26 }, () => ({ a: r() * Math.PI * 2, d: Math.sqrt(r()), s: .3 + r() * .9, k: r() })); });
+function rigCount() { return Math.min(10, 1 + Math.floor((S.L - 1) / 5)); }
+const RIG_ANG = [-90, -60, -120, -32, -148, -8, -172, 18, 162, 42].map((d) => d * Math.PI / 180);
+
+function drawStars(t, warpK) {
+  for (const s of STARS) {
+    const tw = .55 + .45 * Math.sin(t * (1 + s.z * 2) + s.p);
+    if (warpK > 0) { const dx = s.x - 640, dy = s.y - 360, l = 1 + warpK * 40 * s.z; g.strokeStyle = `rgba(200,220,255,${.3 + s.z * .6})`; g.lineWidth = s.z * 1.6; g.beginPath(); g.moveTo(640 + dx, 360 + dy); g.lineTo(640 + dx * (1 + l * .02), 360 + dy * (1 + l * .02)); g.stroke(); continue; }
+    g.globalAlpha = tw * (.35 + s.z * .65); g.fillStyle = "#e8eeff"; g.fillRect(s.x - t * s.z * 2 % STW < 0 ? s.x - t * s.z * 2 % STW + STW : s.x - t * s.z * 2 % STW, s.y, s.z * 1.8, s.z * 1.8);
+  }
+  g.globalAlpha = 1;
+}
+function nebula(h) {
+  for (const [x, y, r, a] of [[260, 160, 420, .16], [980, 560, 520, .12], [760, 120, 300, .08]]) {
+    const gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, `hsla(${h},80%,55%,${a})`); gr.addColorStop(1, `hsla(${h},80%,40%,0)`); g.fillStyle = gr; g.fillRect(x - r, y - r, r * 2, r * 2);
+  }
+}
+function drawPlanet(c, cx, cy, R, t) {
+  const h = hueOf(c), F = FEAT[c], rot = t * 0.025;
+  const glow = g.createRadialGradient(cx, cy, R * .9, cx, cy, R * 1.6); glow.addColorStop(0, `hsla(${h},90%,65%,.32)`); glow.addColorStop(1, `hsla(${h},90%,55%,0)`); g.fillStyle = glow; g.beginPath(); g.arc(cx, cy, R * 1.6, 0, Math.PI * 2); g.fill();
+  if (c === 2) ring(cx, cy, R, h, true);
+  g.save(); g.beginPath(); g.arc(cx, cy, R, 0, Math.PI * 2); g.clip();
+  const base = g.createRadialGradient(cx - R * .38, cy - R * .42, R * .1, cx, cy, R * 1.05);
+  base.addColorStop(0, `hsl(${h},${c === 4 ? 95 : 55}%,${c === 4 ? 78 : 62}%)`); base.addColorStop(.55, `hsl(${h},55%,${c === 4 ? 55 : 38}%)`); base.addColorStop(1, `hsl(${h},60%,${c === 4 ? 30 : 14}%)`);
+  g.fillStyle = base; g.fillRect(cx - R, cy - R, R * 2, R * 2);
+  for (const f of F) {
+    const a = f.a + rot, x = cx + Math.cos(a) * f.d * R, y = cy + Math.sin(a) * f.d * R * .92;
+    if (c === 0) { g.fillStyle = `hsla(${h},40%,22%,.5)`; g.beginPath(); g.arc(x, y, f.s * 16, 0, Math.PI * 2); g.fill(); g.strokeStyle = `hsla(${h},60%,70%,.25)`; g.lineWidth = 1.5; g.beginPath(); g.arc(x - 1, y - 1, f.s * 16, Math.PI * 1.1, Math.PI * 1.7); g.stroke();
+      if (f.k > .6) { g.strokeStyle = `rgba(255,${120 + f.k * 60},40,${.5 + .3 * Math.sin(t * 2 + f.a * 5)})`; g.lineWidth = 2.2; g.shadowColor = "#ff7a2a"; g.shadowBlur = 8; g.beginPath(); g.moveTo(x, y); g.lineTo(x + f.s * 30, y + f.s * 12); g.lineTo(x + f.s * 44, y - f.s * 8); g.stroke(); g.shadowBlur = 0; } }
+    else if (c === 1) { g.strokeStyle = `hsla(${h},70%,${f.k > .5 ? 80 : 30}%,.3)`; g.lineWidth = 6 * f.s; g.beginPath(); g.ellipse(x, y, 60 * f.s, 10 * f.s, -.2, 0, Math.PI); g.stroke();
+      if (f.k > .7) { const tw = Math.max(0, Math.sin(t * 3 + f.a * 9)); g.fillStyle = `rgba(230,255,255,${tw})`; g.beginPath(); g.moveTo(x, y - 5); g.lineTo(x + 2, y); g.lineTo(x, y + 5); g.lineTo(x - 2, y); g.fill(); } }
+    else if (c === 2) { g.fillStyle = `hsla(${h},40%,${f.k > .5 ? 70 : 25}%,.22)`; g.fillRect(cx - R, y - 6 * f.s, R * 2, 12 * f.s); if (f.k > .55) { g.fillStyle = "rgba(10,6,24,.75)"; g.beginPath(); g.ellipse(x, y, 7 * f.s + 3, 4 * f.s + 2, 0, 0, Math.PI * 2); g.fill(); } }
+    else if (c === 3) { g.fillStyle = `hsla(${h},50%,${f.k > .5 ? 85 : 40}%,.35)`; g.beginPath(); g.ellipse(x, y, 26 * f.s, 16 * f.s, f.a, 0, Math.PI * 2); g.fill(); if (f.k > .75) { g.strokeStyle = "rgba(220,255,240,.55)"; g.lineWidth = 1.4; g.beginPath(); g.moveTo(x, y); g.lineTo(x + 20 * f.s, y + 12 * f.s); g.lineTo(x + 34 * f.s, y + 4 * f.s); g.stroke(); } }
+    else { g.fillStyle = `hsla(${40 + f.k * 20},100%,${70 + f.k * 20}%,${.18 + .12 * Math.sin(t * 2 + f.a * 4)})`; g.beginPath(); g.arc(x, y, 30 * f.s, 0, Math.PI * 2); g.fill(); }
+  }
+  const sh = g.createLinearGradient(cx - R * .2, cy - R * .25, cx + R, cy + R); sh.addColorStop(0, "rgba(2,3,12,0)"); sh.addColorStop(.6, "rgba(2,3,12,.25)"); sh.addColorStop(1, "rgba(2,3,12,.78)");
+  g.fillStyle = sh; g.fillRect(cx - R, cy - R, R * 2, R * 2);
+  g.restore();
+  g.strokeStyle = `hsla(${h},100%,85%,.55)`; g.lineWidth = 2.5; g.beginPath(); g.arc(cx, cy, R - 1, Math.PI * .95, Math.PI * 1.65); g.stroke();
+  if (c === 2) ring(cx, cy, R, h, false);
+  if (c === 3) { for (let i = 0; i < 18; i++) { const k = i / 18, x = cx + R * .7 + k * 380, y = cy + R * .35 + k * 120 + Math.sin(t + i) * 6; g.fillStyle = `hsla(${h},70%,80%,${(1 - k) * .12})`; g.beginPath(); g.arc(x, y, (1 - k) * 60 + 10, 0, Math.PI * 2); g.fill(); } }
+  if (c === 4) { const p = .5 + .5 * Math.sin(t * 1.6); const co = g.createRadialGradient(cx, cy, R, cx, cy, R * 1.35 + p * 10); co.addColorStop(0, "rgba(255,220,120,.45)"); co.addColorStop(1, "rgba(255,180,60,0)"); g.fillStyle = co; g.beginPath(); g.arc(cx, cy, R * 1.4 + p * 10, 0, Math.PI * 2); g.fill(); }
+}
+function ring(cx, cy, R, h, back) {
+  g.save(); g.beginPath(); if (back) g.rect(cx - R * 2.2, cy - R, R * 4.4, R); else g.rect(cx - R * 2.2, cy, R * 4.4, R); g.clip();
+  for (let i = 0; i < 4; i++) { g.strokeStyle = `hsla(${h},60%,${70 - i * 8}%,${.5 - i * .08})`; g.lineWidth = 7 - i; g.beginPath(); g.ellipse(cx, cy, R * (1.45 + i * .1), R * (.32 + i * .02), -.18, 0, Math.PI * 2); g.stroke(); }
+  g.restore();
+}
+function rigPos(i) { const a = RIG_ANG[i]; return { a, x: PC.x + Math.cos(a) * PC.R, y: PC.y + Math.sin(a) * PC.R }; }
+function drawRig(i, t, grow) {
+  const { a, x, y } = rigPos(i), h = hueOf(S.ch), tier = Math.min(3, Math.floor(S.L / target() * 4));
+  g.save(); g.translate(x, y); g.rotate(a + Math.PI / 2); g.scale(grow, grow);
+  g.fillStyle = "#1d2240"; g.strokeStyle = "#0a0c1c"; g.lineWidth = 2; g.beginPath(); g.roundRect(-14, -6, 28, 10, 3); g.fill(); g.stroke();
+  const H = 30 + tier * 7;
+  g.strokeStyle = "#c9d2ff"; g.lineWidth = 2.4; g.beginPath(); g.moveTo(-10, -4); g.lineTo(0, -H); g.lineTo(10, -4); g.stroke();
+  g.lineWidth = 1.2; for (let k = 1; k < 4; k++) { const yy = -4 - (H - 4) * k / 4, w = 10 * (1 - k / 4); g.beginPath(); g.moveTo(-w, yy); g.lineTo(w, yy); g.stroke(); }
+  const pump = Math.sin(t * (4 + speed * .05) + i) * 4;
+  g.fillStyle = `hsl(${h},70%,62%)`; g.strokeStyle = "#0a0c1c"; g.lineWidth = 1.6; g.beginPath(); g.roundRect(-5, -H * .55 + pump, 10, 9, 2); g.fill(); g.stroke();
+  const blink = (Math.sin(t * 3 + i * 1.7) > .3) ? 1 : .25; g.fillStyle = `rgba(255,${tier >= 3 ? 210 : 90},${tier >= 3 ? 90 : 80},${blink})`; g.shadowColor = g.fillStyle; g.shadowBlur = 10; g.beginPath(); g.arc(0, -H - 3, 3, 0, Math.PI * 2); g.fill(); g.shadowBlur = 0;
+  g.restore();
+}
+function haulerPos(t) { const a = t * 0.22; return { x: PC.x + Math.cos(a) * 300, y: PC.y - 36 + Math.sin(a) * 92, front: Math.sin(a) > 0, a }; }
+function drawHauler(t) {
+  const p = haulerPos(t), s = p.front ? 1 : .78, dir = -Math.sin(p.a) < 0 ? -1 : 1;
+  g.save(); g.translate(p.x, p.y); g.scale(s * dir, s);
+  const fl = g.createLinearGradient(-40, 0, -22, 0); fl.addColorStop(0, "rgba(124,224,255,0)"); fl.addColorStop(1, "rgba(124,224,255,.9)"); g.fillStyle = fl; g.beginPath(); g.moveTo(-22, -5); g.lineTo(-44 - Math.random() * 6, 0); g.lineTo(-22, 5); g.fill();
+  g.fillStyle = "#d9def5"; g.strokeStyle = "#0a0c1c"; g.lineWidth = 2; g.beginPath(); g.moveTo(-22, -9); g.lineTo(16, -9); g.quadraticCurveTo(30, -4, 30, 0); g.quadraticCurveTo(30, 4, 16, 9); g.lineTo(-22, 9); g.closePath(); g.fill(); g.stroke();
+  g.fillStyle = `hsl(${hueOf(S.ch)},70%,60%)`; for (const x of [-16, -6, 4]) { g.beginPath(); g.roundRect(x, -14, 8, 5, 2); g.fill(); g.stroke(); g.beginPath(); g.roundRect(x, 9, 8, 5, 2); g.fill(); g.stroke(); }
+  g.fillStyle = "#7ce0ff"; g.beginPath(); g.roundRect(14, -4, 9, 5, 2); g.fill();
+  g.restore();
+  return p;
+}
+function progressRing(t) {
+  const h = hueOf(S.ch), R = PC.R + 40, f = done() ? 1 : (S.L - 1) / (target() - 1), a0 = -Math.PI / 2;
+  g.strokeStyle = "rgba(255,255,255,.07)"; g.lineWidth = 6; g.beginPath(); g.arc(PC.x, PC.y, R, 0, Math.PI * 2); g.stroke();
+  g.strokeStyle = `hsl(${h},90%,68%)`; g.shadowColor = g.strokeStyle; g.shadowBlur = 12; g.lineCap = "round"; g.beginPath(); g.arc(PC.x, PC.y, R, a0, a0 + f * Math.PI * 2); g.stroke(); g.shadowBlur = 0;
+  const ex = PC.x + Math.cos(a0 + f * Math.PI * 2) * R, ey = PC.y + Math.sin(a0 + f * Math.PI * 2) * R; g.fillStyle = "#fff"; g.beginPath(); g.arc(ex, ey, 5, 0, Math.PI * 2); g.fill();
+  if (!S.autoUnlocked) { const fa = a0 + (9 / (target() - 1)) * Math.PI * 2, x = PC.x + Math.cos(fa) * R, y = PC.y + Math.sin(fa) * R; g.fillStyle = "#ffd166"; g.beginPath(); g.arc(x, y, 6, 0, Math.PI * 2); g.fill(); g.font = "700 11px 'Space Grotesk'"; g.textAlign = "left"; g.fillText(T("auto").toUpperCase(), x + 10, y + 4); }
+  g.font = "700 13px 'Space Grotesk'"; g.fillStyle = "rgba(238,242,255,.85)"; g.textAlign = "center"; g.fillText(`${T("lv", { l: S.L })} / ${target()}`, PC.x, PC.y - R - 12);
+}
+let lastT = performance.now(), clock = 0, saveT = 0;
+function frame(now) {
+  const dt = Math.min(0.1, (now - lastT) / 1000); lastT = now; clock += dt;
+  if (UI.screen === "play" && UI.warp < 0) advance(dt * speed);
+  if (UI.screen === "play") { saveT += dt; if (saveT > 5) { saveT = 0; save(); } }
+  drainEvents(); render(dt); hud();
+  requestAnimationFrame(frame);
+}
+function render(dt) {
+  const t = clock;
+  let wk = 0, ch = S.ch, scale = 1;
+  if (UI.warp >= 0) { const p = (performance.now() - UI.warp) / 2000; if (p >= 1) UI.warp = -1; else { wk = Math.sin(p * Math.PI); ch = p < .5 ? UI.warpCh : S.ch; scale = p < .5 ? 1 - p * 1.6 : .2 + (p - .5) * 1.6; } }
+  const bg = g.createLinearGradient(0, 0, 0, STH); bg.addColorStop(0, "#04050f"); bg.addColorStop(1, `hsl(${hueOf(ch)},40%,7%)`); g.fillStyle = bg; g.fillRect(0, 0, STW, STH);
+  nebula(hueOf(ch)); drawStars(t, wk);
+  const hp = haulerPos(t);
+  if (UI.screen !== "title" && UI.warp < 0 && !hp.front) drawHauler(t);
+  g.save(); g.translate(PC.x, PC.y); g.scale(scale, scale); g.translate(-PC.x, -PC.y); drawPlanet(ch, PC.x, PC.y, PC.R, t); g.restore();
+  if (UI.screen !== "title" && UI.warp < 0) {
+    progressRing(t);
+    const n = rigCount();
+    for (let i = 0; i < n; i++) { const born = UI.rigs[i] || 0, k = Math.min(1, (performance.now() - born) / 500); drawRig(i, t, born ? (k < 1 ? Math.sin(k * Math.PI * .5) * 1.15 - Math.max(0, k - .8) * .75 : 1) : 1); }
+    // ore streams from the rigs to the hauler; visual rate grows with log(output)
+    const r = rate(S.L, S.P) * speed; UI.oreAcc += dt * Math.min(16, 1.2 + Math.log10(r + 1) * 1.8);
+    while (UI.oreAcc > 1) { UI.oreAcc--; const ri = Math.floor(Math.random() * n), rp = rigPos(ri); UI.ore.push({ x0: rp.x + Math.cos(rp.a) * 40, y0: rp.y + Math.sin(rp.a) * 40, k: 0, sp: rnd(.7, 1.1), c: `hsl(${hueOf(S.ch) + rnd(-15, 15)},90%,${rnd(60, 80)}%)`, bend: rnd(-80, 80) }); }
+    UI.ore = UI.ore.filter((o) => (o.k += dt * o.sp) < 1);
+    for (const o of UI.ore) { const k = o.k, mx = (o.x0 + hp.x) / 2 + o.bend, my = Math.min(o.y0, hp.y) - 80, x = (1 - k) * (1 - k) * o.x0 + 2 * (1 - k) * k * mx + k * k * hp.x, y = (1 - k) * (1 - k) * o.y0 + 2 * (1 - k) * k * my + k * k * hp.y;
+      g.fillStyle = o.c; g.shadowColor = o.c; g.shadowBlur = 8; g.beginPath(); g.arc(x, y, 2.6, 0, Math.PI * 2); g.fill(); g.shadowBlur = 0; if (o.k + dt * o.sp >= 1) sfx.ore(); }
+    if (hp.front) drawHauler(t);
+  }
+  UI.parts = UI.parts.filter((p) => (p.life += dt) < p.max);
+  for (const p of UI.parts) { p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= .97; p.vy *= .97; g.globalAlpha = 1 - p.life / p.max; g.fillStyle = p.c; g.beginPath(); g.arc(p.x, p.y, p.r, 0, Math.PI * 2); g.fill(); }
+  g.globalAlpha = 1;
+  if (wk > 0) { g.fillStyle = `rgba(200,230,255,${wk * .18})`; g.fillRect(0, 0, STW, STH); }
+}
+function burst(x, y, n, c) { for (let i = 0; i < n; i++) { const a = rnd(0, Math.PI * 2), v = rnd(40, 180); UI.parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 0, max: rnd(.5, 1), r: rnd(1.5, 3.5), c }); } }
+function floatAt(x, y, txt, color) { const d = document.createElement("div"); d.className = "float"; d.textContent = txt; if (color) d.style.color = color; d.style.left = `${x}px`; d.style.top = `${y}px`; $("stage").appendChild(d); setTimeout(() => d.remove(), 1300); }
+function toast(msg) { const t = $("toast"); t.innerHTML = msg; t.classList.remove("show"); void t.offsetWidth; t.classList.add("show"); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove("show"), 3200); $("live").textContent = msg.replace(/<[^>]+>/g, ""); }
+function drainEvents() {
+  const now = performance.now();
+  for (const e of EV.splice(0)) {
+    if (e.t === "level") {
+      const n = rigCount(); if (n > UI.prevRigs) { for (let i = UI.prevRigs; i < n; i++) UI.rigs[i] = now; UI.prevRigs = n; }
+      if (now - UI.lastLvlFx > 90) { UI.lastLvlFx = now; const rp = rigPos(Math.floor(Math.random() * n)); burst(rp.x, rp.y, 12, `hsl(${hueOf(S.ch)},90%,75%)`); floatAt(rp.x, rp.y - 40, `+1 ${SET.lang === "zh" ? "级" : "LV"}`); sfx.level(); }
+    }
+    else if (e.t === "autoUnlock") { toast(`🔓 ${T("autoUnlocked")}`); sfx.unlock(); }
+    else if (e.t === "survey") { sfx.survey(); burst(PC.x, PC.y, 60, "#ffd166"); if (UI.screen === "play") setTimeout(() => surveyCard(e.ch), 500); }
+    else if (e.t === "arrive") { toast(T("arrived", { p: pname(e.ch), n: 1 + S.P })); }
+  }
+}
+
+// ---- HUD ---------------------------------------------------------------------------------------------
+const IC = {
+  core: `<svg viewBox="0 0 20 20"><path d="M10 1l7.8 4.5v9L10 19l-7.8-4.5v-9z" fill="#ffd166" stroke="#7a5a10" stroke-width="1.4"/><path d="M10 5l4.3 2.5v5L10 15l-4.3-2.5v-5z" fill="#fff3c4"/></svg>`,
+  sound: `<svg viewBox="0 0 20 20"><path fill="currentColor" d="M3 7h3l5-4v14l-5-4H3z"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M14 7c1.3 1.6 1.3 4.4 0 6"/></svg>`,
+  mute: `<svg viewBox="0 0 20 20"><path fill="currentColor" d="M3 7h3l5-4v14l-5-4H3z"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M14 8l4 4M18 8l-4 4"/></svg>`,
+};
+function hud() {
+  const st = $("stage"), h = hueOf(S.ch); st.style.setProperty("--hue", `hsl(${h},90%,65%)`); st.style.setProperty("--hue2", `hsl(${h},70%,45%)`);
+  document.querySelectorAll("[data-t]").forEach((el) => setHTML(el, T(el.dataset.t)));
+  document.querySelectorAll("[data-tipk]").forEach((el) => el.setAttribute("data-tip", T(el.dataset.tipk)));
+  $("bLang").textContent = SET.lang === "zh" ? "EN" : "中文";
+  setHTML($("bSound"), SET.sound ? IC.sound : IC.mute); $("bSound").classList.toggle("off", !SET.sound);
+  document.querySelectorAll("[data-speed]").forEach((b) => b.classList.toggle("on", +b.dataset.speed === speed));
+  const hidden = UI.screen === "title"; for (const id of ["panel", "log", "chChip", "coreChip"]) $(id).style.visibility = hidden ? "hidden" : "";
+  if (hidden) return;
+  setHTML($("chChip"), `<span class="dot"></span>${SET.lang === "zh" ? `第 ${S.ch + 1} 章` : `Chapter ${S.ch + 1}`} · ${pname(S.ch)}`);
+  setHTML($("coreChip"), `${IC.core}${S.P === 1 && SET.lang === "en" ? "1 research core" : T("cores", { n: S.P })} · ${T("output", { n: 1 + S.P })}`);
+  setHTML($("pName"), pnameBoth(S.ch)); $("pCh").textContent = `${S.ch + 1} / 5`;
+  const r = rate(S.L, S.P); UI.shown += (S.credits - UI.shown) * .35; if (Math.abs(S.credits - UI.shown) < .5 || S.credits < UI.shown) UI.shown = S.credits;
+  $("cr").textContent = fmt(UI.shown); $("rate").textContent = `+${fmt(r)}/s`;
+  setHTML($("lv"), `${S.L}<small> / ${target()}</small>`);
+  const f = done() ? 1 : (S.L - 1) / (target() - 1); $("lvBar").querySelector("i").style.width = `${f * 100}%`;
+  setHTML($("lvBar"), `<i style="width:${f * 100}%"></i>${S.ch === 0 && !S.autoUnlocked ? `<span class="tick" style="left:${9 / (target() - 1) * 100}%" data-l="10"></span>` : ""}`);
+  const buy = $("buy"), c = cost(S.L), can = !done() && S.credits >= c;
+  buy.disabled = !can; buy.classList.toggle("can", can);
+  buy.querySelector(".fill").style.width = `${done() ? 100 : Math.min(100, S.credits / c * 100)}%`;
+  $("cost").textContent = done() ? "—" : fmt(c);
+  $("eta").textContent = done() ? T("maxed") : can ? T("ready") : T("nextIn", { t: fmtTime((c - S.credits) / r / speed) });
+  const au = $("auto"); au.disabled = !S.autoUnlocked; au.classList.toggle("on", S.auto);
+  $("autoSub").textContent = !S.autoUnlocked ? T("autoLocked") : S.auto ? T("autoOn") : T("autoOff");
+  setHTML($("chInfo"), done() ? (S.ch < 4 ? T("goalDone") : T("finalDone")) : `${T("goalTxt", { g: target(), p: pname(S.ch) })}<br>${T("chTakes", { t: fmtTime(chapterTime(S.ch, S.P)) })}`);
+  const mg = $("migrate"), ready = done() && S.ch < 4; mg.disabled = !ready; mg.classList.toggle("ready", ready);
+  mg.textContent = S.ch >= 4 ? (done() ? "★" : T("migrateLocked", { g: target() })) : ready ? T("migrate") : T("migrateLocked", { g: target() });
+  setHTML($("map"), PLANETS.map((p, i) => `${i ? "<s></s>" : ""}<i class="${S.surveyed.includes(i) ? "done" : ""} ${i === S.ch ? "cur" : ""}" style="--c:hsl(${p.hue},90%,65%)" data-tip="<b>${pname(i)}</b>"></i>`).join(""));
+  const last = S.surveyed.length ? S.surveyed[S.surveyed.length - 1] : -1;
+  setHTML($("logTxt"), last < 0 ? T("logEmpty") : `<b>${pname(last)}:</b> ${SET.lang === "zh" ? PLANETS[last].surveyZh : PLANETS[last].survey}`);
+}
+
+// ---- screens -------------------------------------------------------------------------------------------
+function showScreen(html) { const s = $("screen"); s.innerHTML = html; s.classList.add("show"); }
+function hideScreen() { $("screen").classList.remove("show"); $("screen").innerHTML = ""; }
+function showModal(html) { const m = $("modal"); m.innerHTML = html; m.classList.add("show"); }
+function closeModal() { $("modal").classList.remove("show"); $("modal").innerHTML = ""; }
+function titleScreen() {
+  UI.screen = "title"; S = fresh();
+  const cont = hasSave();
+  showScreen(`<div class="title-wrap" style="left:auto;right:90px;top:180px"><h1>Stardust<br>Mine</h1><div class="zh">星尘矿场</div><p>${T("tagline")}</p>
+    <div class="btns"><button class="btn" id="go">${cont ? T("cont") : T("start")}</button><button class="btn alt" id="how">${T("how")}</button></div></div>
+    <div class="foot">Original game · designed with <a href="https://github.com/bunhine0452/ai-game-designer">ai-game-designer</a> (<a href="../../showcase/06-codex-zh-idle-mining/">showcase session 06</a>) · cost 200 × 1.18^(L−1) from the economy design · <a href="../">← Arcade</a></div>`);
+  $("go").onclick = () => { audioInit(); sfx.ui(); startPlay(); };
+  $("how").onclick = () => { audioInit(); howTo(); };
+}
+function startPlay() {
+  hideScreen(); UI.screen = "play"; const away = load(); UI.prevRigs = rigCount(); UI.rigs = []; UI.shown = S.credits; EV.length = 0;
+  if (away) showModal(`<div class="card"><div class="kicker">${T("welcome")}</div><h2>${pname(S.ch)}</h2><p class="muted">${T("awayTxt", { t: fmtTime(away.away) })}</p>
+    <div class="stats"><div class="stat"><b>+${away.levels}</b><span>${T("gained")}</span></div><div class="stat"><b>+${fmt(away.credits)}</b><span>${T("creditsGained")}</span></div><div class="stat"><b>×${1 + S.P}</b><span>${T("output", { n: "" }).replace("×", "").trim()}</span></div></div>
+    <div class="btns"><button class="btn" id="ok">${T("collect")}</button></div></div>`), ($("ok").onclick = () => { sfx.survey(); closeModal(); });
+}
+function howTo() {
+  showModal(`<div class="card"><div class="kicker">${T("how")}</div><h2>${T("howTitle")}</h2><div class="how">
+    <div><b>${T("h1")}</b>${T("h1t")}</div><div><b>${T("h2")}</b>${T("h2t")}</div><div><b>${T("h3")}</b>${T("h3t")}</div><div><b>${T("h4")}</b>${T("h4t")}</div></div>
+    <div class="btns"><button class="btn" id="ok">OK</button></div></div>`); $("ok").onclick = closeModal;
+}
+function surveyCard(c) {
+  if (c >= 4) return ending();
+  showModal(`<div class="card"><div class="kicker">${T("surveyKicker")} · ${c + 1} / 5</div><h2>${pname(c)}</h2><p class="story">“${SET.lang === "zh" ? PLANETS[c].surveyZh : PLANETS[c].survey}”</p>
+    <p class="muted">+${REWARD[c]} ${SET.lang === "zh" ? "研究核心（迁移时获得）" : "research cores when you migrate"}</p><div class="btns"><button class="btn gold" id="ok">OK</button></div></div>`); $("ok").onclick = closeModal;
+}
+function migrateDialog() {
+  if (!(done() && S.ch < 4)) return;
+  const n = S.ch + 1, add = S.rewarded[S.ch] ? 0 : REWARD[S.ch], nextP = S.P + add;
+  showModal(`<div class="card"><div class="kicker">${T("migrate").replace(" →", "")}</div><h2>${T("migTitle", { p: pname(n) })}</h2>
+    <div class="cols"><div class="r"><b>${T("resets")}</b>${T("rs1", { l: S.L })}<br>${T("rs2", { c: fmt(S.credits) })}<br><em>${T("rs3")}</em></div>
+    <div class="k"><b>${T("keeps")}</b>${T("kp1", { a: add, n: nextP })}<br>${T("kp2")}<br>${T("kp3")}</div>
+    <div class="n"><b>${T("next")}</b>${T("nx1", { n: 1 + nextP })}<br>${T("nx2", { g: TARGET[n] })}<br>${T("nx3", { t: fmtTime(chapterTime(n, nextP)) })}</div></div>
+    <div class="btns"><button class="btn gold" id="ok">${T("go")}</button><button class="btn alt" id="no">${T("notYet")}</button></div></div>`);
+  $("ok").onclick = () => { closeModal(); UI.warp = performance.now(); UI.warpCh = S.ch; sfx.warp(); setTimeout(() => { migrate(); UI.prevRigs = rigCount(); UI.rigs = [performance.now()]; UI.shown = 0; save(); }, 1000); };
+  $("no").onclick = closeModal;
+}
+function ending() {
+  showModal(`<div class="card"><div class="kicker">${T("surveyKicker")} · 5 / 5</div><h2>${T("endTitle")}</h2><p class="story">${T("endTxt")}</p>
+    <div class="stats"><div class="stat"><b>${fmtTime(S.stats.time)}</b><span>${T("stTime")}</span></div><div class="stat"><b>${S.stats.buys}</b><span>${T("stBuys")}</span></div><div class="stat"><b>${S.P}</b><span>${T("stCores")}</span></div></div>
+    <div class="btns"><button class="btn gold" id="ok">OK</button><button class="btn alt" id="again">${T("again")}</button><a class="btn alt" href="../">${T("arcade")}</a></div></div>`);
+  $("ok").onclick = closeModal; $("again").onclick = () => { try { localStorage.removeItem(KEY); } catch (e) { /* optional */ } closeModal(); S = fresh(); UI.prevRigs = 1; UI.rigs = []; UI.shown = 0; };
+}
+
+// ---- input ------------------------------------------------------------------------------------------------
+$("buy").onclick = () => { audioInit(); if (tryBuy()) save(); else sfx.nope(); };
+$("auto").onclick = () => { if (!S.autoUnlocked) return; S.auto = !S.auto; sfx.ui(); save(); };
+$("migrate").onclick = () => { audioInit(); migrateDialog(); };
+document.querySelectorAll("[data-speed]").forEach((b) => b.onclick = () => { speed = +b.dataset.speed; sfx.ui(); });
+$("bLang").onclick = () => { SET.lang = SET.lang === "zh" ? "en" : "zh"; saveSet(); if (UI.screen === "title") titleScreen(); };
+$("bSound").onclick = () => { SET.sound = !SET.sound; saveSet(); audioInit(); if (AU.out) AU.out.gain.value = SET.sound ? 0.5 : 0; };
+$("bHelp").onclick = howTo;
+$("rotX").onclick = () => { UI.rotX = true; $("rotate").classList.remove("show"); };
+$("stage").addEventListener("mousemove", (ev) => {
+  const r = $("stage").getBoundingClientRect(), x = (ev.clientX - r.left) / K, y = (ev.clientY - r.top) / K, el = ev.target.closest && ev.target.closest("[data-tip]"), tip = $("tip");
+  if (!el) { tip.classList.remove("show"); return; }
+  setHTML(tip, el.getAttribute("data-tip")); tip.classList.add("show"); tip.style.left = `${Math.min(STW - tip.offsetWidth - 8, x + 14)}px`; tip.style.top = `${y + 18}px`;
+});
+addEventListener("keydown", (ev) => {
+  if ($("modal").classList.contains("show")) { if (ev.key === "Escape" || ev.key === "Enter") { const ok = $("ok"); if (ev.key === "Enter" && ok) ok.click(); else closeModal(); } return; }
+  if (UI.screen !== "play") return; const k = ev.key.toLowerCase();
+  if (k === " " || k === "u") { ev.preventDefault(); $("buy").click(); } else if (k === "a") $("auto").click(); else if (k === "m") migrateDialog();
+});
+addEventListener("resize", fit);
+addEventListener("beforeunload", () => { if (UI.screen === "play" && !params.has("shot") && !params.has("test")) save(); });
+
+// =====================================================================================
+// SELF-TEST (?test=1) and screenshot states (?shot=1, ?shot=title|migrate|survey)
+// =====================================================================================
 function selftest() {
   const out = [], ok = (name, cond, info = "") => out.push({ name, pass: !!cond, info });
+  fxOn = false;
   ok("cost(1) = 200", Math.abs(cost(1) - 200) < 1e-9);
   ok("rate(1,0) = 10/s", Math.abs(rate(1, 0) - 10) < 1e-9);
   ok("first upgrade waits 20 s", Math.abs(cost(1) / rate(1, 0) - 20) < 1e-9);
   const t1 = chapterTime(0, 0) / 60; ok("chapter 1 ≈ 41.4 min of production", Math.abs(t1 - 41.4) < 0.5, t1.toFixed(2));
   const tot = [0, 1, 3, 7, 15].reduce((s, P, c) => s + chapterTime(c, P), 0) / 3600;
   ok("five chapters ≈ 4.59 h", Math.abs(tot - 4.59) < 0.05, tot.toFixed(3));
-  // offline settlement equals small-step simulation
   S = fresh(); S.auto = true; S.autoUnlocked = true; advance(3600); const a = { L: S.L, c: S.credits };
   S = fresh(); S.auto = true; S.autoUnlocked = true; for (let i = 0; i < 36000; i++) advance(0.1);
   ok("offline settle == stepped sim (L)", a.L === S.L, `${a.L} vs ${S.L}`);
   ok("offline settle == stepped sim (credits)", Math.abs(a.c - S.credits) < 1e-3 * Math.max(1, a.c), `${a.c.toFixed(2)} vs ${S.credits.toFixed(2)}`);
-  // migration resets, keeps cores, rewards once
   S = fresh(); S.L = 40; S.credits = 999; migrate();
   ok("migrate resets level and credits", S.L === 1 && S.credits === 0 && S.ch === 1);
   ok("migrate grants 1 core", S.P === 1);
   S.ch = 0; S.L = 40; migrate(); ok("chapter reward only once", S.P === 1);
   S = fresh(); ok("auto locked before level 10", !S.autoUnlocked);
   S.credits = 1e9; for (let i = 0; i < 9; i++) tryBuy(); ok("auto unlocks at level 10", S.autoUnlocked && S.L === 10);
+  const missing = Object.keys(STR.en).filter((k) => !(k in STR.zh)); ok("every English string has a Chinese translation", !missing.length, missing.join(", "));
+  try { fxOn = true; S = fresh(); S.ch = 2; S.L = 33; UI.screen = "play"; render(0.016); hud(); ok("scene and panel render for a mid-game state", $("cr").textContent.length > 0 && $("lv").textContent.startsWith("33"));
+  } catch (e) { ok("scene and panel render for a mid-game state", false, String(e).slice(0, 200)); }
   const pass = out.every((o) => o.pass);
   $("selftest").textContent = JSON.stringify({ game: "stardust-mine", pass, results: out }, null, 1);
   $("selftest").hidden = false; document.title = `SELFTEST ${pass ? "PASS" : "FAIL"}`;
-  S = fresh();
+  fxOn = true; EV.length = 0; S = fresh();
 }
-const params = new URLSearchParams(location.search);
-if (params.has("test")) selftest();
-else if (params.has("shot")) {
+function setupShot(kind) {
+  document.body.classList.add("shot"); SET.sound = false;
+  if (kind === "title") return titleScreen();
   S = fresh(); S.ch = 1; S.P = 1; S.rewarded[0] = true; S.surveyed = [0]; S.L = 27; S.credits = cost(27) * .62; S.auto = true; S.autoUnlocked = true; speed = 10;
-  document.querySelectorAll("[data-speed]").forEach((x) => x.classList.toggle("on", x.dataset.speed === "10"));
-} else load();
-
-let last = performance.now();
-function frame(now) {
-  const dt = Math.min(0.1, (now - last) / 1000); last = now;
-  if (!params.has("test")) advance(dt * speed);
-  draw(dt); ui();
-  if (Math.floor(now / 5000) !== Math.floor((now - dt * 1000) / 5000) && !params.has("shot")) save();
-  requestAnimationFrame(frame);
+  UI.screen = "play"; UI.prevRigs = rigCount(); UI.shown = S.credits; hideScreen();
+  if (kind === "migrate") { S.ch = 0; S.P = 0; S.rewarded[0] = false; S.L = 40; S.credits = 1.84e5; return migrateDialog(); }
+  if (kind === "survey") { S.ch = 2; S.L = 70; S.surveyed = [0, 1, 2]; return surveyCard(2); }
+  for (let i = 0; i < 40; i++) render(0.05);
 }
-ui(); requestAnimationFrame(frame);
-addEventListener("beforeunload", () => { if (!params.has("shot") && !params.has("test")) save(); });
+
+const params = new URLSearchParams(location.search);
+fit();
+if (params.has("test")) selftest();
+if (params.get("shot")) setupShot(params.get("shot")); else titleScreen();
+requestAnimationFrame(frame);
 </script>
 </body>
 </html>
