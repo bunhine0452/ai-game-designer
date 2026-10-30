@@ -44,7 +44,7 @@
 | **`fun-curve`** | 전투 하나, 레벨, 런, 게임 전체의 관심 곡선·몰입·페이싱을 설계하고 진단합니다. 훅 부재, 평탄 구간, 이완 없는 피크, 너무 이른 클라이맥스, 상승하지 않는 피크를 잡아냅니다. | `fun_curve.py`, 페이싱 모델, 게임 필·플레이테스트 가이드, 플레이어가 실제로 즐기는 것에 대한 실증 근거 |
 | **`genre-design`** | 장르별 플레이북. 코어 루프, 대표 메커닉, 페이싱 형태, 성장 모델, 밸런스 레버, 실패 요인, 레퍼런스 게임과 *그것이 통하는 이유*, 근거 강연까지 정리했습니다. | 26개 플레이북 + 장르 혼합 설계법 |
 | **`balance-economy`** | 경험치 테이블, 전투 수식(TTK·DPS·방어), 비용 곡선, 재화 유입처·소모처, 인플레이션, 드롭률, 천장, 2026년 확률형 아이템 규제 현황. | `progression_curve.py`, `economy_sim.py`, `cost_curve.py` |
-| **`gdd-art-direction`** | 원페이지 기획서, 살아 있는 GDD, 기능 명세서, 규모 산정이 들어간 에셋 리스트, 아트·오디오 스타일 가이드, 가독성·실루엣 기준, 접근성 체크리스트. | 템플릿 5종, 픽셀 아트·3D 디렉션 가이드, 접근성(GAG/XAG/APX) 가이드 |
+| **`gdd-art-direction`** | 원페이지 기획서, 살아 있는 GDD, 기능 명세서, 규모 산정이 들어간 에셋 리스트, 아트·오디오 스타일 가이드, 가독성·실루엣 기준, 접근성 체크리스트, 픽셀아트 크래프트(비평, 색조가 이동하는 팔레트 램프, AI가 만든 픽셀아트의 검사와 복원). | 템플릿 5종, 픽셀아트 크래프트·3D 디렉션 가이드, 접근성(GAG/XAG/APX) 가이드, `pixel_audit.py`, `palette_ramp.py` |
 | **`playable-prototype`** | 기획 문서를 HTML 파일 하나짜리 브라우저 프로토타입으로 만듭니다. 문서의 수치를 그대로 쓰고, 절차적 아트·사운드, 자체 테스트(`?test=1`), 처음부터 끝까지 플레이하는 봇, 스크린샷까지 갖춥니다. | 2D·픽셀 아트·three.js 템플릿, `check.py` 실행기, 라이브 예시 8개 |
 | **`design-review`** | 콘셉트·명세·빌드·플레이테스트 노트를 구조적으로 비평합니다. 우선순위가 매겨진 문제와 근거, 구체적인 해결책을 내고, 다크 패턴 **윤리 점검을 반드시** 함께 수행합니다. | 리뷰 렌즈 12종, 재미 진단(드라이버 8개), P0–P3 기준, 다크 패턴 분류표 |
 
@@ -218,10 +218,12 @@ Claude Code에서는 질문 내용에 맞춰 스킬이 자동으로 실행되고
 | `plugins/game-designer/skills/balance-economy/scripts/cost_curve.py` | 아이템 CSV (`name,cost,attributes…`) | 능력치별 가치, 적정 비용, 이상치, 차트 |
 | `plugins/game-designer/skills/balance-economy/scripts/export_engine.py` | 최종 기획 표 (CSV/JSON) | Godot Resource와 로더, Unity 행 클래스와 ScriptableObject, Unreal USTRUCT와 DataTable CSV, 타입이 지정된 JSON |
 | `plugins/game-designer/skills/design-review/scripts/playtest_report.py` | 플레이테스트 이벤트 로그 CSV | 퍼널, 레벨별 사망, 이탈, 종료 집중 구간, 접전과 일방적 승부, 탐색 행동, 자유 선택 플레이, 부호검정이 붙은 A/B 비교, 설문 평균, 경고 플래그 |
+| `plugins/game-designer/skills/gdd-art-direction/scripts/pixel_audit.py` | 스프라이트, 스크린샷 또는 AI 이미지 (PNG, Pillow가 있으면 JPEG) | 격자와 배율, 믹셀, 팔레트 밖 색과 거의 같은 색, 고립 픽셀, 명도 범위, 수정 방법이 붙은 경고; `fix`는 격자와 팔레트에 맞춘 원본 크기 PNG를 만듦 |
+| `plugins/game-designer/skills/gdd-art-direction/scripts/palette_ramp.py` | 기준 색, 또는 팔레트 (hex 목록, .hex/.gpl, PNG) | OKLab 명도를 고르게 나누고 색조를 옮긴 램프 (hex, .gpl, 견본 PNG); 직선 램프·고르지 않은 단계·거의 같은 색·눈부신 색 점검 |
 | `plugins/game-designer/skills/playable-prototype/scripts/check.py` | 프로토타입 폴더 또는 HTML 파일 | 게임별 자체 테스트 결과, 스크린샷 (헤드리스 Chrome) |
 
 모든 스크립트는 Python 3 표준 라이브러리만 사용합니다. matplotlib이 없으면 차트 대신 텍스트와
-CSV를 만듭니다.
+CSV를 만듭니다. Pillow가 있으면 `pixel_audit.py`가 더 빨라지고 JPEG도 읽습니다.
 
 ## 리서치
 

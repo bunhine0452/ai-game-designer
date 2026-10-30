@@ -4,6 +4,45 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [1.10.0] - 2026-10-31
+
+### Added
+- **Pixel art craft** (gdd-art-direction): `references/pixel-art-craft.md`, the theory behind pixel
+  art that reads as crafted. It covers clusters and noise, line steps and jaggies, banding and
+  pillow shading, light, form and projection, anti-aliasing and sel-out, hue-shifted ramps with
+  even perceptual steps, dithering, texture, tiles and autotiling, animation (key poses, holds,
+  sub-pixel), production at scale, and AI-generated pixel art, plus a 12-item defect checklist
+  ordered by visibility (sources D23–D36).
+- **`pixel_audit.py`** (gdd-art-direction):
+  - `audit` finds the scale of a sprite, an integer-scaled screenshot or an upscaled AI image,
+    and follows grids that drift. It flags MIXELS, NON_INTEGER_SCALE, AI_OR_RESAMPLED,
+    OFF_PALETTE, TOO_MANY_COLORS, SIMILAR_COLORS, NOISE_PIXELS, LOW_VALUE_RANGE, EYEBURN,
+    MELTS_INTO_BG and SOFT_ALPHA, each with a fix.
+  - `fix` turns AI-made "pixel art" into a native-size PNG on a real grid and palette. On game
+    art degraded on purpose it recovered 96% of pixels (nearest 4× + JPEG), 93% (bicubic 5.7× +
+    JPEG) and about 80% (bilinear 3.3× + JPEG, with `--size`).
+  - Standard library only; Pillow speeds up reading and adds JPEG.
+- **`palette_ramp.py`** (gdd-art-direction):
+  - `ramp` builds hue-shifted ramps in OKLCh: even lightness, warm lights, cool shadows,
+    saturation peaking mid-ramp.
+  - `check` flags straight ramps, uneven value steps, near-duplicates, eye-burning colours and
+    value gaps.
+  - Exports `.gpl`, `.hex` and swatch PNGs.
+- `examples/pixel/`: an AI-like image audited and repaired (93% of pixels recovered), with a
+  palette check and a generated ramp.
+
+### Changed
+- **Pixel template** (playable-prototype): sprites are now drawn at native size (the old 2× bake
+  produced mixels). Text uses a 3×5 bitmap font instead of anti-aliased `fillText`. The palette
+  is organised as Sweetie 16 ramps. A new **pixel contract** self-test asserts that a drawn frame
+  holds palette colours only, and the hero must stand out from the floor in greyscale.
+- `pixel-art-direction.md`: projection, outline, anti-aliasing and dithering policies, and a
+  checks section for screenshots and AI-generated assets.
+- **Dot Gardener:** random single-pixel speckle on wall tops, floors and rubble is replaced by
+  small clusters lit from the top-left, with empty stone between them. The bloom's stone colour
+  is pushed apart from the base one so the change reads (the audit flagged the pair as
+  near-identical). A pixel-contract frame test was added (14 self-tests).
+
 ## [1.9.0] - 2026-10-30
 
 ### Added

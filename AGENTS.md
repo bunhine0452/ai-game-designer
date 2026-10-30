@@ -25,7 +25,8 @@ Seven Agent Skills for game design in `plugins/game-designer/skills/<name>/SKILL
    when the workflow points to them.
 3. Run the bundled scripts with Python 3 instead of estimating numbers:
    `plugins/game-designer/skills/fun-curve/scripts/fun_curve.py`, `plugins/game-designer/skills/balance-economy/scripts/progression_curve.py`,
-   `economy_sim.py`, `cost_curve.py` (each has `--help`).
+   `economy_sim.py`, `cost_curve.py`, `plugins/game-designer/skills/gdd-art-direction/scripts/pixel_audit.py` and
+   `palette_ramp.py` (each has `--help`).
 4. Answer in the user's language. In non-English answers, write each technical term on
    first use as `localized (English)`. See `plugins/game-designer/skills/game-design/references/glossary.md`.
 

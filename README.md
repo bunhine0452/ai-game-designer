@@ -45,7 +45,7 @@ team will actually read, and reviews that catch dark patterns before players or 
 | **`fun-curve`** | Designs and critiques interest curves, flow and pacing for an encounter, level, run or whole game. Flags missing hooks, flat zones, peaks without relief, early climaxes and peaks that don't escalate. | `fun_curve.py`, pacing models, game-feel and playtest guides, evidence on what players enjoy |
 | **`genre-design`** | Genre playbooks: core loop, signature mechanics, pacing shape, progression, balancing levers, failure modes, reference games and *why* they work, and the talks behind them. | 26 playbooks plus a hybrid-genre method |
 | **`balance-economy`** | XP tables, combat math (TTK, DPS, armor), cost curves, faucets and sinks, inflation, drop rates, pity, and the 2026 loot-box legal landscape. | `progression_curve.py`, `economy_sim.py`, `cost_curve.py` |
-| **`gdd-art-direction`** | One-page designs, living GDDs, feature specs, asset lists with scope estimates, art and audio style guides, readability and silhouette rules, accessibility checklists. | 5 templates, pixel-art and 3D direction guides, accessibility (GAG/XAG/APX) guide |
+| **`gdd-art-direction`** | One-page designs, living GDDs, feature specs, asset lists with scope estimates, art and audio style guides, readability and silhouette rules, accessibility checklists, and pixel-art craft: critique, hue-shifted palette ramps, and audits and repairs of AI-made pixel art. | 5 templates, pixel-art craft and 3D direction guides, accessibility (GAG/XAG/APX) guide, `pixel_audit.py`, `palette_ramp.py` |
 | **`playable-prototype`** | Turns design documents into a single-file browser prototype whose numbers come straight from the docs, with procedural art and sound, self-tests (`?test=1`), bots that play it start to finish, and screenshots. | 2D, pixel-art and three.js templates, `check.py` runner, 8 live examples |
 | **`design-review`** | Structured critique of concepts, specs, builds or playtest notes, with prioritized issues, evidence and specific fixes, plus a **mandatory ethics pass** for dark patterns. | 12 review lenses, fun diagnosis (8 drivers), P0–P3 rubric, dark-pattern taxonomy |
 
@@ -224,10 +224,12 @@ It also understands Japanese, Chinese and Spanish (e.g. 「ホラーの緩急を
 | `plugins/game-designer/skills/balance-economy/scripts/cost_curve.py` | items CSV (`name,cost,attributes…`) | fitted weights, fair costs, outliers, chart |
 | `plugins/game-designer/skills/balance-economy/scripts/export_engine.py` | a final design table (CSV/JSON) | Godot Resource + loader, Unity row + ScriptableObject, Unreal USTRUCT + DataTable CSV, typed JSON |
 | `plugins/game-designer/skills/design-review/scripts/playtest_report.py` | playtest event log CSV | funnel, deaths per level, drop-off, quit clusters, close vs. one-sided contests, exploration, free-choice play, A/B comparisons with a sign test, questionnaire means, flags |
+| `plugins/game-designer/skills/gdd-art-direction/scripts/pixel_audit.py` | sprite, screenshot or AI image (PNG; JPEG with Pillow) | grid and scale, mixels, off-palette and near-duplicate colours, stray pixels, value range, flags with fixes; `fix` writes a clean native-size PNG snapped to the grid and palette |
+| `plugins/game-designer/skills/gdd-art-direction/scripts/palette_ramp.py` | a base colour, or a palette (hex list, .hex/.gpl, PNG) | hue-shifted ramps with even OKLab steps (hex, .gpl, swatch PNG); palette check for straight ramps, uneven steps, near-duplicates and eye-burning colours |
 | `plugins/game-designer/skills/playable-prototype/scripts/check.py` | prototype folders or HTML files | self-test results per game, screenshots (headless Chrome) |
 
 All scripts use only the Python 3 standard library. When matplotlib isn't installed they
-write text and CSV outputs instead of charts.
+write text and CSV outputs instead of charts. Pillow, when present, speeds up `pixel_audit.py` and lets it read JPEG.
 
 ## Research
 
