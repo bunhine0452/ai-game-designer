@@ -41,13 +41,13 @@ summary with relight animation. See `fun-curve/examples/roguelite-20min-run.csv`
 ## Progression and economy
 Progression: horizontal unlocks (lanterns, boons) plus opt-in difficulty; stat bonuses capped
 at +10%. Currency: light (in run) → banked light (meta), one direction only.
-Monetization: premium, no microtransactions. (The ethics check passes trivially.)
+Monetization: premium, no microtransactions. (The ethics check is trivially satisfied.)
 
 ## Visual and audio target
 - Visual pillar: *light tells you everything.* Light is the brightest value on screen, enemies
   stay dark until lit, and no decorative glow competes with pickups.
 - References: a dark watercolor city (take: muted, desaturated background values); bioluminescent
-  sea life (take: shape of light trails); stained glass (take: color only where light passes).
+  sea life (take: shape of light trails); stained glass (take: color only where light shines through).
 - Audio pillar: *hear the danger before you see it.* Enemy wind-up sounds sit above the music.
 
 ## Reference games (lesson, not feature)
@@ -69,11 +69,11 @@ District 2's new enemies and tileset to a post-launch update**. That brings dev 
 (about 765 raw h after deferral).
 
 ## Risks and cheapest tests
-1. Light-as-health feels stingy (hoarding). Test: greybox 3 rooms; pass if players spend
+1. Light-as-health feels stingy (hoarding). Test: greybox 3 rooms; success means players spend
    ≥ 40% of the light they pick up.
 2. Contract art arrives late or off-style. Test: commission one enemy plus one tileset chunk
-   from the style guide first; pass if it needs ≤ 1 revision.
-3. "Roguelite with a twist" is crowded. Test: a 30 s capsule GIF on two channels; pass if it
+   from the style guide first; success means it needs ≤ 1 revision.
+3. "Roguelite with a twist" is crowded. Test: a 30 s capsule GIF on two channels; success means it
    gets more saves and replies than the last three posts.
 
 ## Open questions

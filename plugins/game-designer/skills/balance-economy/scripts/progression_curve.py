@@ -75,7 +75,7 @@ def solve_shape(family: str, levels: int, a: argparse.Namespace, target: float) 
     t_lo, t_hi = total(lo), total(hi)
     if not t_lo <= target <= t_hi:
         raise ValueError(f"{family}: total {target:,.0f} is outside the reachable range "
-                         f"{t_lo:,.0f}-{t_hi:,.0f} for --first {a.first:g} (logistic: raise --steepness)")
+                         f"{t_lo:,.0f} to {t_hi:,.0f} for the first-level value {a.first:g} (for logistic, raise the steepness)")
     for _ in range(200):
         mid = (lo + hi) / 2
         lo, hi = (mid, hi) if total(mid) < target else (lo, mid)
