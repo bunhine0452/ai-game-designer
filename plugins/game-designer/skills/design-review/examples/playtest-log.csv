@@ -228,3 +228,123 @@ P12,2078.0,rating,fun,4
 P12,2078.0,rating,clarity,5
 P12,2078.0,rating,fairness,4
 P12,2078.0,rating,want_more,6
+# Fun-driver events (added in 1.8.0): explore = optional actions, outcome = final margin of the Market chase and the Bell Tower duel
+P01,33.6,explore,Docks,
+P01,195.6,explore,Docks,
+P01,421.4,explore,Market,
+P01,615.3,outcome,Market,-0.05
+P01,728.4,explore,Sewers,
+P01,1527.8,outcome,Bell Tower,-0.62
+P01,1914.1,explore,Rooftops,
+P01,2082.7,rating,curious,5
+P01,2082.7,rating,challenge,4
+P01,2082.7,rating,pressure,1
+P02,215.4,explore,Docks,
+P02,276.0,explore,Docks,
+P02,323.4,explore,Market,
+P02,524.9,explore,Market,
+P02,537.6,outcome,Market,-0.10
+P02,541.0,explore,Sewers,
+P02,1324.8,explore,Bell Tower,
+P02,1358.2,outcome,Bell Tower,-0.81
+P02,1528.7,explore,Rooftops,
+P02,1721.5,rating,curious,5
+P02,1721.5,rating,challenge,3
+P02,1721.5,rating,pressure,3
+P03,56.8,explore,Docks,
+P03,586.5,explore,Market,
+P03,609.2,outcome,Market,-0.06
+P03,986.9,explore,Sewers,
+P03,1048.7,outcome,Bell Tower,-0.87
+P03,1384.6,rating,curious,6
+P03,1384.6,rating,challenge,5
+P03,1384.6,rating,pressure,2
+P04,110.6,explore,Docks,
+P04,121.7,explore,Docks,
+P04,274.5,explore,Market,
+P04,422.2,explore,Market,
+P04,556.7,outcome,Market,0.12
+P04,576.8,explore,Sewers,
+P04,1444.9,outcome,Bell Tower,0.85
+P04,1782.8,explore,Rooftops,
+P04,1935.8,rating,curious,6
+P04,1935.8,rating,challenge,4
+P04,1935.8,rating,pressure,3
+P05,165.7,explore,Docks,
+P05,252.8,explore,Docks,
+P05,387.3,explore,Market,
+P05,528.0,outcome,Market,-0.11
+P05,564.3,explore,Sewers,
+P05,1517.6,outcome,Bell Tower,-0.65
+P05,1703.0,explore,Rooftops,
+P05,2056.8,rating,curious,5
+P05,2056.8,rating,challenge,4
+P05,2056.8,rating,pressure,2
+P06,123.2,explore,Docks,
+P06,171.4,explore,Docks,
+P06,562.1,explore,Market,
+P06,571.2,outcome,Market,0.14
+P06,587.9,explore,Sewers,
+P06,1546.3,outcome,Bell Tower,-0.77
+P06,1651.7,explore,Rooftops,
+P06,1885.0,rating,curious,5
+P06,1885.0,rating,challenge,4
+P06,1885.0,rating,pressure,2
+P07,152.3,explore,Docks,
+P07,306.4,explore,Market,
+P07,323.9,explore,Market,
+P07,557.0,outcome,Market,0.14
+P07,602.9,explore,Sewers,
+P07,896.1,outcome,Bell Tower,0.76
+P07,1131.0,rating,curious,4
+P07,1131.0,rating,challenge,3
+P07,1131.0,rating,pressure,3
+P08,46.4,explore,Docks,
+P08,163.4,explore,Docks,
+P08,303.7,explore,Market,
+P08,472.8,outcome,Market,-0.07
+P08,578.0,explore,Sewers,
+P08,805.1,explore,Sewers,
+P08,1411.5,outcome,Bell Tower,-0.80
+P08,1879.0,explore,Rooftops,
+P08,1936.7,rating,curious,5
+P08,1936.7,rating,challenge,4
+P08,1936.7,rating,pressure,2
+P09,245.0,explore,Docks,
+P09,329.4,explore,Market,
+P09,616.2,outcome,Market,-0.03
+P09,620.3,explore,Sewers,
+P09,622.1,explore,Sewers,
+P09,758.7,rating,curious,5
+P09,758.7,rating,challenge,4
+P09,758.7,rating,pressure,2
+P10,39.2,explore,Docks,
+P10,155.1,explore,Docks,
+P10,310.5,explore,Market,
+P10,777.7,outcome,Market,0.03
+P10,782.4,explore,Sewers,
+P10,1195.3,explore,Bell Tower,
+P10,1784.7,outcome,Bell Tower,0.81
+P10,2252.5,explore,Rooftops,
+P10,2328.9,rating,curious,4
+P10,2328.9,rating,challenge,3
+P10,2328.9,rating,pressure,1
+P11,92.6,explore,Docks,
+P11,385.1,explore,Market,
+P11,553.3,explore,Market,
+P11,643.8,outcome,Market,0.19
+P11,725.3,explore,Sewers,
+P11,994.1,outcome,Bell Tower,-0.74
+P11,1292.1,rating,curious,5
+P11,1292.1,rating,challenge,5
+P11,1292.1,rating,pressure,3
+P12,137.5,explore,Docks,
+P12,155.1,explore,Docks,
+P12,375.6,explore,Market,
+P12,525.9,outcome,Market,-0.03
+P12,620.9,explore,Sewers,
+P12,1669.1,outcome,Bell Tower,0.75
+P12,1681.5,explore,Rooftops,
+P12,2088.0,rating,curious,6
+P12,2088.0,rating,challenge,3
+P12,2088.0,rating,pressure,3

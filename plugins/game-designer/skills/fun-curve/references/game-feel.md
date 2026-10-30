@@ -58,6 +58,10 @@ effects for the moments that matter most, or nothing will stand out.
 - **Readability first.** Excess juice can hide information. A counter-talk ("Don't juice it
   or lose it") argued that over-polish can hurt immersion and clarity. Test whether players
   can still read threats during the busiest moments.
+- **There is an optimal dose.** In an experiment with four versions of one action RPG, medium
+  and high juice beat both no juice and extreme juice on player experience, motivation, play
+  time and performance [A36]. Decoration not tied to actions raises visual appeal, not felt
+  competence [A37]. Feedback that shows *how well* an action went also feeds curiosity [A35].
 - **Accessibility.** Give options to reduce screen shake, flashes and motion blur. Provide
   visual alternatives to audio cues and the reverse ("second channel").
 - **Juice doesn't fix design.** It makes good interactions feel great. It can't make a
@@ -77,5 +81,6 @@ effects for the moments that matter most, or nothing will stand out.
 - [A31] Pichlmair & Johansen (2020), *Designing Game Feel: A Survey*. https://arxiv.org/pdf/2011.09201
 - [A12] Jonasson & Purho (2012), *Juice it or lose it*. · [A30] Kelly, *Don't Juice It or Lose It* (recap).
 - [A13] Thorson (2020), *Celeste & Forgiveness*.
+- [A35] Kao et al. (2024), CHI. · [A36] Kao (2020), *Entertainment Computing* 34. · [A37] Meiners, Hicks et al. (2025).
 - [D9] AbleGamers APX: second channel. · [D7] Game Accessibility Guidelines.
 - Full bibliography: `research/SOURCES.md` in the repository.

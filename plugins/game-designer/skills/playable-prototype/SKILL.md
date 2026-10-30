@@ -6,7 +6,7 @@ license: MIT
 compatibility: Any agent that reads SKILL.md folders. Scripts need Python 3; check.py also needs a local Chrome, Chromium or Edge.
 metadata:
   author: bunhine0452
-  version: "1.7.0"
+  version: "1.8.0"
   repository: https://github.com/bunhine0452/ai-game-designer
 ---
 

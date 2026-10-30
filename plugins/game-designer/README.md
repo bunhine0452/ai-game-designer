@@ -7,11 +7,11 @@ English and more), with the English term in parentheses the first time a concept
 | Skill | What it does |
 |---|---|
 | `game-design` | Entry point. Turns an idea into a design brief: player fantasy, pillars, core loops, MDA analysis, risks. Routes to the other skills. |
-| `fun-curve` | Plots and diagnoses interest curves and pacing (flow, difficulty, tension and release, onboarding, game feel). |
+| `fun-curve` | Plots and diagnoses interest curves and pacing (flow, difficulty, tension and release, onboarding, game feel), with the evidence on what players actually enjoy. |
 | `genre-design` | 26 genre playbooks with conventions to honor and to break, plus hybrid-genre design. |
 | `balance-economy` | XP and progression curves, combat math, cost curves, faucets and sinks, drop rates, and exact gacha and pity math, with simulators. |
 | `gdd-art-direction` | One-page designs, GDDs, feature specs, asset lists, art and audio direction, accessibility checklists. |
-| `design-review` | Structured critiques of concepts, specs, builds and playtest notes, with an ethics pass for dark patterns. |
+| `design-review` | Structured critiques of concepts, specs, builds and playtest notes, a fun diagnosis across eight drivers, and an ethics pass for dark patterns. |
 | `playable-prototype` | Turns design documents into single-file browser prototypes with self-tests, bots and screenshots. |
 
 ## Commands (Claude Code)

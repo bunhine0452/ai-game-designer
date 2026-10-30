@@ -39,6 +39,11 @@ to grow too. Two implications:
 | Hidden dynamic difficulty adjustment | Adjust spawns, drops or AI accuracy from performance | Never punish skill; keep it invisible; disclose in competitive games |
 | Rubber banding | Catch-up for trailing players (racing, party) | Overdone, it makes winning feel random |
 
+The order is backed by experiments: performance-based DDA reliably improves how well players do,
+but its effect on enjoyment is mixed, and some players feel uneasy once they notice it [A40],
+[A41]. Close, uncertain outcomes are more enjoyable than easy wins [A34], so aim the channel at
+"could go either way", not at "always wins". Evidence: `what-makes-it-fun.md`.
+
 ## Sawtooth difficulty
 
 Ramp difficulty within a segment, peak at a test (boss, gate level), then **reset lower,
@@ -83,4 +88,5 @@ new strategies). If attempts don't improve, the challenge has moved from hard to
 - [A16] Cook (2007), *The Chemistry of Game Design*: skill atoms.
 - [D10] Schatz & Gallant (2020): accessibility vs. difficulty in The Last of Us Part II.
 - [B25] King: difficulty pacing across match-3 levels.
+- [A32] challenge and enjoyment · [A34] outcome uncertainty · [A40] [A41] DDA studies.
 - Full bibliography: `research/SOURCES.md` in the repository.

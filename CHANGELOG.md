@@ -4,6 +4,25 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [1.8.0] - 2026-10-30
+
+### Added
+- **What makes it fun** (fun-curve): `references/what-makes-it-fun.md` collects experiments and
+  large datasets on enjoyment: enjoyable challenge, outcome uncertainty and suspense, curiosity
+  and uncertain success, the optimal juice dose, need satisfaction *and* frustration (BANGS),
+  motivation quality vs. hours played, the mixed evidence on hidden difficulty adjustment,
+  social play, meaningful choice and meaning. Each comes with an evidence-strength rating and
+  design rules.
+- **Fun diagnosis** (design-review): `references/fun-diagnosis.md` scores eight fun drivers
+  separately, finds the bottleneck and writes fixes as testable predictions.
+- **Playtest kit:** `outcome` (final margin) and `explore` (optional action) events, and three
+  questionnaire items (`curious`, `challenge`, reversed `pressure`). `playtest_report.py` adds a
+  fun-driver table and the flags `ONE_SIDED`, `LOW_CURIOSITY` and `PRESSURE`. Logs without the
+  new events report exactly as before.
+- **Ethics:** "Engagement is not fun", based on the Oxford telemetry study.
+- Sources A32–A47. Items checked only at the abstract level or through secondary coverage are
+  marked and listed under research gaps.
+
 ## [1.7.0] - 2026-10-30
 
 ### Added

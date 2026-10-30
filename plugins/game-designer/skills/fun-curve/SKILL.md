@@ -1,12 +1,12 @@
 ---
 name: fun-curve
-description: Designs, plots and critiques interest curves (fun curves), flow and pacing for a play session, level, run, chapter or whole game. Use when the user asks about pacing, tension and release, intensity graphs, difficulty curves, flow channel, boredom or frustration points, a boring middle, climax placement, session length, game feel or juice, or wants a beat list plotted and diagnosed, or wants playtest or telemetry data turned into a curve. Runs a script that flags missing hooks, flat zones, peaks without relief, early climaxes and non-escalating peaks. Also triggers on 재미 곡선, 관심 곡선, 페이싱, 완급 조절, 긴장과 이완, 난이도 곡선, 몰입, 지루한 구간, 타격감; 面白さの曲線, 興味曲線, ペーシング, 緩急, 緊張と緩和, 難易度曲線, 手触り; 趣味曲线, 兴趣曲线, 节奏, 心流, 难度曲线, 打击感; curva de diversión, ritmo, curva de dificultad.
+description: Designs, plots and critiques interest curves (fun curves), flow and pacing for a play session, level, run, chapter or whole game. Use when the user asks about pacing, tension and release, intensity graphs, difficulty curves, flow channel, boredom or frustration points, a boring middle, climax placement, session length, game feel or juice, or wants a beat list plotted and diagnosed, or wants playtest or telemetry data turned into a curve, or asks what the research says makes games fun. Runs a script that flags missing hooks, flat zones, peaks without relief, early climaxes and non-escalating peaks. Also triggers on 재미 곡선, 관심 곡선, 재미의 원리, 페이싱, 완급 조절, 긴장과 이완, 난이도 곡선, 몰입, 지루한 구간, 타격감; 面白さの曲線, 興味曲線, ペーシング, 緩急, 緊張と緩和, 難易度曲線, 手触り; 趣味曲线, 兴趣曲线, 节奏, 心流, 难度曲线, 打击感; curva de diversión, ritmo, curva de dificultad.
 argument-hint: "[beats CSV/JSON path, or a level or session to pace]"
 license: MIT
 compatibility: Any agent that reads SKILL.md folders (Claude Code, Claude apps, Codex, Antigravity, Cursor, Copilot). Scripts need Python 3; matplotlib optional.
 metadata:
   author: bunhine0452
-  version: "1.7.0"
+  version: "1.8.0"
   repository: https://github.com/bunhine0452/ai-game-designer
 ---
 
@@ -101,7 +101,9 @@ When the issue is difficulty rather than content order (spikes, walls, players b
 off), use `references/flow-and-difficulty.md`: the flow channel, sawtooth ramps,
 player-chosen challenge over hidden adjustment, and fail-state design. When the issue is
 that moments feel weak rather than badly ordered, use `references/game-feel.md` (juice,
-forgiveness windows, feedback layering).
+forgiveness windows, feedback layering). When you must choose between options (a decisive or a
+close finish, more or less juice, a hidden or a visible assist), check the evidence in
+`references/what-makes-it-fun.md` and word the fix as a prediction a playtest can check.
 
 ### 6. Plan validation
 End with how to check the curve against real players: what to observe, which telemetry to
@@ -141,5 +143,8 @@ fix worked. See `references/measuring-fun.md`.
 - `references/measuring-fun.md`: playtest methods, questionnaires, telemetry signals, and
   mapping data to beats.
 - `references/beat-list-format.md`: input format and the intensity rubric.
+- `references/what-makes-it-fun.md`: experiments and large datasets on what players enjoy
+  (challenge, outcome uncertainty, curiosity, feedback dose, need frustration, motivation
+  quality, DDA, social play, meaning), with evidence strength and design rules.
 - `examples/`: a 20-minute roguelite run (healthy), a horror chapter (deliberately flawed),
   their outputs, and a worked fix in `examples/horror-fix-walkthrough.md`.

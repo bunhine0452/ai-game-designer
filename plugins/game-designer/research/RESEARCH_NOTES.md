@@ -126,6 +126,31 @@ secondary or low-trust sources, the note says so.
 
 ---
 
+### A.9 What makes it fun: experiments and telemetry (2012–2025)
+
+The frameworks above describe how to shape experience. This pass collected evidence on what
+players enjoy. The details live in `fun-curve/references/what-makes-it-fun.md`, and the review
+procedure in `design-review/references/fun-diagnosis.md`.
+
+- **Challenge:** stronger opponents and close games beat easy wins in online chess [A32]; whether
+  challenge *feels* pleasant predicts a good experience better than its level [A33].
+- **Outcome uncertainty:** close contests were more enjoyable than blowouts, mediated by suspense,
+  even though blowout wins felt more competent [A34]. Small sample.
+- **Curiosity:** in a pre-registered study (n = 1,699), curiosity was the strongest predictor of
+  enjoyment and the only predictor of play time; uncertain success drove it [A35].
+- **Feedback dose:** medium and high juice beat none and extreme [A36]; non-interactive polish
+  raises appeal, not competence [A37].
+- **Needs both ways:** BANGS measures need satisfaction and frustration separately [A38].
+- **Motivation quality:** hours played barely relate to well-being; intrinsic motivation relates
+  positively and extrinsic negatively (telemetry, n = 38,935) [A39]. Engagement metrics are not
+  fun metrics.
+- **DDA:** better performance, mixed enjoyment, discomfort when noticed [A40], [A41].
+- **Social, choice, meaning:** co-located play raises enjoyment [A42]; choices raise agency when
+  outcomes differ noticeably [A43]; appreciation and reflection are a second reward [A44].
+- **Practice:** multiplicative systems that produce fun rather than scripted fun [A45].
+- **Caution:** don't argue from dopamine [A46]. For standardized measurement, use the miniPXI
+  [A47] or BANGS [A38] as published.
+
 ## B. Genre design knowledge (summary of sources per genre family)
 
 | Genre family | Key sources | Notes |
@@ -297,4 +322,7 @@ balancing levers, reference games, talks) are in `skills/genre-design/references
   logins); guidance rests on design principles and secondary analysis.
 - **Exact wording of Schell's lenses** is not reproduced (copyright). The review lenses here are
   original paraphrases mapped to multiple sources.
+- **Fun evidence checked at different depths.** [A35] and [A42] were checked at the abstract level, and
+  [A36], [A37] and [A45] only through secondary sources (marked S). Effect sizes are not quoted for that
+  reason; check the full texts before adding numbers.
 - **Legal landscape changes fast.** The loot-box map is dated October 2026 and is not legal advice.

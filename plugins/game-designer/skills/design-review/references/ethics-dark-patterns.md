@@ -44,6 +44,19 @@ Run this check for **every** review that touches retention or monetization. Mark
 - [ ] Refund path for accidental purchases.
 - [ ] Spending limits or spending dashboards (good practice).
 
+## Engagement is not fun
+
+Telemetry from seven games and 38,935 players found that hours played barely relate to
+well-being, while *why* people play does: wanting to play relates positively, feeling you have
+to relates negatively [A39]. So:
+
+- Don't use retention, session length or daily-active numbers as evidence that a feature is fun.
+  Pair them with a "want to vs. have to" measure (the playtest kit's `pressure` item).
+- Ask of every streak, timer and expiring reward: would players still come back without it? If
+  not, the feature creates obligation, not enjoyment.
+- Need frustration is measured separately from satisfaction [A38]. A feature can raise
+  engagement and frustrate autonomy at the same time; report both.
+
 ## Three questions to ask the team
 
 1. Would we be comfortable explaining this mechanic, and its purpose, to players in a patch note?
@@ -53,6 +66,7 @@ Run this check for **every** review that touches retention or monetization. Mark
 ## Sources
 - [A15] Zagal, Björk & Lewis (2013), *Dark Patterns in the Design of Games*, FDG. https://gup.ub.gu.se/file/101018
 - [A14] Hopson (2001; 2012 follow-up): reward contingencies and their misuse.
+- [A38] Ballou et al. (2024), BANGS. · [A39] Vuorre, Johannes, Magnusson & Przybylski (2022), *Royal Society Open Science* 9: 220411.
 - [C8]/[C9] Zendle & Cairns (2018, 2019): loot boxes and problem gambling.
 - [C16] FTC–Epic (2022). · [C17] FTC–HoYoverse (2025). · [C10] Korea. · [C11] China. · [C14] Australia. · [C15] Brazil. · [C18] Apple. · [C19] ESRB. · [C12] Comparative review.
 - Full bibliography: `research/SOURCES.md` in the repository.

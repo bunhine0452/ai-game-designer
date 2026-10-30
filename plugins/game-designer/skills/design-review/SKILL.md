@@ -1,12 +1,12 @@
 ---
 name: design-review
-description: Structured, research-backed critique of a game concept, pitch, GDD, prototype description, build notes or playtest notes, in any genre. Produces prioritized issues with evidence, severity and specific fixes, plus a mandatory ethics pass for dark patterns, manipulative monetization, loot-box and odds-disclosure risks and protections for minors. Use when the user asks for feedback, a critique, a review, "what's wrong with my game", a sanity check before pitching or launch, playtest analysis, or a monetization or ethics review. Also triggers on 피드백, 기획 리뷰, 기획서 검토, 문제점, 플레이테스트 분석, 다크 패턴, 과금 구조 검토; フィードバック, 企画レビュー, 問題点, プレイテスト分析, ダークパターン, 課金設計; 反馈, 策划评审, 问题, 试玩分析, 暗黑模式, 付费设计; revisión de diseño, crítica, patrones oscuros.
+description: Structured, research-backed critique of a game concept, pitch, GDD, prototype description, build notes or playtest notes, in any genre. Produces prioritized issues with evidence, severity and specific fixes, plus a mandatory ethics pass for dark patterns, manipulative monetization, loot-box and odds-disclosure risks and protections for minors. Use when the user asks for feedback, a critique, a review, "what's wrong with my game", "is it fun" or "why isn't it fun" (a fun diagnosis across challenge, outcome uncertainty, curiosity, feedback and player needs), a sanity check before pitching or launch, playtest analysis, or a monetization or ethics review. Also triggers on 피드백, 기획 리뷰, 기획서 검토, 문제점, 재미없다, 왜 재미없지, 재미 진단, 플레이테스트 분석, 다크 패턴, 과금 구조 검토; フィードバック, 企画レビュー, 問題点, 面白くない, なぜ面白くない, プレイテスト分析, ダークパターン, 課金設計; 反馈, 策划评审, 问题, 不好玩, 为什么不好玩, 试玩分析, 暗黑模式, 付费设计; revisión de diseño, crítica, no es divertido, patrones oscuros.
 argument-hint: "[document, build notes, or playtest notes to review]"
 license: MIT
 compatibility: Any agent that reads SKILL.md folders (Claude Code, Claude apps, Codex, Antigravity, Cursor, Copilot). Scripts need Python 3; matplotlib optional.
 metadata:
   author: bunhine0452
-  version: "1.7.0"
+  version: "1.8.0"
   repository: https://github.com/bunhine0452/ai-game-designer
 ---
 
@@ -57,6 +57,7 @@ includes an ethics pass.
 | Prototype / build notes | Core verb feel, readability, onboarding, pacing, balance hot spots | Issues ranked by player impact |
 | Playtest notes | Observed vs. intended experience, frequency, severity | Clustered findings (n of N), fixes, next test plan (`references/playtest-analysis.md`); with an event log, run `scripts/playtest_report.py` first |
 | Planning a playtest | The question, players, tasks, what to collect | A one-page plan and kit (`references/playtest-kit.md`) |
+| "Is it fun?" / "Why isn't it fun?" | Each fun driver scored separately: challenge, outcome uncertainty, curiosity, feedback, autonomy, competence, relatedness, meaning | Driver table with evidence, the bottleneck driver, fixes as predictions (`references/fun-diagnosis.md`) |
 | Monetization plan | Value perception, fairness, dark patterns, legal compliance | Ethics table plus compliance checklist plus healthy alternatives |
 
 ## Output format
@@ -106,6 +107,8 @@ The cheapest experiment that addresses the top issue, with a pass criterion
   and compliance checklist.
 - `references/playtest-analysis.md`: turning raw notes and telemetry into findings.
 - `references/playtest-kit.md`: test plan, observer sheet, 7-point questionnaire and event-log format.
+- `references/fun-diagnosis.md`: scoring eight fun drivers (need satisfaction and frustration
+  separately), finding the bottleneck, and measuring it in the next playtest.
 - `scripts/playtest_report.py`: event log → funnel, difficulty spikes, drop-off, quit clusters and questionnaire means (`python3 scripts/playtest_report.py examples/playtest-log.csv --out ./out`).
 - `examples/concept-review-example.md`: a full review of a fictional mobile concept with
   monetization issues.

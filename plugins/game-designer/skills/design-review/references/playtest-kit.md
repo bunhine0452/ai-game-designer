@@ -38,7 +38,16 @@ Ask right after play, before any discussion. 1 = strongly disagree, 7 = strongly
 | `fairness` | When I failed, I felt it was my mistake rather than the game's. |
 | `control` | The controls did what I meant them to. |
 | `want_more` | I want to keep playing past where I stopped. |
+| `curious` | I wanted to find out what would happen next. |
+| `challenge` | The game was hard in a way I enjoyed. |
+| `pressure` | I felt I had to keep playing, more than I wanted to. *(reversed: a high mean is the warning)* |
 | `<custom>` | One item that targets this test's question directly. |
+
+`curious`, `challenge` and `pressure` cover three fun drivers: curiosity, enjoyable challenge,
+and playing because you have to rather than because you want to (see `fun-diagnosis.md`).
+These items are original and not validated. To compare across studies, use a validated
+instrument as published instead: the miniPXI (11 items) for player experience, or BANGS for
+need satisfaction and frustration.
 
 Then three open questions: *What do you remember most? Where did you feel stuck or confused?
 If you could change one thing, what would it be?* (the last one hints at a need, not a fix).
@@ -54,6 +63,8 @@ Log these events, from the build or by hand from video. Columns: `player,t,event
 | `death` | every failure state | level id | – |
 | `hint` | help asked for or given | level id | – |
 | `quit` | the player stops by choice | level id | – |
+| `outcome` | a contest ends (fight, race, match, boss) | level id | final margin −1..1: + the player won, − lost, 0 = dead even (e.g. the winner's health left) |
+| `explore` | an optional action: a side path, an unexplained mechanic tried, lore read | level id | – |
 | `rating` | each questionnaire answer | item id (`fun`, …) | 1–7 |
 
 ```bash
@@ -63,8 +74,14 @@ python3 scripts/playtest_report.py examples/playtest-log.csv --out ./out
 The report gives the funnel (reached and completed per level), deaths per player, hints,
 median time per level, quit points and questionnaire means. It flags `DROP_OFF` (over 25% lost
 between levels), `DIFFICULTY_SPIKE`, `SLOW_LEVEL`, `QUIT_CLUSTER`, `HINT_HEAVY` and `LOW_RATING`.
+With `outcome` and `explore` events it adds a fun-driver table (close and one-sided contests,
+optional actions per player) and flags `ONE_SIDED` (half or more of a level's contests decided
+by ±0.6 or more), `LOW_CURIOSITY` (a level's optional actions under a quarter of the median) and
+`PRESSURE` (the `pressure` item averaging 4.5 or more).
 The example shows a deliberately spiky "Bell Tower": 3 of 4 quits, 2.6 deaths per player
-against a median of 0.6, and a low fairness score.
+against a median of 0.6, and a low fairness score. Its duel is also one-sided (11 of 11
+contests decided by a wide margin) and nobody explores there, while the Market chase is close
+every time.
 
 ## 5. From flags to fixes
 
@@ -85,4 +102,5 @@ against a median of 0.6, and a low fairness score.
 - [A20] Ambinder (2009), *Valve's Approach to Playtesting*. · [A19] RITE method.
 - [A21] Drachen, Mirza-Babaei & Nacke (eds., 2018), *Games User Research*.
 - [A22] Seif El-Nasr, Drachen & Canossa (eds., 2013), *Game Analytics*.
+- [A34] outcome uncertainty · [A35] curiosity · [A38] BANGS · [A39] motivation and well-being · [A47] miniPXI.
 - Full bibliography: `research/SOURCES.md` in the repository.

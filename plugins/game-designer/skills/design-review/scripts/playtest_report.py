@@ -14,11 +14,15 @@ are skipped). `t` is seconds since the player's session started.
   death          level id           -
   hint           level id           -          (help asked for or given)
   quit           level id or -      -          (the player stopped playing)
+  outcome        level id           -1..1      (final margin of a contest: + the player won, - lost;
+                                                0 = dead even, 1 = total. e.g. winner's health left)
+  explore        level id           -          (an optional action: side path, unexplained mechanic, lore)
   rating         question id        1-7        (post-session questionnaire answer)
 
 Outputs (in --out): <stem>_report.md, <stem>_levels.csv, <stem>_ratings.csv and, when
 matplotlib is installed, <stem>_funnel.png. Flags: DROP_OFF, DIFFICULTY_SPIKE, SLOW_LEVEL,
-QUIT_CLUSTER, LOW_RATING, HINT_HEAVY. Standard library only (matplotlib optional); no network.
+QUIT_CLUSTER, LOW_RATING, HINT_HEAVY, and from the fun-driver events ONE_SIDED, LOW_CURIOSITY
+and PRESSURE. Standard library only (matplotlib optional); no network.
 """
 from __future__ import annotations
 
@@ -48,6 +52,10 @@ def median(xs):
     return st.median(xs) if xs else 0.0
 
 
+CLOSE, WIDE = 0.2, 0.6          # |margin| at or under CLOSE is a close contest; at or over WIDE is one-sided
+REVERSED = {"pressure"}         # questionnaire items where a HIGH mean is the warning
+
+
 def analyze(rows: list[dict], order: list[str] | None):
     players = sorted({r["player"] for r in rows})
     seen_levels = []
@@ -57,6 +65,7 @@ def analyze(rows: list[dict], order: list[str] | None):
     levels = order or seen_levels
     reached, completed = defaultdict(set), defaultdict(set)
     deaths, hints, times, quits = defaultdict(int), defaultdict(int), defaultdict(list), defaultdict(int)
+    outcomes, explores = defaultdict(list), defaultdict(int)
     start_t = {}
     for r in rows:
         p, e, lv = r["player"], r["event"], r["level"]
@@ -72,6 +81,10 @@ def analyze(rows: list[dict], order: list[str] | None):
             hints[lv] += 1
         elif e == "quit":
             quits[lv or "(no level)"] += 1
+        elif e == "outcome" and r.get("value", "").strip():
+            outcomes[lv].append(max(-1.0, min(1.0, float(r["value"]))))
+        elif e == "explore":
+            explores[lv] += 1
     ratings = defaultdict(list)
     for r in rows:
         if r["event"] == "rating" and r.get("value", "").strip():
@@ -79,10 +92,15 @@ def analyze(rows: list[dict], order: list[str] | None):
     table = []
     for i, lv in enumerate(levels):
         n_reach, n_done = len(reached[lv]), len(completed[lv])
+        oc = outcomes[lv]
         table.append({"level": lv, "reached": n_reach, "completed": n_done,
                       "completion_rate": n_done / n_reach if n_reach else 0.0,
                       "deaths": deaths[lv], "deaths_per_player": deaths[lv] / n_reach if n_reach else 0.0,
-                      "hints": hints[lv], "median_time_s": median(times[lv]), "quits_here": quits.get(lv, 0)})
+                      "hints": hints[lv], "median_time_s": median(times[lv]), "quits_here": quits.get(lv, 0),
+                      "outcomes": len(oc), "close_share": sum(abs(m) <= CLOSE for m in oc) / len(oc) if oc else 0.0,
+                      "one_sided_share": sum(abs(m) >= WIDE for m in oc) / len(oc) if oc else 0.0,
+                      "wins": sum(m > 0 for m in oc), "losses": sum(m < 0 for m in oc),
+                      "explore_per_player": explores[lv] / n_reach if n_reach else 0.0})
     return players, table, quits, ratings
 
 
@@ -110,8 +128,24 @@ def flags(players, table, quits, ratings) -> list[str]:
         if t["reached"] and t["hints"] / t["reached"] >= 1.0:
             out.append(f"HINT_HEAVY: {t['level']} needed {t['hints']} hints for {t['reached']} players.")
     for q, vals in ratings.items():
-        if len(vals) >= 3 and st.mean(vals) < 4.0:
+        if q not in REVERSED and len(vals) >= 3 and st.mean(vals) < 4.0:
             out.append(f"LOW_RATING: '{q}' averages {st.mean(vals):.1f} / 7 (n={len(vals)}).")
+    # fun drivers (see references/fun-diagnosis.md)
+    for t in table:
+        if t["outcomes"] >= 4 and t["one_sided_share"] >= 0.5:
+            out.append(f"ONE_SIDED: {t['level']}: {t['one_sided_share']:.0%} of {t['outcomes']} contests were decided by a wide margin "
+                       f"({t['wins']} wins, {t['losses']} losses). Close contests are more enjoyable than blowouts.")
+    epp = [t["explore_per_player"] for t in table if t["reached"]]
+    base_e = median(epp)
+    for t in table:
+        if base_e > 0 and t["reached"] >= 4 and t["explore_per_player"] < 0.25 * base_e:
+            out.append(f"LOW_CURIOSITY: {t['level']}: {t['explore_per_player']:.1f} optional actions per player against a median of "
+                       f"{base_e:.1f}. Nothing here invites players to find something out.")
+    for q in REVERSED:
+        vals = ratings.get(q, [])
+        if len(vals) >= 3 and st.mean(vals) >= 4.5:
+            out.append(f"PRESSURE: players report feeling they had to keep playing ('{q}' {st.mean(vals):.1f} / 7, n={len(vals)}). "
+                       f"Read retention and session length with care.")
     return out
 
 
@@ -140,9 +174,16 @@ def main() -> int:
     for t in table:
         md.append(f"| {t['level']} | {t['reached']} of {n} | {t['completed']} | {t['completion_rate']:.0%} | {t['deaths_per_player']:.1f} | "
                   f"{t['hints']} | {t['median_time_s'] / 60:.1f} min | {t['quits_here']} |")
+    if any(t["outcomes"] or t["explore_per_player"] for t in table):
+        md += ["", "## Fun drivers: outcomes and curiosity", "",
+               f"Close = final margin within ±{CLOSE:g}; one-sided = ±{WIDE:g} or more. Optional actions come from `explore` events.", "",
+               "| Level | Contests | Close | One-sided | Wins / losses | Optional actions / player |", "|---|---|---|---|---|---|"]
+        for t in table:
+            md.append(f"| {t['level']} | {t['outcomes']} | {t['close_share']:.0%} | {t['one_sided_share']:.0%} | {t['wins']} / {t['losses']} | "
+                      f"{t['explore_per_player']:.1f} |" if t["outcomes"] else f"| {t['level']} | 0 | – | – | – | {t['explore_per_player']:.1f} |")
     if ratings:
         md += ["", "## Questionnaire (1–7)", "", "| Question | n | Mean | Range |", "|---|---|---|---|"]
-        md += [f"| {q} | {len(v)} | {st.mean(v):.1f} | {min(v):g}–{max(v):g} |" for q, v in sorted(ratings.items())]
+        md += [f"| {q}{' (reversed: high is bad)' if q in REVERSED else ''} | {len(v)} | {st.mean(v):.1f} | {min(v):g}–{max(v):g} |" for q, v in sorted(ratings.items())]
     md += ["", "## Flags", ""] + ([f"- {x}" for x in fl] or ["- None. Check the qualitative notes before calling it done."])
     md += ["", "Numbers show *where* players struggled, not *why*. Pair each flag with observer notes",
            "(see `references/playtest-kit.md`) before deciding on a fix, and re-test the fix."]

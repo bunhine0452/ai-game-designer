@@ -42,12 +42,12 @@ team will actually read, and reviews that catch dark patterns before players or 
 | Skill | What it does | Ships with |
 |---|---|---|
 | **`game-design`** | Entry point and router. Runs a quick intake (genre, platform, session, audience, stage) and produces a design brief: MDA aesthetics, pillars with test questions, core loops at three time scales, and risks with their cheapest tests. Holds the multilingual rules. | Frameworks, player-motivation models, 5-language glossary |
-| **`fun-curve`** | Designs and critiques interest curves, flow and pacing for an encounter, level, run or whole game. Flags missing hooks, flat zones, peaks without relief, early climaxes and peaks that don't escalate. | `fun_curve.py`, pacing models, game-feel and playtest guides |
+| **`fun-curve`** | Designs and critiques interest curves, flow and pacing for an encounter, level, run or whole game. Flags missing hooks, flat zones, peaks without relief, early climaxes and peaks that don't escalate. | `fun_curve.py`, pacing models, game-feel and playtest guides, evidence on what players enjoy |
 | **`genre-design`** | Genre playbooks: core loop, signature mechanics, pacing shape, progression, balancing levers, failure modes, reference games and *why* they work, and the talks behind them. | 26 playbooks plus a hybrid-genre method |
 | **`balance-economy`** | XP tables, combat math (TTK, DPS, armor), cost curves, faucets and sinks, inflation, drop rates, pity, and the 2026 loot-box legal landscape. | `progression_curve.py`, `economy_sim.py`, `cost_curve.py` |
 | **`gdd-art-direction`** | One-page designs, living GDDs, feature specs, asset lists with scope estimates, art and audio style guides, readability and silhouette rules, accessibility checklists. | 5 templates, pixel-art and 3D direction guides, accessibility (GAG/XAG/APX) guide |
 | **`playable-prototype`** | Turns design documents into a single-file browser prototype whose numbers come straight from the docs, with procedural art and sound, self-tests (`?test=1`), bots that play it start to finish, and screenshots. | 2D, pixel-art and three.js templates, `check.py` runner, 8 live examples |
-| **`design-review`** | Structured critique of concepts, specs, builds or playtest notes, with prioritized issues, evidence and specific fixes, plus a **mandatory ethics pass** for dark patterns. | 12 review lenses, P0–P3 rubric, dark-pattern taxonomy |
+| **`design-review`** | Structured critique of concepts, specs, builds or playtest notes, with prioritized issues, evidence and specific fixes, plus a **mandatory ethics pass** for dark patterns. | 12 review lenses, fun diagnosis (8 drivers), P0–P3 rubric, dark-pattern taxonomy |
 
 ## See it work
 
@@ -222,7 +222,7 @@ It also understands Japanese, Chinese and Spanish (e.g. 「ホラーの緩急を
 | `plugins/game-designer/skills/balance-economy/scripts/economy_sim.py` | economy JSON (currencies, archetypes, faucets, sinks, gacha) | per-session and per-player CSVs, exact pity CSV, report, charts |
 | `plugins/game-designer/skills/balance-economy/scripts/cost_curve.py` | items CSV (`name,cost,attributes…`) | fitted weights, fair costs, outliers, chart |
 | `plugins/game-designer/skills/balance-economy/scripts/export_engine.py` | a final design table (CSV/JSON) | Godot Resource + loader, Unity row + ScriptableObject, Unreal USTRUCT + DataTable CSV, typed JSON |
-| `plugins/game-designer/skills/design-review/scripts/playtest_report.py` | playtest event log CSV | funnel, deaths per level, drop-off, quit clusters, questionnaire means, flags |
+| `plugins/game-designer/skills/design-review/scripts/playtest_report.py` | playtest event log CSV | funnel, deaths per level, drop-off, quit clusters, close vs. one-sided contests, exploration, questionnaire means, flags |
 | `plugins/game-designer/skills/playable-prototype/scripts/check.py` | prototype folders or HTML files | self-test results per game, screenshots (headless Chrome) |
 
 All scripts use only the Python 3 standard library. When matplotlib isn't installed they
@@ -234,7 +234,8 @@ The research phase came first: [`plugins/game-designer/research/RESEARCH_NOTES.m
 (findings by area) and [`plugins/game-designer/research/SOURCES.md`](plugins/game-designer/research/SOURCES.md) (full bibliography with
 trust levels). Highlights: Schell's interest curves, Csikszentmihalyi and Chen on flow, the Left
 4 Dead AI Director, MDA, Lazzaro's four keys, Quantic Foundry, SDT/PENS, Koster, Swink, *Juice
-it or lose it*, Valve's playtesting, RITE, PXI vs. GEQ, Schreiber's *Game Balance*, Sirlin,
+it or lose it*, experiments on challenge, outcome uncertainty, curiosity and juice dose, BANGS, the Oxford
+telemetry study on motivation and well-being, Valve's playtesting, RITE, PXI vs. GEQ, Schreiber's *Game Balance*, Sirlin,
 Machinations, Pecorella's idle math, Zendle & Cairns on loot boxes, Librande's one-page designs,
 TF2's readability, Riot's clarity guidelines, the Game Accessibility Guidelines, the Xbox
 Accessibility Guidelines and APX. All content is paraphrased and cited; nothing is copied
