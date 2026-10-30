@@ -1,0 +1,195 @@
+{
+  "title": "종이연 우편부 v1",
+  "unit": "min",
+  "metrics": {
+    "duration": 14.5,
+    "beats": 21,
+    "mean_intensity": 5.59,
+    "peak_count": 1,
+    "climax_time": 13.666666666666666,
+    "climax_position": 0.943,
+    "climax_intensity": 9.0,
+    "hook_peak": 3.0,
+    "share_high": 0.172,
+    "share_low": 0.082,
+    "pacing_score": 38
+  },
+  "findings": [
+    {
+      "code": "MISSING_HOOK",
+      "severity": "high",
+      "message": "No beat reaches 6/10 in the first 10% of the experience (best is 3). Players decide early whether to keep going.",
+      "suggestion": "Open with a short, legible high-interest moment (a promise of the core fantasy, a striking reveal, or a quick win), then dip to teach.",
+      "start": 0.0,
+      "end": 1.4500000000000002
+    },
+    {
+      "code": "FLAT_ZONE",
+      "severity": "high",
+      "message": "1.2-3.2: intensity stays within ±0.5 around 3.9 for 2.0 units (low and flat: boredom and quit risk).",
+      "suggestion": "Insert a contrast beat: a twist on the current mechanic, a new threat, a reveal, a reward, or a deliberate rest that sets up the next rise.",
+      "start": 1.19625,
+      "end": 3.19
+    },
+    {
+      "code": "FLAT_ZONE",
+      "severity": "medium",
+      "message": "3.2-8.1: intensity stays within ±0.5 around 5.0 for 4.9 units (flat: interest stops moving).",
+      "suggestion": "Insert a contrast beat: a twist on the current mechanic, a new threat, a reveal, a reward, or a deliberate rest that sets up the next rise.",
+      "start": 3.22625,
+      "end": 8.12
+    },
+    {
+      "code": "FLAT_ZONE",
+      "severity": "medium",
+      "message": "8.2-10.2: intensity stays within ±0.5 around 5.8 for 2.0 units (flat: interest stops moving).",
+      "suggestion": "Insert a contrast beat: a twist on the current mechanic, a new threat, a reveal, a reward, or a deliberate rest that sets up the next rise.",
+      "start": 8.15625,
+      "end": 10.15
+    },
+    {
+      "code": "FLAT_ZONE",
+      "severity": "medium",
+      "message": "12.0-14.5: intensity stays within ±0.5 around 8.6 for 2.5 units (high and flat: numbness and fatigue risk).",
+      "suggestion": "Insert a contrast beat: a twist on the current mechanic, a new threat, a reveal, a reward, or a deliberate rest that sets up the next rise.",
+      "start": 12.035,
+      "end": 14.5
+    },
+    {
+      "code": "SUSTAINED_PEAK",
+      "severity": "medium",
+      "message": "12.0-14.5: intensity stays at or above 8 for 2.5 units (17% of the run).",
+      "suggestion": "Break the plateau into two peaks with a short release between them, or vary the kind of intensity (spatial, cognitive, emotional).",
+      "start": 12.035,
+      "end": 14.5
+    }
+  ],
+  "beats": [
+    {
+      "time": 0.0,
+      "intensity": 2.0,
+      "type": "story",
+      "label": "타이틀·우체국장 소개 대사"
+    },
+    {
+      "time": 0.6666666666666666,
+      "intensity": 2.0,
+      "type": "story",
+      "label": "우편부 임명·조작 설명 텍스트"
+    },
+    {
+      "time": 1.1666666666666667,
+      "intensity": 3.0,
+      "type": "tutorial",
+      "label": "발사대 첫 이륙"
+    },
+    {
+      "time": 1.6666666666666665,
+      "intensity": 4.0,
+      "type": "tutorial",
+      "label": "#1 첫 상승기류"
+    },
+    {
+      "time": 2.1666666666666665,
+      "intensity": 4.0,
+      "type": "reward",
+      "label": "#1 등대지기 배달"
+    },
+    {
+      "time": 2.6666666666666665,
+      "intensity": 4.0,
+      "type": "tutorial",
+      "label": "#2 빵집 섬 비행"
+    },
+    {
+      "time": 3.1666666666666665,
+      "intensity": 4.0,
+      "type": "reward",
+      "label": "#2 배달"
+    },
+    {
+      "time": 3.6666666666666665,
+      "intensity": 5.0,
+      "type": "flight",
+      "label": "#3 종탑 타임어택 시작"
+    },
+    {
+      "time": 4.166666666666667,
+      "intensity": 5.0,
+      "type": "reward",
+      "label": "#3 배달"
+    },
+    {
+      "time": 4.833333333333333,
+      "intensity": 5.0,
+      "type": "flight",
+      "label": "#4 풍차 군도"
+    },
+    {
+      "time": 5.666666666666667,
+      "intensity": 5.0,
+      "type": "reward",
+      "label": "#4 배달"
+    },
+    {
+      "time": 6.333333333333333,
+      "intensity": 5.0,
+      "type": "flight",
+      "label": "#5 폭포섬"
+    },
+    {
+      "time": 7.166666666666667,
+      "intensity": 5.0,
+      "type": "reward",
+      "label": "#5 배달"
+    },
+    {
+      "time": 8.0,
+      "intensity": 5.0,
+      "type": "flight",
+      "label": "#6 구름 다리"
+    },
+    {
+      "time": 9.166666666666666,
+      "intensity": 6.0,
+      "type": "reward",
+      "label": "#6 배달"
+    },
+    {
+      "time": 10.0,
+      "intensity": 6.0,
+      "type": "flight",
+      "label": "#7 폭풍 전선 진입"
+    },
+    {
+      "time": 11.166666666666666,
+      "intensity": 7.0,
+      "type": "reward",
+      "label": "#7 배달"
+    },
+    {
+      "time": 12.0,
+      "intensity": 8.0,
+      "type": "flight",
+      "label": "#8 폭풍 돌파"
+    },
+    {
+      "time": 13.0,
+      "intensity": 9.0,
+      "type": "climax",
+      "label": "하늘 우체국 도착"
+    },
+    {
+      "time": 13.666666666666666,
+      "intensity": 9.0,
+      "type": "story",
+      "label": "엔딩 컷신"
+    },
+    {
+      "time": 14.5,
+      "intensity": 8.0,
+      "type": "story",
+      "label": "크레딧"
+    }
+  ]
+}

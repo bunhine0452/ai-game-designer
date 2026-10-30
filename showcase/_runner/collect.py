@@ -8,6 +8,7 @@ import json
 import os
 import re
 import shutil
+import sys
 from datetime import datetime
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -54,9 +55,10 @@ def meta(d):
 
 def main():
     os.makedirs(DEST, exist_ok=True)
+    only = set(sys.argv[1:])  # optional: collect only these session folders
     for name in sorted(os.listdir(ROOT)):
         src = os.path.join(ROOT, name)
-        if not (os.path.isdir(src) and name[:2].isdigit()):
+        if not (os.path.isdir(src) and name[:2].isdigit()) or (only and name not in only):
             continue
         dst = os.path.join(DEST, name)
         if os.path.exists(dst):

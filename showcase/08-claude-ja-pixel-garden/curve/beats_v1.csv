@@ -1,0 +1,20 @@
+# title: Dot Gardener v1 (draft) - 15 min session
+# unit: min
+time,intensity,type,label
+0.0,2,story,Title + lore text
+0.8,2,explore,Walk courtyard / control tips
+1.5,3,puzzle,R1 plant seed - vine grows
+2.5,4,puzzle,R1 vine bridge over moat
+3.3,3,explore,Corridor
+4.0,4,puzzle,R2 mushroom bounce up ledge
+5.0,4,puzzle,R2 two mushrooms chain
+6.0,3,explore,Corridor
+6.8,5,puzzle,R3 sunflower lights dark room
+8.0,5,puzzle,R3 light radius reveals floor
+9.0,5,puzzle,R4 vine + mushroom
+10.3,6,puzzle,R4 variation
+11.3,6,puzzle,R5 light + vine
+12.5,8,puzzle,R6 all three
+13.5,9,puzzle,R6 final lock
+14.2,3,story,Epilogue
+15.0,2,story,Credits

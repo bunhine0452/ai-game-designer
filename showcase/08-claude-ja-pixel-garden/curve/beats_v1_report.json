@@ -1,0 +1,171 @@
+{
+  "title": "Dot Gardener v1 (draft) - 15 min session",
+  "unit": "min",
+  "metrics": {
+    "duration": 15.0,
+    "beats": 17,
+    "mean_intensity": 4.66,
+    "peak_count": 1,
+    "climax_time": 13.5,
+    "climax_position": 0.9,
+    "climax_intensity": 9.0,
+    "hook_peak": 3.0,
+    "share_high": 0.075,
+    "share_low": 0.162,
+    "pacing_score": 43
+  },
+  "findings": [
+    {
+      "code": "MISSING_HOOK",
+      "severity": "high",
+      "message": "No beat reaches 6/10 in the first 10% of the experience (best is 3). Players decide early whether to keep going.",
+      "suggestion": "Open with a short, legible high-interest moment (a promise of the core fantasy, a striking reveal, or a quick win), then dip to teach.",
+      "start": 0.0,
+      "end": 1.5
+    },
+    {
+      "code": "FLAT_ZONE",
+      "severity": "high",
+      "message": "1.5-6.4: intensity stays within ±0.5 around 3.6 for 4.9 units (low and flat: boredom and quit risk).",
+      "suggestion": "Insert a contrast beat: a twist on the current mechanic, a new threat, a reveal, a reward, or a deliberate rest that sets up the next rise.",
+      "start": 1.5,
+      "end": 6.375
+    },
+    {
+      "code": "FLAT_ZONE",
+      "severity": "medium",
+      "message": "6.4-9.0: intensity stays within ±0.5 around 4.9 for 2.6 units (flat: interest stops moving).",
+      "suggestion": "Insert a contrast beat: a twist on the current mechanic, a new threat, a reveal, a reward, or a deliberate rest that sets up the next rise.",
+      "start": 6.4125,
+      "end": 9.0375
+    },
+    {
+      "code": "MONOTONY",
+      "severity": "medium",
+      "message": "7 consecutive 'puzzle' beats from 6.8 to 13.5.",
+      "suggestion": "Interleave a different activity or change the rules of the repeated one.",
+      "start": 6.8,
+      "end": 13.5
+    },
+    {
+      "code": "FLAT_ZONE",
+      "severity": "medium",
+      "message": "9.1-11.3: intensity stays within ±0.5 around 5.7 for 2.2 units (flat: interest stops moving).",
+      "suggestion": "Insert a contrast beat: a twist on the current mechanic, a new threat, a reveal, a reward, or a deliberate rest that sets up the next rise.",
+      "start": 9.075,
+      "end": 11.325
+    },
+    {
+      "code": "LOW_VARIETY",
+      "severity": "low",
+      "message": "'puzzle' makes up 65% of beats.",
+      "suggestion": "Check that the dominant activity has internal variety (enemy mixes, rule twists).",
+      "start": null,
+      "end": null
+    }
+  ],
+  "beats": [
+    {
+      "time": 0.0,
+      "intensity": 2.0,
+      "type": "story",
+      "label": "Title + lore text"
+    },
+    {
+      "time": 0.8,
+      "intensity": 2.0,
+      "type": "explore",
+      "label": "Walk courtyard / control tips"
+    },
+    {
+      "time": 1.5,
+      "intensity": 3.0,
+      "type": "puzzle",
+      "label": "R1 plant seed - vine grows"
+    },
+    {
+      "time": 2.5,
+      "intensity": 4.0,
+      "type": "puzzle",
+      "label": "R1 vine bridge over moat"
+    },
+    {
+      "time": 3.3,
+      "intensity": 3.0,
+      "type": "explore",
+      "label": "Corridor"
+    },
+    {
+      "time": 4.0,
+      "intensity": 4.0,
+      "type": "puzzle",
+      "label": "R2 mushroom bounce up ledge"
+    },
+    {
+      "time": 5.0,
+      "intensity": 4.0,
+      "type": "puzzle",
+      "label": "R2 two mushrooms chain"
+    },
+    {
+      "time": 6.0,
+      "intensity": 3.0,
+      "type": "explore",
+      "label": "Corridor"
+    },
+    {
+      "time": 6.8,
+      "intensity": 5.0,
+      "type": "puzzle",
+      "label": "R3 sunflower lights dark room"
+    },
+    {
+      "time": 8.0,
+      "intensity": 5.0,
+      "type": "puzzle",
+      "label": "R3 light radius reveals floor"
+    },
+    {
+      "time": 9.0,
+      "intensity": 5.0,
+      "type": "puzzle",
+      "label": "R4 vine + mushroom"
+    },
+    {
+      "time": 10.3,
+      "intensity": 6.0,
+      "type": "puzzle",
+      "label": "R4 variation"
+    },
+    {
+      "time": 11.3,
+      "intensity": 6.0,
+      "type": "puzzle",
+      "label": "R5 light + vine"
+    },
+    {
+      "time": 12.5,
+      "intensity": 8.0,
+      "type": "puzzle",
+      "label": "R6 all three"
+    },
+    {
+      "time": 13.5,
+      "intensity": 9.0,
+      "type": "puzzle",
+      "label": "R6 final lock"
+    },
+    {
+      "time": 14.2,
+      "intensity": 3.0,
+      "type": "story",
+      "label": "Epilogue"
+    },
+    {
+      "time": 15.0,
+      "intensity": 2.0,
+      "type": "story",
+      "label": "Credits"
+    }
+  ]
+}

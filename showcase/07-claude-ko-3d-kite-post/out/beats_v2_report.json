@@ -1,0 +1,194 @@
+{
+  "title": "종이연 우편부 v2",
+  "unit": "min",
+  "metrics": {
+    "duration": 14.5,
+    "beats": 29,
+    "mean_intensity": 5.36,
+    "peak_count": 7,
+    "climax_time": 13.25,
+    "climax_position": 0.914,
+    "climax_intensity": 10.0,
+    "hook_peak": 7.0,
+    "share_high": 0.087,
+    "share_low": 0.07,
+    "pacing_score": 100
+  },
+  "findings": [],
+  "beats": [
+    {
+      "time": 0.0,
+      "intensity": 4.0,
+      "type": "hook",
+      "label": "바람에 날린 편지"
+    },
+    {
+      "time": 0.25,
+      "intensity": 7.0,
+      "type": "hook",
+      "label": "탑에서 다이브·군도 공개"
+    },
+    {
+      "time": 0.75,
+      "intensity": 3.0,
+      "type": "tutorial",
+      "label": "편지 잡고 발사대 착지 - 우체국장 한 줄 임명"
+    },
+    {
+      "time": 1.0833333333333333,
+      "intensity": 4.0,
+      "type": "tutorial",
+      "label": "#1 이륙 - 조작은 화면 힌트로만"
+    },
+    {
+      "time": 1.5,
+      "intensity": 6.0,
+      "type": "tutorial",
+      "label": "#1 첫 상승기류 선회 - 등대가 시야에 솟음"
+    },
+    {
+      "time": 2.0,
+      "intensity": 3.0,
+      "type": "reward",
+      "label": "#1 등대지기 배달 - 첫 우표"
+    },
+    {
+      "time": 2.5,
+      "intensity": 5.0,
+      "type": "flight",
+      "label": "#2 빵집 섬 - 기류 2개 중 하나 고르기"
+    },
+    {
+      "time": 3.0,
+      "intensity": 3.0,
+      "type": "reward",
+      "label": "#2 배달 - 갓 구운 빵 냄새 연출"
+    },
+    {
+      "time": 3.4166666666666665,
+      "intensity": 6.0,
+      "type": "challenge",
+      "label": "#3 종탑 - 종이 울리기 전 도착(첫 타임어택)"
+    },
+    {
+      "time": 4.083333333333333,
+      "intensity": 3.0,
+      "type": "reward",
+      "label": "#3 배달 - 종소리로 금우표 판정"
+    },
+    {
+      "time": 4.5,
+      "intensity": 5.0,
+      "type": "flight",
+      "label": "#4 풍차 군도 - 섬 3개 경유"
+    },
+    {
+      "time": 5.166666666666667,
+      "intensity": 7.0,
+      "type": "challenge",
+      "label": "#4 풍차가 끊는 기류"
+    },
+    {
+      "time": 5.666666666666667,
+      "intensity": 3.0,
+      "type": "reward",
+      "label": "#4 배달 - 초대장 받은 할머니"
+    },
+    {
+      "time": 6.083333333333333,
+      "intensity": 5.0,
+      "type": "flight",
+      "label": "#5 폭포섬 - 여분 기류 0개"
+    },
+    {
+      "time": 6.75,
+      "intensity": 8.0,
+      "type": "challenge",
+      "label": "#5 폭포 다이브"
+    },
+    {
+      "time": 7.166666666666667,
+      "intensity": 3.0,
+      "type": "reward",
+      "label": "#5 연애편지 배달 - 짧은 사연"
+    },
+    {
+      "time": 7.583333333333333,
+      "intensity": 2.0,
+      "type": "rest",
+      "label": "우체국 귀환 - 연 꼬리 해금 / 노을 전 한낮 정적"
+    },
+    {
+      "time": 8.166666666666666,
+      "intensity": 5.0,
+      "type": "flight",
+      "label": "#6 구름 다리 - 강한(좁은) 기류 등장"
+    },
+    {
+      "time": 8.833333333333334,
+      "intensity": 8.0,
+      "type": "challenge",
+      "label": "#6 좁은 금색 기류"
+    },
+    {
+      "time": 9.25,
+      "intensity": 4.0,
+      "type": "reward",
+      "label": "#6 배달 - 하늘이 남보라로 변함"
+    },
+    {
+      "time": 9.75,
+      "intensity": 6.0,
+      "type": "flight",
+      "label": "#7 폭풍 전선 진입 - 역풍"
+    },
+    {
+      "time": 10.5,
+      "intensity": 9.0,
+      "type": "challenge",
+      "label": "#7 번개 사이 기류"
+    },
+    {
+      "time": 11.0,
+      "intensity": 4.0,
+      "type": "rest",
+      "label": "#7 배달 - 폭풍 속 피난처 섬에서 숨 고르기"
+    },
+    {
+      "time": 11.5,
+      "intensity": 7.0,
+      "type": "flight",
+      "label": "#8 마지막 편지 - 바람길(뒷바람) 첫 등장"
+    },
+    {
+      "time": 12.25,
+      "intensity": 9.0,
+      "type": "challenge",
+      "label": "#8 폭풍 벽"
+    },
+    {
+      "time": 12.75,
+      "intensity": 5.0,
+      "type": "reveal",
+      "label": "폭풍의 눈 - 고요 속 하늘 우체국 첫 모습"
+    },
+    {
+      "time": 13.25,
+      "intensity": 10.0,
+      "type": "climax",
+      "label": "최종 다이브·편지 투하"
+    },
+    {
+      "time": 13.75,
+      "intensity": 4.0,
+      "type": "story",
+      "label": "받는 사람 공개 - 편지는 우편부 자신에게"
+    },
+    {
+      "time": 14.5,
+      "intensity": 2.0,
+      "type": "story",
+      "label": "크레딧 - 자유 비행"
+    }
+  ]
+}

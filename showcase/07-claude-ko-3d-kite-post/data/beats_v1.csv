@@ -1,0 +1,22 @@
+time,intensity,type,label
+0:00,2,story,타이틀·우체국장 소개 대사
+0:40,2,story,우편부 임명·조작 설명 텍스트
+1:10,3,tutorial,발사대 첫 이륙
+1:40,4,tutorial,#1 첫 상승기류
+2:10,4,reward,#1 등대지기 배달
+2:40,4,tutorial,#2 빵집 섬 비행
+3:10,4,reward,#2 배달
+3:40,5,flight,#3 종탑 타임어택 시작
+4:10,5,reward,#3 배달
+4:50,5,flight,#4 풍차 군도
+5:40,5,reward,#4 배달
+6:20,5,flight,#5 폭포섬
+7:10,5,reward,#5 배달
+8:00,5,flight,#6 구름 다리
+9:10,6,reward,#6 배달
+10:00,6,flight,#7 폭풍 전선 진입
+11:10,7,reward,#7 배달
+12:00,8,flight,#8 폭풍 돌파
+13:00,9,climax,하늘 우체국 도착
+13:40,9,story,엔딩 컷신
+14:30,8,story,크레딧

@@ -1,0 +1,173 @@
+{
+  "title": "Dot Gardener v2 (revised) - 15 min session",
+  "unit": "min",
+  "metrics": {
+    "duration": 15.0,
+    "beats": 24,
+    "mean_intensity": 5.86,
+    "peak_count": 5,
+    "climax_time": 14.1,
+    "climax_position": 0.94,
+    "climax_intensity": 10.0,
+    "hook_peak": 6.0,
+    "share_high": 0.095,
+    "share_low": 0.02,
+    "pacing_score": 92
+  },
+  "findings": [
+    {
+      "code": "FLAT_ZONE",
+      "severity": "medium",
+      "message": "0.2-2.1: intensity stays within ±0.5 around 5.5 for 1.9 units (flat: interest stops moving).",
+      "suggestion": "Insert a contrast beat: a twist on the current mechanic, a new threat, a reveal, a reward, or a deliberate rest that sets up the next rise.",
+      "start": 0.225,
+      "end": 2.1
+    }
+  ],
+  "beats": [
+    {
+      "time": 0.0,
+      "intensity": 4.0,
+      "type": "explore",
+      "label": "Cold open: bridge collapses / fall into ruined garden (no text)"
+    },
+    {
+      "time": 0.4,
+      "intensity": 6.0,
+      "type": "puzzle",
+      "label": "R1 first seed: vine shoots across moat (hook)"
+    },
+    {
+      "time": 1.2,
+      "intensity": 5.0,
+      "type": "puzzle",
+      "label": "R1 aim vine direction: wrong way blocks"
+    },
+    {
+      "time": 2.0,
+      "intensity": 6.0,
+      "type": "reward",
+      "label": "R1 bloom: color returns to room + gate opens"
+    },
+    {
+      "time": 2.4,
+      "intensity": 3.0,
+      "type": "rest",
+      "label": "Corridor: mural hints at mushroom"
+    },
+    {
+      "time": 3.0,
+      "intensity": 5.0,
+      "type": "puzzle",
+      "label": "R2 mushroom bounce up ledge"
+    },
+    {
+      "time": 4.0,
+      "intensity": 6.0,
+      "type": "puzzle",
+      "label": "R2 bounce chain + vine back-path"
+    },
+    {
+      "time": 4.7,
+      "intensity": 7.0,
+      "type": "reward",
+      "label": "R2 bloom + shortcut back to hub"
+    },
+    {
+      "time": 5.1,
+      "intensity": 3.0,
+      "type": "explore",
+      "label": "Darkening corridor: light fades"
+    },
+    {
+      "time": 5.6,
+      "intensity": 6.0,
+      "type": "tension",
+      "label": "R3 darkness: unseen holes / shadow bugs flee light"
+    },
+    {
+      "time": 6.4,
+      "intensity": 7.0,
+      "type": "puzzle",
+      "label": "R3 sunflower lights path / light radius"
+    },
+    {
+      "time": 7.2,
+      "intensity": 4.0,
+      "type": "story",
+      "label": "R3 bloom + gardener diary page"
+    },
+    {
+      "time": 8.0,
+      "intensity": 6.0,
+      "type": "puzzle",
+      "label": "R4 vine + mushroom: bounce onto bridge mid-air"
+    },
+    {
+      "time": 8.9,
+      "intensity": 7.0,
+      "type": "puzzle",
+      "label": "R4 aha: mushroom grown on top of vine"
+    },
+    {
+      "time": 9.5,
+      "intensity": 4.0,
+      "type": "rest",
+      "label": "Vista: whole garden half revived / central tree visible"
+    },
+    {
+      "time": 10.2,
+      "intensity": 8.0,
+      "type": "puzzle",
+      "label": "R5 twist: seeds only sprout in sunflower light"
+    },
+    {
+      "time": 11.1,
+      "intensity": 5.0,
+      "type": "reward",
+      "label": "R5 bloom: sunflower turns to follow player"
+    },
+    {
+      "time": 11.6,
+      "intensity": 3.0,
+      "type": "story",
+      "label": "Quiet approach to the heart of the garden"
+    },
+    {
+      "time": 12.1,
+      "intensity": 7.0,
+      "type": "puzzle",
+      "label": "R6 part1: light + vine"
+    },
+    {
+      "time": 12.9,
+      "intensity": 8.0,
+      "type": "puzzle",
+      "label": "R6 part2: uproot and replant (seed limit 3)"
+    },
+    {
+      "time": 13.6,
+      "intensity": 9.0,
+      "type": "puzzle",
+      "label": "R6 final chain: bounce - vine - light"
+    },
+    {
+      "time": 14.1,
+      "intensity": 10.0,
+      "type": "reward",
+      "label": "Whole garden blooms (climax)"
+    },
+    {
+      "time": 14.6,
+      "intensity": 4.0,
+      "type": "story",
+      "label": "Epilogue: gardener sits under tree"
+    },
+    {
+      "time": 15.0,
+      "intensity": 2.0,
+      "type": "story",
+      "label": "End card"
+    }
+  ]
+}
