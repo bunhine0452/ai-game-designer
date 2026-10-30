@@ -1,0 +1,915 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dot Gardener · ドット庭師</title>
+<meta name="description" content="A pixel-art puzzle adventure: grow vines into bridges, mushrooms into springs and sunflowers into lamps to bring a ruined garden back. Original prototype designed with ai-game-designer.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+<style>
+  html, body { margin:0; height:100%; background:#0b0a12; overflow:hidden; -webkit-user-select:none; user-select:none; }
+  canvas#screen { position:absolute; image-rendering:pixelated; image-rendering:crisp-edges; cursor:pointer; touch-action:none; }
+  #fontprobe { position:absolute; left:-999px; font:16px "DotGothic16"; }
+</style>
+</head>
+<body>
+<canvas id="screen" aria-label="Dot Gardener: a top-down pixel-art garden puzzle"></canvas>
+<span id="fontprobe">ドット庭師 Dot Gardener</span>
+<pre id="selftest" hidden></pre>
+<script>
+"use strict";
+// ==RULES== (pure logic: the self-test, the solver and the renderer all read this; nothing here draws)
+// Rules from the design session (showcase 08): 03_puzzle_rooms_and_curve.md §1. They never change between rooms.
+//   vine: grows straight from its soil in the facing direction, bridging up to 4 pit/water tiles; droops (seed back) if 4 isn't enough
+//   mushroom: stepping on it bounces you 2 tiles on (over a pit, fence or one ledge up); a wall ahead = no jump
+//   sunflower: lights radius 3; hidden floor exists only in its light; it is tall, so it blocks its tile
+//   R5+: in the dark, seeds sprout only in light (a sunflower's, or a sunbeam's)
+//   empty soil is a raised bed: pressing towards it turns you to face it; a vine root or a mushroom makes it a path
+// Legend: # wall  m mural  . floor  , raised floor (+1)  s soil  S raised soil  * sunbeam soil  + raised sunbeam soil
+//         o pit  ~ water  f low fence  h hidden floor  H raised hidden floor  @ start  G goal  g raised goal  B shadow-bug nest
+const DIRS = [[0, -1], [1, 0], [0, 1], [-1, 0]];   // up right down left
+const W = 20, H = 10;
+const ROOMS = [
+  { key: "moat", seeds: { v: 2, m: 0, s: 0 }, dark: false, sprout: false, hint: [7, 4], map: [
+    "####################",
+    "#mm.....~~.........#",
+    "#.......~~..s......#",
+    "#.......~~.........#",
+    "#.@....s~~.......s.#",
+    "#.......~~~~~~~~~~~#",
+    "#.......~~~~~~~~~~~#",
+    "#.......~~.....G...#",
+    "#.......~~.........#",
+    "####################"] },
+  { key: "terraces", seeds: { v: 1, m: 2, s: 0 }, dark: false, sprout: false, hint: [4, 6], map: [
+    "####################",
+    "#,,,,,,,,f....~~..G#",
+    "#,,,,,,,Sf...s~~...#",
+    "#,,,,,,,,f....~~...#",
+    "#,,,,,,,,###########",
+    "#........###########",
+    "#...s....###########",
+    "#.@......###########",
+    "#........###########",
+    "####################"] },
+  { key: "library", seeds: { v: 0, m: 0, s: 1 }, dark: true, sprout: false, hint: [7, 4], map: [
+    "####################",
+    "#B.....#ooo#.......#",
+    "#......#ooo#...G...#",
+    "#m.....#ooo#.......#",
+    "#......sooo........#",
+    "#.@.....hhh........#",
+    "#.......ooo........#",
+    "#......#ooo#....B..#",
+    "#......#ooo#.......#",
+    "####################"] },
+  { key: "fountain", seeds: { v: 1, m: 1, s: 0 }, dark: false, sprout: false, hint: [8, 4], map: [
+    "####################",
+    "#.......#~~~~~~~~~~#",
+    "#.......#~,,,,,,,,~#",
+    "#m......#~,,,g,,,,~#",
+    "#.@....soo,,,,,,,,~#",
+    "#.......#~,,,,,,,,~#",
+    "#.......#~,,,,,,,,~#",
+    "#.......#~~~~~~~~~~#",
+    "#..................#",
+    "####################"] },
+  { key: "greenhouse", seeds: { v: 2, m: 0, s: 1 }, dark: true, sprout: true, hint: [4, 4], map: [
+    "####################",
+    "###########......G##",
+    "#######~~~~~~~~~~###",
+    "#######~~~~~~~~~~###",
+    "#...*##~~~#s########",
+    "#.....s~~~..*#######",
+    "#...###~~~##########",
+    "#.@.################",
+    "#...################",
+    "####################"] },
+  { key: "heart", seeds: { v: 1, m: 1, s: 1 }, dark: true, sprout: true, hint: [9, 5], map: [
+    "####################",
+    "########,,,,,+o,,,,#",
+    "########,,,,,,H,,g,#",
+    "########,,o,,,o,,,,#",
+    "#.....##,,,,+,o,,,,#",
+    "#..*..~~.s*.########",
+    "#.....~~...#########",
+    "#.@..s~~...#########",
+    "#.....~~...#########",
+    "####################"] },
+];
+const isWallC = (c) => c === "#" || c === "m" || c === " ";
+const isSoilC = (c) => c === "s" || c === "S" || c === "*" || c === "+";
+const levelC = (c) => (c === "," || c === "S" || c === "g" || c === "+" || c === "H" ? 1 : 0);
+const GROUND = new Set([".", ",", "s", "S", "*", "+", "@", "G", "g", "B"]);
+
+function loadRoom(i) {
+  const R = ROOMS[i], map = R.map.map((row) => row.split(""));
+  let start = null;
+  map.forEach((row, y) => row.forEach((c, x) => { if (c === "@") start = [x, y]; }));
+  return { i, R, map, start };
+}
+function newState(room) {
+  return { x: room.start[0], y: room.start[1], d: 1, plants: [], seeds: { ...room.R.seeds }, won: false };
+}
+const raw = (room, x, y) => (x < 0 || y < 0 || x >= W || y >= H ? "#" : room.map[y][x]);
+const plantAt = (S, x, y) => S.plants.find((p) => p.x === x && p.y === y);
+const bridgeAt = (S, x, y) => S.plants.find((p) => p.t === "v" && p.br.some(([bx, by]) => bx === x && by === y));
+function lit(S, room, x, y) {   // sunflowers light radius 3 (d² ≤ 10); a sunbeam lights only its own tile
+  for (const p of S.plants) if (p.t === "s" && (p.x - x) ** 2 + (p.y - y) ** 2 <= 10) return true;
+  const c = raw(room, x, y); return c === "*" || c === "+";
+}
+// what a tile currently is: "ground" (with a level), "pit", "water", "fence", "wall"
+function kind(S, room, x, y) {
+  const c = raw(room, x, y);
+  if (bridgeAt(S, x, y)) return { k: "ground", lv: 0, bridge: true };
+  if (isWallC(c)) return { k: "wall" };
+  if (isSoilC(c)) { const p = plantAt(S, x, y); return p && p.t !== "s" ? { k: "ground", lv: levelC(c) } : { k: "bed", lv: levelC(c) }; }
+  if (c === "o") return { k: "pit" };
+  if (c === "~") return { k: "water" };
+  if (c === "f") return { k: "fence" };
+  if (c === "h" || c === "H") return lit(S, room, x, y) ? { k: "ground", lv: levelC(c), hidden: true } : { k: "pit", hidden: true };
+  return { k: "ground", lv: levelC(c) };
+}
+const clone = (S) => ({ x: S.x, y: S.y, d: S.d, plants: S.plants.map((p) => ({ ...p, br: p.br.map((b) => b.slice()) })), seeds: { ...S.seeds }, won: S.won });
+const isGoal = (room, x, y) => { const c = raw(room, x, y); return c === "G" || c === "g"; };
+
+// Every action returns a new state (or null if nothing happens) plus events for sound and animation.
+function act(S, room, a) {
+  const N = clone(S), ev = [];
+  if ("URDL".includes(a)) {
+    const d = "URDL".indexOf(a), [dx, dy] = DIRS[d], tx = S.x + dx, ty = S.y + dy;
+    N.d = d;
+    const here = kind(S, room, S.x, S.y), t = kind(S, room, tx, ty), p = plantAt(S, tx, ty);
+    if (p && p.t === "s") { ev.push({ e: "bump" }); return { S: N, ev }; }
+    if (t.k === "pit") { ev.push({ e: "fall", x: tx, y: ty }); return { S: N, ev }; }
+    if (t.k !== "ground" || t.lv !== here.lv) { ev.push({ e: "bump" }); return { S: N, ev }; }
+    N.x = tx; N.y = ty; ev.push({ e: "step" });
+    for (let hops = 0; hops < 4; hops++) {   // mushrooms bounce you on; landing on another mushroom bounces again
+      const m = plantAt(N, N.x, N.y);
+      if (!m || m.t !== "m") break;
+      const mx = N.x + dx, my = N.y + dy, lx = N.x + 2 * dx, ly = N.y + 2 * dy, mid = kind(N, room, mx, my), land = kind(N, room, lx, ly), lp = plantAt(N, lx, ly);
+      const lvNow = kind(N, room, N.x, N.y).lv, midPlant = plantAt(N, mx, my);
+      if (mid.k === "wall" || (midPlant && midPlant.t === "s") || land.k !== "ground" || land.lv > lvNow + 1 || (lp && lp.t === "s")) { ev.push({ e: "wobble", x: N.x, y: N.y }); break; }
+      ev.push({ e: "jump", fx: N.x, fy: N.y, x: lx, y: ly }); N.x = lx; N.y = ly;
+    }
+    if (isGoal(room, N.x, N.y)) { N.won = true; ev.push({ e: "bloom" }); }
+    return { S: N, ev };
+  }
+  const [dx, dy] = DIRS[S.d], fx = S.x + dx, fy = S.y + dy;
+  if (a === "X") {   // pull the plant in front: the seed comes back
+    const p = plantAt(S, fx, fy);
+    if (!p) return null;
+    if (p.t === "v" && p.br.some(([bx, by]) => bx === S.x && by === S.y)) { ev.push({ e: "no", x: fx, y: fy }); return { S: N, ev }; }
+    const gone = [p];
+    if (p.t === "v") for (const q of S.plants) if (q !== p && p.br.some(([bx, by]) => bx === q.x && by === q.y)) gone.push(q);
+    N.plants = N.plants.filter((q) => !gone.some((g) => g.x === q.x && g.y === q.y));
+    if (kind(N, room, N.x, N.y).k !== "ground") { ev.push({ e: "no", x: fx, y: fy }); return { S: clone(S), ev }; }   // never pull the floor from under yourself
+    gone.forEach((g) => N.seeds[g.t]++); ev.push({ e: "pull", x: fx, y: fy, t: p.t });
+    return { S: N, ev };
+  }
+  const t = a[1];   // "Pv" / "Pm" / "Ps": plant in front
+  if (!S.seeds[t]) return null;
+  const c = raw(room, fx, fy), onBridge = !!bridgeAt(S, fx, fy);
+  if (!(isSoilC(c) || (onBridge && t !== "v")) || plantAt(S, fx, fy)) { ev.push({ e: "no", x: fx, y: fy }); return { S: N, ev }; }
+  if (room.R.sprout && !lit(S, room, fx, fy)) { ev.push({ e: "dark", x: fx, y: fy }); return { S: N, ev }; }
+  const p = { x: fx, y: fy, t, dir: S.d, br: [] };
+  if (t === "v") {
+    for (let k = 1; ; k++) {
+      const bx = fx + dx * k, by = fy + dy * k, b = kind(S, room, bx, by);
+      if (b.k === "pit" || b.k === "water") {
+        if (p.br.length === 4) { ev.push({ e: "droop", x: fx, y: fy, d: S.d }); return { S: N, ev }; }
+        p.br.push([bx, by]);
+      } else break;
+    }
+  }
+  N.plants.push(p); N.seeds[t]--; ev.push({ e: "plant", x: fx, y: fy, t, n: p.br.length });
+  return { S: N, ev };
+}
+const keyOf = (S) => `${S.x},${S.y},${S.d}|${S.plants.map((p) => `${p.x},${p.y},${p.t},${p.dir}`).sort().join(";")}`;
+// Breadth-first search over every reachable state: proves a room is solvable and finds the shortest solution.
+function solve(room, limit = 400000) {
+  const S0 = newState(room), seen = new Map([[keyOf(S0), null]]), q = [S0], acts = ["U", "R", "D", "L", "Pv", "Pm", "Ps", "X"];
+  for (let h = 0; h < q.length && seen.size < limit; h++) {
+    const S = q[h];
+    for (const a of acts) {
+      const r = act(S, room, a); if (!r) continue;
+      const k = keyOf(r.S); if (seen.has(k)) continue;
+      seen.set(k, [keyOf(S), a, S]);
+      if (r.S.won) { const path = [a]; let pk = keyOf(S); while (seen.get(pk)) { const [pp, aa] = seen.get(pk); path.unshift(aa); pk = pp; } return { path, states: seen.size }; }
+      q.push(r.S);
+    }
+  }
+  return { path: null, states: seen.size };
+}
+// ==/RULES==
+
+// ==ART== palette, tiles and sprites (02_art_direction.md: 320×180, 16 px tiles, 27 colours + reserved, selective outlines)
+const PAL = {
+  k: "#1a1726", S: "#3a3a52", g: "#5f6378", l: "#8b93a1", w: "#c3c8c9",   // stone (cool grey-violet); k doubles as void and outline
+  N: "#24372f", n: "#3d5a45", M: "#5f7d58", m: "#8ea36f",                 // moss: always duller than anything alive
+  B: "#3b2a26", b: "#6b4a3a", t: "#9a7050", y: "#c9a27a",                 // soil and wood
+  q: "#1f3b5a", A: "#3c6e8f", a: "#74a9be",                               // water
+  L: "#f2ead3",                                                           // light: text, highlights, mushroom spots
+  r: "#d9483b", R: "#8f2a32", p: "#e8b796",                               // reserved: the gardener only
+  v: "#4fd16a", V: "#1f8a5a", u: "#e0559a", U: "#8c2f6e", f: "#ffd23f", F: "#f08a24",   // reserved: vine, mushroom, sunflower/light
+  z: "#0d0b14",                                                           // reserved: darkness
+};
+// bloom swaps the moss ramp for living greens and warms the stone (a separate table, as the art direction asks)
+const BLOOM = { ...PAL, N: "#2c4f2b", n: "#3f7a3a", M: "#79b84c", m: "#b8e07a", S: "#463c4f", g: "#76697a", l: "#ab9e9c", w: "#ddd2c3" };
+const hash = (x, y, s = 0) => { let h = (x * 374761393 + y * 668265263 + s * 2147483647) | 0; h = (h ^ (h >>> 13)) * 1274126177; return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
+function mk(w, h) { const c = document.createElement("canvas"); c.width = w; c.height = h; return c; }
+// sprites are rows of palette letters; "." is transparent. mirror() makes the left-facing copies.
+function spr(rows, pal = PAL) {
+  const c = mk(rows[0].length, rows.length), g = c.getContext("2d");
+  rows.forEach((row, y) => [...row].forEach((ch, x) => { if (ch !== ".") { g.fillStyle = pal[ch]; g.fillRect(x, y, 1, 1); } }));
+  return c;
+}
+function mirror(c) { const m = mk(c.width, c.height), g = m.getContext("2d"); g.translate(c.width, 0); g.scale(-1, 1); g.drawImage(c, 0, 0); return m; }
+
+// The gardener: 16×16, straw hat and red scarf (the silhouette), selective outline (k), light from the top-left.
+const HERO_ROWS = {
+  down: [
+    ["................", "......kkkk......", "....kkyyyykk....", "...kyyyyyyyyk...", ".kkYyyyyyyyyYkk.", "kYYYYYYYYYYYYYYk", ".kkkppppppppkkk.", "...kpkppppkpk...",
+     "...kppppppppk...", "...krrrrrrrrk...", "..kRrrrrrrrrRk..", "..knkMMMMMMknk..", "..kpkMMMMMMkpk..", "...kMMMkkMMMk...", "...kbbk..kbbk...", "...kkk....kkk..."],
+    ["................", "......kkkk......", "....kkyyyykk....", "...kyyyyyyyyk...", ".kkYyyyyyyyyYkk.", "kYYYYYYYYYYYYYYk", ".kkkppppppppkkk.", "...kpkppppkpk...",
+     "...kppppppppk...", "...krrrrrrrrk...", "..kRrrrrrrrrRk..", "..knkMMMMMMknk..", "..kpkMMMMMMkpk..", "...kMMMkkMMMk...", "...kbbk..kkk....", "...kkk..........",],
+    ["................", "......kkkk......", "....kkyyyykk....", "...kyyyyyyyyk...", ".kkYyyyyyyyyYkk.", "kYYYYYYYYYYYYYYk", ".kkkppppppppkkk.", "...kpkppppkpk...",
+     "...kppppppppk...", "...krrrrrrrrk...", "..kRrrrrrrrrRk..", "..knkMMMMMMknk..", "..kpkMMMMMMkpk..", "...kMMMkkMMMk...", "....kkk..kbbk...", "..........kkk...",],
+  ],
+  up: [
+    ["................", "......kkkk......", "....kkyyyykk....", "...kyyyyyyyyk...", ".kkYyyyyyyyyYkk.", "kYYYYYYYYYYYYYYk", ".kkkYYYYYYYYkkk.", "...kbbbbbbbbk...",
+     "...kbbbbbbbbk...", "...krrrrrrrrk...", "..kRrrrRRrrrRk..", "..knkMMMMMMknk..", "..kpkMMMMMMkpk..", "...kMMMkkMMMk...", "...kbbk..kbbk...", "...kkk....kkk..."],
+    ["................", "......kkkk......", "....kkyyyykk....", "...kyyyyyyyyk...", ".kkYyyyyyyyyYkk.", "kYYYYYYYYYYYYYYk", ".kkkYYYYYYYYkkk.", "...kbbbbbbbbk...",
+     "...kbbbbbbbbk...", "...krrrrrrrrk...", "..kRrrrRRrrrRk..", "..knkMMMMMMknk..", "..kpkMMMMMMkpk..", "...kMMMkkMMMk...", "...kbbk..kkk....", "...kkk..........",],
+    ["................", "......kkkk......", "....kkyyyykk....", "...kyyyyyyyyk...", ".kkYyyyyyyyyYkk.", "kYYYYYYYYYYYYYYk", ".kkkYYYYYYYYkkk.", "...kbbbbbbbbk...",
+     "...kbbbbbbbbk...", "...krrrrrrrrk...", "..kRrrrRRrrrRk..", "..knkMMMMMMknk..", "..kpkMMMMMMkpk..", "...kMMMkkMMMk...", "....kkk..kbbk...", "..........kkk...",],
+  ],
+  side: [
+    ["................", ".......kkkk.....", ".....kkyyyykk...", "....kyyyyyyyyk..", "..kkYyyyyyyyyYk.", ".kYYYYYYYYYYYYYk", "..kkkkpppppppkk.", "....kbbppppkpk..",
+     "....kbbppppppk..", "...rrkrrrrrrk...", "..rRkRrrrrrRk...", "....knMMMMMk....", "....kMMMpkMk....", "....kMMMMMMk....", "....kbbkkbbk....", "....kkk..kkk...."],
+    ["................", ".......kkkk.....", ".....kkyyyykk...", "....kyyyyyyyyk..", "..kkYyyyyyyyyYk.", ".kYYYYYYYYYYYYYk", "..kkkkpppppppkk.", "....kbbppppkpk..",
+     "....kbbppppppk..", "..rrrkrrrrrrk...", ".rR.kRrrrrrRk...", "....knMMMMMk....", "....kMMMpkMk....", "....kMMMMMMkk...", "...kbbk..kbbk...", "...kkk....kkk...",],
+    ["................", ".......kkkk.....", ".....kkyyyykk...", "....kyyyyyyyyk..", "..kkYyyyyyyyyYk.", ".kYYYYYYYYYYYYYk", "..kkkkpppppppkk.", "....kbbppppkpk..",
+     "....kbbppppppk..", "...rrkrrrrrrk...", "..rR.kRrrrrrRk..", "....knMMMMMk....", "....kMMMpkMk....", "....kkMMMMMk....", ".....kbbkbbk....", ".....kkk.kkk....",],
+  ],
+  happy: ["................", "..kk..kkkk..kk..", "..kpkkyyyykkpk..", "...kpyyyyyyypk..", ".kkYyyyyyyyyYkk.", "kYYYYYYYYYYYYYYk", ".kkkppppppppkkk.", "...kpkppppkpk...",
+    "...kppkkkkppk...", "...krrrrrrrrk...", "..kRrrrrrrrrRk..", "...kkMMMMMMkk...", "....kMMMMMMk....", "...kMMMkkMMMk...", "...kbbk..kbbk...", "...kkk....kkk..."],
+};
+// the hat letters: y = straw, Y = straw shadow (soil ramp); M = apron (moss ramp: the gardener wears the garden)
+const HPAL = { ...PAL, Y: PAL.t };
+const HERO = {};
+for (const d of ["down", "up", "side"]) HERO[d] = HERO_ROWS[d].map((r) => spr(r, HPAL));
+HERO.sideL = HERO.side.map(mirror); HERO.happy = spr(HERO_ROWS.happy, HPAL);
+
+const MUSH = [
+  ["................", "................", ".....kkkkkk.....", "...kkuuuuuukk...", "..kuuLLuuuuuuk..", ".kuuLLLuuuLuuuk.", ".kuuuLuuuLLLuuk.", "kuuuuuuuuuLuuuuk",
+   "kUuuLuuuuuuuuuUk", ".kUUuuuuuuuuUUk.", "..kkUUUUUUUUkk..", "....kkLLLLkk....", ".....kLLLwLk....", ".....kLLwLLk....", "....kkLLLLLkk...", "....kkkkkkkkk..."],
+  ["................", "................", "................", "................", "....kkkkkkkk....", "..kkuuuLLuuukk..", ".kuuLLuuuuuLuuk.", "kuuuuuuuuLLLuuuk",
+   "kUuuLuuuuuuuuuUk", "kUUuuuuuuuuuuUUk", ".kkUUUUUUUUUUkk.", "...kkLLLLLLkk...", "....kLLLLwLLk...", "....kLLwLLLLk...", "...kkLLLLLLLkk..", "...kkkkkkkkkkk.."],
+].map((r) => spr(r));
+const SUN = [   // 16×32: taller than the gardener, so it reads from anywhere (and it blocks its tile)
+  [".....kkkkkk.....", "...kkfffFffkk...", "..kfffFfffFffk..", ".kffFfkkkkfFffk.", ".kfFfkBbBbkfFfk.", "kfffkBbBbBbkfffk", "kfFfkbBbBbBkFffk", "kfffkBbBbBbkfffk",
+   ".kfFfkbBbBkfFfk.", ".kffFfkkkkfFffk.", "..kfffFfffFffk..", "...kkfffFffkk...", ".....kkVVkk.....", "......kVVk......", "......kVVk..kk..", "..kk..kVVk.kvvk.",
+   ".kvvk.kVVkkvvVk.", ".kvVvkkVVkvVVk..", "..kVvvkVVvvVk...", "...kkVvVVVkk....", ".....kkVVk......", "......kVVk......", "......kVVk......", "......kVVk......",
+   "......kVVk......", ".....kkVVkk.....", "....kbbbbbbk....", "...kbtttttttk...", "...kbbbbbbbbk...", "....kkkkkkkk....", "................", "................"],
+].map((r) => spr(r));
+SUN.push((() => { const c = mk(16, 32), g = c.getContext("2d"); g.drawImage(SUN[0], 1, 0); g.clearRect(0, 12, 16, 20); g.drawImage(SUN[0], 0, 12, 16, 20, 0, 12, 16, 20); return c; })());   // a 1 px sway of the head
+const SPROUT = spr(["................", "................", "................", "................", "................", "......kk........", ".....kvvk..kk...", "....kvvVk.kvvk..",
+  "....kVvk.kvvVk..", ".....kkVkVvVk...", ".......kVVkk....", ".......kVk......", "......kVVk......", "......kVk.......", "................", "................"]);
+const BUG = [spr(["..kkkk..", ".kzzzzk.", "kzzzzzzk", "kzLzzLzk", "kzzzzzzk", ".kzzzzk.", "..k..k..", "........"]), spr(["........", "..kkkk..", ".kzzzzk.", "kzLzzLzk", "kzzzzzzk", "kzzzzzzk", ".kkkkkk.", ".k....k."])];
+const SEEDICON = {
+  v: spr(["...kk...", "..kvvk..", ".kvvVk..", ".kvVk.k.", "..kk.kvk", "....kvVk", "...kVkk.", "....k..."]),
+  m: spr(["..kkkk..", ".kuLuuk.", "kuuuuLuk", "kUuuuuUk", ".kkLLkk.", "..kLLk..", "..kLLk..", "...kk..."]),
+  s: spr(["..kffk..", ".kfFffk.", "kfkbbkfk", "fFbBbbFf", "kfkbbkfk", ".kfFffk.", "..kffk..", "...kk..."]),
+};
+const XMARK = spr(["kk....kk", "kLk..kLk", ".kLkkLk.", "..kLLk..", "..kLLk..", ".kLkkLk.", "kLk..kLk", "kk....kk"]);
+const MOON = spr(["..kkk...", ".kLLk...", "kLLk....", "kLLk....", "kLLk....", ".kLLkkk.", "..kLLLk.", "...kkk.."]);
+const DIGITS = [["0110", "1001", "1001", "1001", "0110"], ["0010", "0110", "0010", "0010", "0111"], ["0110", "1001", "0010", "0100", "1111"], ["1110", "0001", "0110", "0001", "1110"], ["1001", "1001", "1111", "0001", "0001"],
+  ["1111", "1000", "1110", "0001", "1110"], ["0110", "1000", "1110", "1001", "0110"], ["1111", "0001", "0010", "0100", "0100"], ["0110", "1001", "0110", "1001", "0110"], ["0110", "1001", "0111", "0001", "0110"]].map((d) => d.join(""));   // 4×5 bitmap digits
+function digits(g, n, x, y, col) { [...String(n)].forEach((ch, i) => { const b = DIGITS[+ch] || DIGITS[0]; g.fillStyle = col; for (let k = 0; k < 20; k++) if (b[k] === "1") g.fillRect(x + i * 5 + (k % 4), y + Math.floor(k / 4), 1, 1); }); }
+
+// ---- tiles: painted per pixel from the palette, deterministic noise per tile ----
+function px(g, P, ch, x, y, w = 1, h = 1) { g.fillStyle = P[ch]; g.fillRect(x, y, w, h); }
+function paintFloor(g, P, X, Y, tx, ty, raised) {   // worn flagstones with moss in the cracks
+  const base = raised ? "l" : "g", hi = raised ? "w" : "l";
+  px(g, P, base, X, Y, 16, 16);
+  const off = hash(tx, ty) < 0.5 ? 0 : 8;
+  for (let i = 0; i < 16; i++) { px(g, P, "S", X + i, Y + 7, 1, 1); px(g, P, "S", X + i, Y + 15, 1, 1); }
+  px(g, P, "S", X + ((off + 3) % 16), Y, 1, 7); px(g, P, "S", X + ((off + 11) % 16), Y + 8, 1, 7);
+  for (let i = 0; i < 16; i++) { if (hash(tx, ty, i) < 0.3) px(g, P, hi, X + i, Y + (i % 2 ? 0 : 8), 1, 1); }
+  for (let i = 0; i < 6; i++) { const r = hash(tx, ty, 40 + i); if (r < 0.55) px(g, P, r < 0.25 ? "M" : "n", X + Math.floor(hash(tx, ty, 50 + i) * 16), Y + (hash(tx, ty, 60 + i) < 0.5 ? 7 : 15), 1 + (r < 0.15), 1); }
+  if (hash(tx, ty, 9) < 0.18) { const cx = X + 3 + Math.floor(hash(tx, ty, 10) * 9), cy = Y + 2 + Math.floor(hash(tx, ty, 11) * 3); px(g, P, "M", cx, cy, 2, 1); px(g, P, "m", cx, cy - 1, 1, 1); px(g, P, "n", cx + 1, cy + 1, 1, 1); }
+}
+function paintWall(g, P, X, Y, tx, ty, below, mural) {   // 3/4 view: a light top face, and a brick front face where floor lies below
+  const front = below !== "#" && below !== "m" && below !== " ";
+  px(g, P, "S", X, Y, 16, 16);
+  const topH = front ? 6 : 16;
+  px(g, P, "g", X, Y, 16, topH); for (let i = 0; i < 16; i++) if (hash(tx, ty, i) < 0.25) px(g, P, "l", X + i, Y + Math.floor(hash(tx, ty, 20 + i) * topH), 1, 1);
+  if (!front) { for (let r = 0; r < 4; r++) for (let i = 0; i < 16; i += 8) px(g, P, "S", X + ((i + r * 4) % 16), Y + r * 4 + 3, 1, 1); return; }
+  px(g, P, "k", X, Y + topH, 16, 1);
+  for (let r = 0; r < 3; r++) {   // bricks
+    const yy = Y + topH + 1 + r * 3, sh = r % 2 ? 4 : 0;
+    px(g, P, "S", X, yy, 16, 3); px(g, P, "g", X, yy, 16, 1);
+    for (let i = sh; i < 16; i += 8) px(g, P, "k", X + i, yy, 1, 3);
+    px(g, P, "k", X, yy + 2, 16, 1);
+  }
+  if (hash(tx, ty, 3) < 0.4) { const i = Math.floor(hash(tx, ty, 4) * 14); px(g, P, "n", X + i, Y + topH + 1, 2, 2); px(g, P, "M", X + i, Y + topH + 1, 1, 1); px(g, P, "n", X + i + 1, Y + topH + 3, 1, 3); }   // hanging moss
+  if (mural) {   // a carved plant: the murals hint at the next seed
+    px(g, P, "l", X + 3, Y + topH + 1, 10, 8); px(g, P, "S", X + 4, Y + topH + 2, 8, 6);
+    px(g, P, "M", X + 7, Y + topH + 3, 1, 5); px(g, P, "M", X + 5, Y + topH + 4, 2, 1); px(g, P, "M", X + 8, Y + topH + 3, 2, 1); px(g, P, "m", X + 6, Y + topH + 3, 1, 1);
+  }
+}
+function paintBed(g, P, X, Y, tx, ty, raised, sun) {   // a raised soil bed with a stone curb
+  paintFloor(g, P, X, Y, tx, ty, raised);
+  px(g, P, raised ? "w" : "l", X + 1, Y + 1, 14, 14); px(g, P, "k", X + 1, Y + 14, 14, 1); px(g, P, "S", X + 1, Y + 13, 14, 1);
+  px(g, P, "B", X + 3, Y + 3, 10, 9); px(g, P, "b", X + 3, Y + 3, 10, 1);
+  for (let i = 0; i < 8; i++) px(g, P, hash(tx, ty, 70 + i) < 0.5 ? "b" : "t", X + 4 + Math.floor(hash(tx, ty, 80 + i) * 8), Y + 5 + Math.floor(hash(tx, ty, 90 + i) * 6), 1, 1);
+  if (sun) { for (let i = 0; i < 10; i++) for (let j = 0; j < 9; j++) if ((i + j) % 2 === 0) px(g, P, "f", X + 3 + i, Y + 3 + j, 1, 1); px(g, P, "L", X + 6, Y + 5, 2, 2); }   // sunbeam: dithered light
+}
+function paintPit(g, P, X, Y, tx, ty, aboveIsPit) {   // a hole: the far (north) lip shows an earth wall
+  px(g, P, "k", X, Y, 16, 16);
+  if (!aboveIsPit) { px(g, P, "b", X, Y, 16, 4); px(g, P, "B", X, Y + 4, 16, 2); for (let i = 0; i < 16; i += 3) px(g, P, "t", X + i + Math.floor(hash(tx, ty, i) * 2), Y + 1, 1, 1); }
+  for (let i = 0; i < 4; i++) if (hash(tx, ty, 30 + i) < 0.4) px(g, P, "S", X + Math.floor(hash(tx, ty, 34 + i) * 15), Y + 8 + Math.floor(hash(tx, ty, 38 + i) * 7), 1, 1);
+}
+function paintWater(g, P, X, Y, tx, ty, t, aboveDry) {
+  px(g, P, "A", X, Y, 16, 16);
+  if (aboveDry) { px(g, P, "q", X, Y, 16, 3); px(g, P, "a", X, Y + 3, 16, 1); }
+  const ph = Math.floor(t * 2.5) % 3;
+  for (let i = 0; i < 3; i++) { const x = (Math.floor(hash(tx, ty, i) * 12) + ph * 2) % 13, y = 5 + i * 4; px(g, P, "a", X + x, Y + y, 3, 1); px(g, P, "q", X + ((x + 7) % 13), Y + y + 2, 2, 1); }
+}
+function paintFence(g, P, X, Y, tx, ty, raised) {
+  paintFloor(g, P, X, Y, tx, ty, raised);
+  px(g, P, "k", X + 2, Y + 3, 3, 11); px(g, P, "t", X + 3, Y + 4, 1, 9); px(g, P, "k", X + 11, Y + 3, 3, 11); px(g, P, "t", X + 12, Y + 4, 1, 9);
+  px(g, P, "k", X, Y + 5, 16, 3); px(g, P, "y", X, Y + 6, 16, 1); px(g, P, "k", X, Y + 10, 16, 3); px(g, P, "t", X, Y + 11, 16, 1);
+}
+function paintGoal(g, P, X, Y, tx, ty, raised, bloomed) {   // the dried basin of the room's heart flower
+  paintFloor(g, P, X, Y, tx, ty, raised);
+  px(g, P, "k", X + 2, Y + 6, 12, 8); px(g, P, "w", X + 3, Y + 6, 10, 2); px(g, P, "l", X + 3, Y + 8, 10, 5); px(g, P, "S", X + 4, Y + 8, 8, 2);
+  if (!bloomed) { px(g, P, "b", X + 7, Y + 3, 1, 5); px(g, P, "t", X + 6, Y + 3, 1, 1); px(g, P, "B", X + 8, Y + 4, 2, 1); }
+  else { px(g, P, "n", X + 7, Y + 3, 2, 5); for (const [a, b] of [[5, 1], [9, 1], [5, 4], [9, 4], [7, 0]]) px(g, P, "L", X + a, Y + b, 2, 2); px(g, P, "y", X + 7, Y + 2, 2, 2); }
+}
+function paintDeep(g, P, X, Y, tx, ty) {   // solid ruin mass beyond the walls: dark rubble with roots, so the play area reads at a glance
+  px(g, P, "k", X, Y, 16, 16);
+  for (let i = 0; i < 7; i++) { const r = hash(tx, ty, 300 + i), x = X + Math.floor(hash(tx, ty, 310 + i) * 14), y = Y + Math.floor(hash(tx, ty, 320 + i) * 14); px(g, P, r < 0.5 ? "S" : r < 0.8 ? "N" : "g", x, y, r < 0.3 ? 2 : 1, 1); }
+  if (hash(tx, ty, 330) < 0.25) { const x = X + 2 + Math.floor(hash(tx, ty, 331) * 10); px(g, P, "N", x, Y, 1, 6); px(g, P, "n", x + 1, Y + 5, 1, 4); }
+}
+// the 3/4 faces that hang below raised floors and walls into the tile underneath
+function paintLedgeFace(g, P, X, Y) { px(g, P, "S", X, Y, 16, 5); px(g, P, "g", X, Y, 16, 1); for (let i = 2; i < 16; i += 5) px(g, P, "k", X + i, Y + 1, 1, 4); px(g, P, "k", X, Y + 5, 16, 1); }
+
+// ==GAME== render at 320×180, integer upscale, input, sound, screens
+const VW = 320, VH = 180, TOP = 20, TS = 16;
+const buf = mk(VW, VH), b = buf.getContext("2d");
+const screen = document.getElementById("screen"), sg = screen.getContext("2d");
+const params = new URLSearchParams(location.search), SHOT = params.has("shot"), TEST = params.has("test"), AUTO = params.has("autoplay");   // autoplay: playtest helper
+let LANG = (navigator.language || "").startsWith("ja") ? "ja" : "en";
+try { const s = localStorage.getItem("dg_lang"); if (s === "ja" || s === "en") LANG = s; } catch (e) { /* default language */ }
+if (params.get("lang") === "ja" || params.get("lang") === "en") LANG = params.get("lang");
+const TX = {
+  ja: { title: "ドット庭師", sub: "DOT GARDENER", start: "はじめる", cont: "つづきから", lang: "English", c1: "←↑→↓ 移動　Space 植える・抜く", c2: "1-3 種　Z もどす　R やり直す",
+    press: "Enter・クリック", pause: "ポーズ", resume: "つづける", bgm: "BGM", sfx: "効果音", toTitle: "タイトルへ", diary: "庭師の日記", endH: "庭がよみがえった",
+    time: "時間", undos: "もどす", resets: "やり直し", falls: "落ちた", again: "もう一度", arcade: "アーケードへ", any: "なにかキーを押す",
+    rooms: ["入口の堀", "段々の回廊", "暗い書庫", "崩れた噴水", "日陰の温室", "庭の心臓"],
+    pages: [["光の届かぬ部屋にも", "ヒマワリを一輪。"], ["暗がりで種は眠る。", "光の中で目を覚ます。"], ["抜いた種は、また", "どこかで花になる。"]] },
+  en: { title: "Dot Gardener", sub: "ドット庭師", start: "Start", cont: "Continue", lang: "日本語", c1: "Arrows/WASD move   Space plant/pull", c2: "1-3 seeds   Z undo   R reset",
+    press: "Enter / click", pause: "Paused", resume: "Resume", bgm: "Music", sfx: "Sound", toTitle: "Title screen", diary: "Gardener's diary", endH: "The garden is alive again",
+    time: "Time", undos: "Undos", resets: "Resets", falls: "Falls", again: "Play again", arcade: "Back to the arcade", any: "press any key",
+    rooms: ["The Moat", "Terraced Hall", "Dark Library", "Broken Fountain", "Shaded Greenhouse", "Heart of the Garden"],
+    pages: [["Even a room the sun forgot", "can hold one sunflower."], ["Seeds sleep in the dark.", "They wake up in the light."], ["A seed you pull up", "will bloom somewhere else."]] },
+};
+const tr = (k) => TX[LANG][k];
+const hexRgb = (h) => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+// text: DotGothic16 at its native 16 px, thresholded so every pixel is a palette colour (no smooth edges)
+let fontReady = 0; const TCACHE = new Map();
+function text(str, col = PAL.L) {
+  const key = `${str}|${col}|${fontReady}`; if (TCACHE.has(key)) return TCACHE.get(key);
+  const m = mk(1, 1).getContext("2d"); m.font = '16px "DotGothic16", monospace';
+  const c = mk(Math.max(1, Math.ceil(m.measureText(str).width) + 2), 20), g = c.getContext("2d");
+  g.font = m.font; g.textBaseline = "top"; g.fillStyle = "#fff"; g.fillText(str, 1, 2);
+  const id = g.getImageData(0, 0, c.width, c.height), d = id.data, [r, gg, bb] = hexRgb(col);
+  for (let i = 0; i < d.length; i += 4) { if (d[i + 3] > 110) { d[i] = r; d[i + 1] = gg; d[i + 2] = bb; d[i + 3] = 255; } else d[i + 3] = 0; }
+  g.putImageData(id, 0, 0); TCACHE.set(key, c); return c;
+}
+function say(str, x, y, col = PAL.L, align = "left", scale = 1) {   // text with a 1 px drop shadow, integer scale only
+  const t = text(str, col), s = text(str, PAL.k), w = t.width * scale, X = Math.round(align === "center" ? x - w / 2 : align === "right" ? x - w : x);
+  b.drawImage(s, X, y + scale, w, t.height * scale); b.drawImage(t, X, y, w, t.height * scale); return w;
+}
+if (document.fonts) document.fonts.load('16px "DotGothic16"').then(() => { fontReady = 1; TCACHE.clear(); }).catch(() => {});
+
+// ---- sound: a tiny chiptune kit (WebAudio starts on the first input) ----
+const AU = { ctx: null, bgm: 0.5, sfx: 0.7 };
+try { Object.assign(AU, JSON.parse(localStorage.getItem("dg_vol") || "{}")); } catch (e) { /* defaults */ }
+function audio() {
+  if (AU.ctx) { if (AU.ctx.state === "suspended") AU.ctx.resume(); return; }
+  try { AU.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return; }
+  AU.m = AU.ctx.createGain(); AU.m.gain.value = AU.bgm * 0.5; AU.m.connect(AU.ctx.destination);
+  AU.s = AU.ctx.createGain(); AU.s.gain.value = AU.sfx; AU.s.connect(AU.ctx.destination);
+  const n = AU.ctx.createBuffer(1, AU.ctx.sampleRate, AU.ctx.sampleRate), d = n.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; AU.noise = n;
+  AU.next = AU.ctx.currentTime + 0.1; AU.step = 0;
+}
+function beep(f, dur, type = "square", vol = 0.08, when = 0, slide = 0, out) {
+  if (!AU.ctx) return; const c = AU.ctx, t = c.currentTime + when, o = c.createOscillator(), g = c.createGain();
+  o.type = type; o.frequency.setValueAtTime(f, t); if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, f * slide), t + dur);
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0005, t + dur); o.connect(g); g.connect(out || AU.s); o.start(t); o.stop(t + dur + 0.02);
+}
+function hiss(dur, vol = 0.06, when = 0, hp = 2000) {
+  if (!AU.ctx) return; const c = AU.ctx, t = c.currentTime + when, s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+  s.buffer = AU.noise; f.type = "highpass"; f.frequency.value = hp; g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0005, t + dur); s.connect(f); f.connect(g); g.connect(AU.s); s.start(t); s.stop(t + dur);
+}
+const SFX = {
+  step: () => hiss(0.03, 0.03, 0, 3500), bump: () => beep(90, 0.06, "square", 0.05),
+  plant: () => { beep(330, 0.06, "square", 0.06); beep(660, 0.08, "square", 0.05, 0.05); },
+  grow: (k) => beep(440 * Math.pow(2, k / 6), 0.07, "triangle", 0.08), droop: () => beep(500, 0.5, "triangle", 0.07, 0, 0.3),
+  boing: () => beep(220, 0.25, "square", 0.07, 0, 3.2), wobble: () => beep(180, 0.15, "triangle", 0.08, 0, 0.7),
+  sun: () => [523, 659, 784].forEach((f, i) => beep(f, 0.25, "triangle", 0.06, i * 0.06)), pull: () => { beep(700, 0.05, "square", 0.05); beep(350, 0.08, "square", 0.05, 0.04); },
+  no: () => beep(110, 0.18, "sawtooth", 0.04), dark: () => beep(147, 0.35, "triangle", 0.06, 0, 0.8), fall: () => { beep(600, 0.35, "square", 0.05, 0, 0.25); hiss(0.2, 0.04, 0.3, 800); },
+  undo: () => beep(500, 0.08, "triangle", 0.05, 0, 0.6), reset: () => [500, 400, 300].forEach((f, i) => beep(f, 0.06, "triangle", 0.05, i * 0.05)),
+  bloom: () => [523, 659, 784, 1047, 1319, 1568].forEach((f, i) => { beep(f, 0.3, "square", 0.045, i * 0.09); beep(f / 2, 0.3, "triangle", 0.06, i * 0.09); }),
+  ui: () => beep(880, 0.04, "square", 0.04), page: () => hiss(0.25, 0.03, 0, 1200),
+};
+const SONGS = {   // 16-step loops: [lead, bass] in semitones from A3 (null = rest)
+  decay: [[0, null, 3, null, 7, null, 5, 3, null, 0, null, -2, 0, null, null, null], [-12, -12, null, null, -9, null, null, null, -14, -14, null, null, -12, null, null, null]],
+  dark: [[null, null, 7, null, null, null, 6, null, null, null, 3, null, null, null, null, null], [-24, null, null, null, null, null, null, null, -21, null, null, null, null, null, null, null]],
+  bloom: [[7, 9, 12, null, 9, 7, 4, null, 7, 9, 12, 14, 12, null, 9, null], [-12, null, -5, null, -10, null, -3, null, -14, null, -7, null, -12, null, -5, null]],
+};
+function music(song) {
+  if (!AU.ctx || !song) return; const c = AU.ctx, sp = 60 / 104 / 2;
+  while (AU.next < c.currentTime + 0.2) {
+    const [lead, bass] = SONGS[song], i = AU.step++ % 16, w = AU.next - c.currentTime;
+    if (lead[i] !== null) beep(220 * Math.pow(2, lead[i] / 12), sp * 1.6, "square", 0.025, w, 0, AU.m);
+    if (bass[i] !== null) beep(220 * Math.pow(2, bass[i] / 12), sp * 3, "triangle", 0.07, w, 0, AU.m);
+    AU.next += sp;
+  }
+}
+
+// ---- state ----
+const G = { scene: "title", ri: 0, room: null, S: null, undo: [], t: 0, roomT: 0, sel: "v", menu: 0, bloomT: -1, slideT: -1, introT: -1, diary: null,
+  hero: { x: 0, y: 0 }, q: [], inbuf: [], vis: new Map(), ghosts: [], marks: [], parts: [], bugs: [], btns: [], cur: { x: -1, y: -1, show: false }, path: [],
+  stats: { t0: 0, undos: 0, resets: 0, falls: 0 }, save: 0, shake: 0 };
+try { G.save = +localStorage.getItem("dg_save") || 0; } catch (e) { G.save = 0; }
+const LAYER = { decay: mk(VW, 160), bloom: mk(VW, 160) };
+function buildLayers() {
+  for (const [name, P] of [["decay", PAL], ["bloom", BLOOM]]) {
+    const g = LAYER[name].getContext("2d"); g.clearRect(0, 0, VW, 160);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) paintTile(g, P, x, y, false);
+    for (let y = 0; y < H - 1; y++) for (let x = 0; x < W; x++) {   // faces of raised floor dropping onto lower tiles
+      const c = raw(G.room, x, y), d = raw(G.room, x, y + 1);
+      if (levelC(c) === 1 && !isWallC(c) && levelC(d) === 0 && !isWallC(d) && d !== "~") paintLedgeFace(g, P, x * TS, (y + 1) * TS);
+    }
+  }
+}
+function paintTile(g, P, x, y, bloomed) {
+  const c = raw(G.room, x, y);
+  paintTileBase(g, P, x, y, bloomed);
+  if (P === BLOOM && (c === "." || c === "," || c === "@" || c === "B")) {   // the colour comes back: grass tufts and small flowers (never the reserved colours)
+    const X = x * TS, Y = y * TS;
+    for (let i = 0; i < 5; i++) { if (hash(x, y, 200 + i) > 0.55) continue; const gx = X + 1 + Math.floor(hash(x, y, 210 + i) * 13), gy = Y + 2 + Math.floor(hash(x, y, 220 + i) * 11); px(g, P, "M", gx, gy + 1, 3, 1); px(g, P, "m", gx + 1, gy, 1, 1); px(g, P, "n", gx, gy + 2, 3, 1); }
+    if (hash(x, y, 230) < 0.35) { const fx = X + 3 + Math.floor(hash(x, y, 231) * 9), fy = Y + 3 + Math.floor(hash(x, y, 232) * 9), col = ["L", "a", "w"][Math.floor(hash(x, y, 233) * 3)];
+      px(g, P, col, fx - 1, fy, 3, 1); px(g, P, col, fx, fy - 1, 1, 3); px(g, P, "y", fx, fy, 1, 1); px(g, P, "n", fx, fy + 2, 1, 2); }
+  }
+}
+function paintTileBase(g, P, x, y, bloomed) {
+  const c = raw(G.room, x, y), X = x * TS, Y = y * TS, up = raw(G.room, x, y - 1), lv = levelC(c);
+  if (isWallC(c)) {
+    let deep = true; for (let j = -1; j <= 1; j++) for (let i = -1; i <= 1; i++) if (!isWallC(raw(G.room, x + i, y + j))) deep = false;
+    return deep ? paintDeep(g, P, X, Y, x, y) : paintWall(g, P, X, Y, x, y, raw(G.room, x, y + 1), c === "m");
+  }
+  if (c === "o" || c === "h" || c === "H") return paintPit(g, P, X, Y, x, y, up === "o" || up === "h" || up === "H");
+  if (c === "~") return paintWater(g, P, X, Y, x, y, 0, up !== "~");
+  if (c === "f") return paintFence(g, P, X, Y, x, y, lv);
+  if (isSoilC(c)) return paintBed(g, P, X, Y, x, y, lv, c === "*" || c === "+");
+  if (c === "G" || c === "g") return paintGoal(g, P, X, Y, x, y, lv, bloomed);
+  paintFloor(g, P, X, Y, x, y, lv);
+}
+function enterRoom(i, fresh = true) {
+  G.ri = i; G.leaving = 0; G.inbuf = []; G.room = loadRoom(i); G.S = newState(G.room); G.undo = []; G.roomT = 0; G.bloomT = -1; G.vis.clear(); G.ghosts = []; G.marks = []; G.q = []; G.path = [];
+  G.hero = { x: G.S.x, y: G.S.y, z: 0, f: 0, pose: "stand" };
+  G.sel = ["v", "m", "s"].find((t) => G.S.seeds[t] > 0) || "v";
+  G.bugs = []; if (G.room.R.dark) G.room.map.forEach((row, y) => row.forEach((c, x) => { if (c === "B" || (c === "." && hash(x, y, 77) < 0.04)) G.bugs.push({ x: x * TS + 8, y: y * TS + 8, vx: 0, vy: 0, f: hash(x, y) * 6 }); }));
+  buildLayers();
+  if (fresh) G.stats["room" + i] = 0;
+}
+
+// ---- acting: the rules decide, then the animation queue shows it ----
+const busy = () => G.q.length > 0 || G.bloomT >= 0 || G.slideT >= 0;
+function doAct(a, record = true) {
+  if (G.S.won) return;
+  const r = act(G.S, G.room, a); if (!r) { if (a[0] === "P") { mark("x"); SFX.no(); } return; }
+  const changed = keyOf(r.S) !== keyOf(G.S) || JSON.stringify(r.S.seeds) !== JSON.stringify(G.S.seeds);
+  if (record && changed && r.ev.some((e) => e.e !== "bump")) G.undo.push(G.S);
+  const prev = G.S; G.S = r.S;
+  for (const e of r.ev) {
+    if (e.e === "step") { G.q.push({ k: "move", fx: prev.x, fy: prev.y, x: G.S.x, y: G.S.y, d: 0.15 }); SFX.step(); }
+    if (e.e === "jump") { G.q.push({ k: "jump", fx: e.fx, fy: e.fy, x: e.x, y: e.y, d: 0.32 }); G.vis.set(`${e.fx},${e.fy}`, { ...(G.vis.get(`${e.fx},${e.fy}`) || {}), squash: G.t }); }
+    if (e.e === "wobble") { G.q.push({ k: "wobble", d: 0.25 }); G.vis.set(`${e.x},${e.y}`, { ...(G.vis.get(`${e.x},${e.y}`) || {}), squash: G.t }); SFX.wobble(); }
+    if (e.e === "bump") { G.q.push({ k: "bump", d: 0.1 }); SFX.bump(); }
+    if (e.e === "fall") { G.q.push({ k: "fall", x: e.x, y: e.y, d: 0.5 }); G.stats.falls++; SFX.fall(); }
+    if (e.e === "plant") { G.q.push({ k: "crouch", d: 0.16 }); G.vis.set(`${e.x},${e.y}`, { born: G.t + 0.12 }); SFX.plant(); for (let k = 0; k < e.n; k++) setTimeout(() => SFX.grow(k), 160 + k * 180); if (e.t === "s") setTimeout(SFX.sun, 300); }
+    if (e.e === "droop") { G.q.push({ k: "crouch", d: 0.16 }); const [dx, dy] = DIRS[e.d]; G.ghosts.push({ t: G.t, x: e.x, y: e.y, dx, dy }); SFX.droop(); mark("x", e.x, e.y); }
+    if (e.e === "pull") { G.q.push({ k: "crouch", d: 0.16 }); const p = prev.plants.find((q) => q.x === e.x && q.y === e.y); if (p) G.ghosts.push({ t: G.t, pull: p }); SFX.pull(); puff(e.x, e.y, PAL.t); }
+    if (e.e === "no") { mark("x", e.x, e.y); SFX.no(); }
+    if (e.e === "dark") { mark("moon", e.x, e.y); SFX.dark(); }
+    if (e.e === "bloom") { G.q.push({ k: "bloom", d: 0.01 }); }
+  }
+}
+function mark(kind, x, y) { const [dx, dy] = DIRS[G.S.d]; G.marks.push({ kind, x: x ?? G.S.x + dx, y: y ?? G.S.y + dy, t: G.t }); }
+function puff(x, y, col) { for (let i = 0; i < 8; i++) G.parts.push({ x: x * TS + 8, y: y * TS + 10, vx: (Math.random() - 0.5) * 40, vy: -Math.random() * 30, life: 0.5, col }); }
+function undo() { if (busy() || !G.undo.length || G.S.won) return; G.S = G.undo.pop(); G.hero.x = G.S.x; G.hero.y = G.S.y; G.stats.undos++; SFX.undo(); syncVis(); }
+function reset() { if (busy() || G.S.won) return; G.undo.push(G.S); G.S = newState(G.room); G.hero.x = G.S.x; G.hero.y = G.S.y; G.stats.resets++; SFX.reset(); syncVis(); }
+function syncVis() { const keep = new Map(); for (const p of G.S.plants) keep.set(`${p.x},${p.y}`, { born: -9 }); G.vis = keep; }
+function action() {   // Space: pull what is in front, or plant the selected seed
+  if (busy()) return;
+  const [dx, dy] = DIRS[G.S.d], fx = G.S.x + dx, fy = G.S.y + dy;
+  if (plantAt(G.S, fx, fy)) return doAct("X");
+  if (!G.S.seeds[G.sel]) { const t = ["v", "m", "s"].find((k) => G.S.seeds[k] > 0); if (t) G.sel = t; }
+  doAct("P" + G.sel);
+}
+function input(a) {   // quick taps during an animation are buffered (up to 3), not dropped
+  if (busy()) { if (G.inbuf.length < 3) G.inbuf.push(a); return; }
+  a === "act" ? action() : doAct(a);
+}
+function walkTo(tx, ty) {   // mouse: breadth-first path over plain ground (never through mushrooms or pits)
+  const S = G.S, seen = new Map([[`${S.x},${S.y}`, null]]), q = [[S.x, S.y]];
+  while (q.length) {
+    const [x, y] = q.shift(); if (x === tx && y === ty) break;
+    DIRS.forEach(([dx, dy], d) => {
+      const nx = x + dx, ny = y + dy, k = `${nx},${ny}`, kd = kind(S, G.room, nx, ny), here = kind(S, G.room, x, y), p = plantAt(S, nx, ny);
+      if (seen.has(k) || kd.k !== "ground" || kd.lv !== here.lv || (p && p.t !== "v")) return;
+      seen.set(k, [x, y, d]); q.push([nx, ny]);
+    });
+  }
+  if (!seen.has(`${tx},${ty}`)) return false;
+  const path = []; let k = `${tx},${ty}`; while (seen.get(k)) { const [px, py, d] = seen.get(k); path.unshift("URDL"[d]); k = `${px},${py}`; }
+  G.path = path; return true;
+}
+
+// ---- update ----
+function update(dt) {
+  G.t += dt;
+  if (G.scene === "play") G.roomT += dt;
+  const h = G.hero, q = G.q[0];
+  if (q) {
+    q.t = (q.t || 0) + dt; const k = Math.min(1, q.t / q.d);
+    if (q.k === "move") { h.x = q.fx + (q.x - q.fx) * k; h.y = q.fy + (q.y - q.fy) * k; h.z = 0; h.pose = "walk"; }
+    if (q.k === "jump") { h.x = q.fx + (q.x - q.fx) * k; h.y = q.fy + (q.y - q.fy) * k; h.z = Math.sin(k * Math.PI) * 14; h.pose = "jump"; if (q.t === dt) SFX.boing(); }
+    if (q.k === "fall") { const s = k < 0.5 ? k * 2 : 2 - k * 2; h.x = G.S.x + (q.x - G.S.x) * s * 0.55; h.y = G.S.y + (q.y - G.S.y) * s * 0.55; h.z = -s * 10; h.pose = "fall"; if (k >= 1) puff(G.S.x, G.S.y, PAL.l); }
+    if (q.k === "bump" || q.k === "wobble") h.pose = "stand";
+    if (q.k === "crouch") h.pose = "crouch";
+    if (q.k === "bloom") { G.bloomT = 0; SFX.bloom(); G.stats["room" + G.ri] = G.roomT; }
+    if (k >= 1) { G.q.shift(); if (!G.q.length) { h.x = G.S.x; h.y = G.S.y; h.z = 0; h.pose = "stand"; } }
+  } else if (G.inbuf.length && G.scene === "play" && G.bloomT < 0) { const a = G.inbuf.shift(); a === "act" ? action() : doAct(a); }
+  else if (G.path.length && G.scene === "play") doAct(G.path.shift());
+  else if (AUTO && G.scene === "play" && G.bloomT < 0 && !G.S.won && G.t - (G.lastMove || 0) > 0.22) {
+    if (!G.auto || G.auto.room !== G.ri) G.auto = { room: G.ri, path: solve(G.room).path || [] };
+    const a = G.auto.path.shift(); G.lastMove = G.t; if (a) { if (a[0] === "P") G.sel = a[1]; doAct(a); }
+  }
+  else if (G.scene === "play" && G.bloomT < 0) {   // held keys keep walking
+    const d = heldDir(); if (d !== null && G.t - (G.lastMove || 0) > 0.17) { G.lastMove = G.t; doAct("URDL"[d]); }
+  }
+  if (G.bloomT >= 0) {
+    G.bloomT += dt; h.pose = "happy";
+    if (G.bloomT > 2.2 && G.scene === "play" && !G.leaving) {
+      G.leaving = 1;
+      G.save = Math.max(G.save, G.ri + 1); try { localStorage.setItem("dg_save", String(G.save)); } catch (e) { /* not saved */ }
+      const page = { 2: 0, 4: 1 }[G.ri];
+      if (G.ri === ROOMS.length - 1) { G.scene = "end"; G.menu = 0; G.endT = 0; SFX.page(); }
+      else if (page !== undefined) { G.scene = "diary"; G.diary = page; SFX.page(); }
+      else startSlide();
+    }
+  }
+  if (G.slideT >= 0) { G.slideT += dt; if (G.slideT >= 0.25 && !G.slid) { G.slid = 1; enterRoom(G.ri + 1); } if (G.slideT >= 0.5) { G.slideT = -1; G.slid = 0; } }
+  if (G.introT >= 0) { G.introT += dt; if (G.introT > 1.9) { G.introT = -1; G.scene = "play"; } }
+  if (AUTO && G.scene === "diary" && (G.diaryT = (G.diaryT || 0) + dt) > 1.5) { G.diaryT = 0; G.scene = "play"; G.diary = null; startSlide(); }
+  G.parts = G.parts.filter((p) => (p.life -= dt) > 0); G.parts.forEach((p) => { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 60 * dt; });
+  G.marks = G.marks.filter((m) => G.t - m.t < 0.7); G.ghosts = G.ghosts.filter((g) => G.t - g.t < 0.8);
+  if (G.room && G.room.R.dark) bugsStep(dt);
+  if (G.endT !== undefined) G.endT += dt;
+}
+function bugsStep(dt) {   // shadow bugs are harmless: they drift in the dark and scuttle away from light
+  const L = lightsNow();
+  for (const g of G.bugs) {
+    let fx = Math.sin(G.t * 0.7 + g.f) * 6, fy = Math.cos(G.t * 0.9 + g.f) * 6;
+    for (const l of L) { const dx = g.x - l.x, dy = g.y - l.y, d = Math.hypot(dx, dy) || 1; if (d < l.r + 12) { fx += dx / d * 60; fy += dy / d * 60; } }
+    g.vx += (fx - g.vx) * dt * 3; g.vy += (fy - g.vy) * dt * 3;
+    const nx = g.x + g.vx * dt, ny = g.y + g.vy * dt, tx = Math.floor(nx / TS), ty = Math.floor(ny / TS);
+    if (!isWallC(raw(G.room, tx, ty))) { g.x = nx; g.y = ny; } else { g.vx *= -1; g.vy *= -1; }
+  }
+}
+
+// ---- drawing ----
+function lightsNow() {
+  const L = [{ x: G.hero.x * TS + 8, y: G.hero.y * TS + 8, r: 22 }];
+  for (const p of G.S.plants) if (p.t === "s") { const v = G.vis.get(`${p.x},${p.y}`), grow = v ? clamp((G.t - v.born) / 0.4, 0, 1) : 1; L.push({ x: p.x * TS + 8, y: p.y * TS + 8, r: 10 + grow * 42 + Math.sin(G.t * 3) * 1.5 }); }
+  G.room.map.forEach((row, y) => row.forEach((c, x) => { if (c === "*" || c === "+") L.push({ x: x * TS + 8, y: y * TS + 8, r: 11 }); if (c === "G" || c === "g") L.push({ x: x * TS + 8, y: y * TS + 8, r: G.bloomT >= 0 ? 30 + G.bloomT * 140 : 9 }); }));
+  return L;
+}
+const clamp = (v, a, c) => Math.max(a, Math.min(c, v));
+function drawRoom(ox) {
+  const R = G.room, wave = G.bloomT >= 0 ? Math.min(9, Math.floor(G.bloomT / 0.09)) : -1;
+  let gx = 0, gy = 0; R.map.forEach((row, y) => row.forEach((c, x) => { if (c === "G" || c === "g") { gx = x; gy = y; } }));
+  b.drawImage(LAYER.decay, ox, TOP);
+  if (wave >= 0) for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (Math.max(Math.abs(x - gx), Math.abs(y - gy)) <= wave * 2.5) b.drawImage(LAYER.bloom, x * TS, y * TS, TS, TS, ox + x * TS, TOP + y * TS, TS, TS);
+  const P = (x, y) => (wave >= 0 && Math.max(Math.abs(x - gx), Math.abs(y - gy)) <= wave * 2.5 ? BLOOM : PAL);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {   // animated or light-dependent tiles
+    const c = raw(R, x, y), X = ox + x * TS, Y = TOP + y * TS;
+    if (c === "~") paintWater(b, P(x, y), X, Y, x, y, G.t + x * 0.1, raw(R, x, y - 1) !== "~");
+    if ((c === "h" || c === "H") && lit(G.S, R, x, y)) { paintFloor(b, P(x, y), X, Y, x, y, c === "H"); px(b, P(x, y), "f", X + 6, Y + 6, 4, 4); px(b, P(x, y), "L", X + 7, Y + 7, 2, 2); }
+    if ((c === "G" || c === "g") && G.bloomT >= 0) paintGoal(b, BLOOM, X, Y, x, y, levelC(c), true);
+  }
+  // plants, ghosts and the gardener, back to front
+  const items = [];
+  for (const p of G.S.plants) items.push({ y: p.y, draw: () => drawPlant(p, ox) });
+  for (const g of G.ghosts) items.push({ y: g.pull ? g.pull.y : g.y, draw: () => drawGhost(g, ox) });
+  items.push({ y: G.hero.y + 0.01, draw: () => drawHero(ox) });
+  items.sort((a, c) => a.y - c.y).forEach((it) => it.draw());
+  if (R.R.dark) {
+    for (const g of G.bugs) b.drawImage(BUG[Math.floor(G.t * 4 + g.f) % 2], ox + Math.round(g.x) - 4, TOP + Math.round(g.y) - 4);
+    drawDark(ox);
+    for (const g of G.bugs) { px(b, PAL, "L", ox + Math.round(g.x) - 2, TOP + Math.round(g.y) - 1); px(b, PAL, "L", ox + Math.round(g.x) + 1, TOP + Math.round(g.y) - 1); }
+    R.map.forEach((row, y) => row.forEach((c, x) => { if (c === "*" || c === "+") for (let i = 0; i < 26; i++) for (let j = 0; j < 4; j++) if ((i + j + Math.floor(G.t * 2)) % 3 === 0) px(b, PAL, "f", ox + x * TS + 4 + j * 2 + Math.floor(i / 4), TOP + y * TS - i, 1, 1); }));   // sunbeam shafts
+  }
+  // hint ladder: murals glow after 60 s, the key bed sparkles after 120 s
+  if (G.roomT > 60 && G.bloomT < 0) R.map.forEach((row, y) => row.forEach((c, x) => { if (c === "m" && Math.floor(G.t * 2) % 2) { px(b, PAL, "f", ox + x * TS + 3, TOP + y * TS + 7, 10, 1); px(b, PAL, "f", ox + x * TS + 3, TOP + y * TS + 15, 10, 1); } }));
+  if (G.roomT > 120 && G.bloomT < 0) { const [hx, hy] = R.R.hint; for (let i = 0; i < 4; i++) { const a = G.t * 3 + i * 1.57; px(b, PAL, "L", ox + hx * TS + 8 + Math.round(Math.cos(a) * 9), TOP + hy * TS + 8 + Math.round(Math.sin(a) * 9), 2, 2); } }
+}
+function drawDark(ox) {
+  const L = lightsNow();
+  for (let cy = 0; cy < 80; cy++) for (let cx = 0; cx < 160; cx++) {
+    const x = cx * 2 + 1, y = cy * 2 + 1; let best = -99;
+    for (const l of L) { const v = l.r - Math.hypot(x - l.x, y - l.y); if (v > best) best = v; }
+    if (best < -3 || (best < 3 && (cx + cy) % 2 === 0)) { b.fillStyle = PAL.z; b.fillRect(ox + cx * 2, TOP + cy * 2, 2, 2); }
+  }
+}
+function drawPlant(p, ox) {
+  const v = G.vis.get(`${p.x},${p.y}`) || { born: -9 }, age = G.t - v.born, X = ox + p.x * TS, Y = TOP + p.y * TS;
+  if (age < 0) return;
+  if (p.t === "v") {
+    b.drawImage(SPROUT, X, Y - 2);
+    p.br.forEach(([bx, by], i) => {
+      const k = clamp((age - i * 0.18) / 0.18, 0, 1); if (k <= 0) return;
+      const BX = ox + bx * TS, BY = TOP + by * TS, horiz = p.dir % 2 === 1, len = Math.ceil(16 * k);
+      if (horiz) { const x0 = p.dir === 1 ? BX : BX + 16 - len; px(b, PAL, "k", x0, BY + 3, len, 11); px(b, PAL, "V", x0, BY + 4, len, 9); px(b, PAL, "v", x0, BY + 4, len, 2); for (let j = 1; j < len; j += 3) px(b, PAL, "k", x0 + j, BY + 7, 1, 6); for (let j = 2; j < len; j += 6) { px(b, PAL, "v", x0 + j, BY + 2, 2, 2); px(b, PAL, "V", x0 + j + 2, BY + 14, 2, 1); } }
+      else { const y0 = p.dir === 2 ? BY : BY + 16 - len; px(b, PAL, "k", BX + 2, y0, 12, len); px(b, PAL, "V", BX + 3, y0, 10, len); px(b, PAL, "v", BX + 3, y0, 2, len); for (let j = 1; j < len; j += 3) px(b, PAL, "k", BX + 6, y0 + j, 6, 1); for (let j = 2; j < len; j += 6) { px(b, PAL, "v", BX + 1, y0 + j, 1, 2); px(b, PAL, "V", BX + 14, y0 + j + 2, 1, 2); } }
+    });
+  }
+  if (p.t === "m") {
+    const grow = clamp(age / 0.24, 0, 1), sq = v.squash !== undefined && G.t - v.squash < 0.25;
+    const img = MUSH[sq ? 1 : 0], hgt = Math.max(2, Math.round(16 * grow)); b.drawImage(img, 0, 16 - hgt, 16, hgt, X, Y + 16 - hgt - 2, 16, hgt);
+  }
+  if (p.t === "s") {
+    const grow = clamp(age / 0.4, 0, 1), img = SUN[Math.floor(G.t / 0.6) % 2], hgt = Math.max(4, Math.round(32 * grow));
+    b.drawImage(img, 0, 32 - hgt, 16, hgt, X, Y + 16 - hgt - 2, 16, hgt);
+  }
+}
+function drawGhost(g, ox) {
+  const k = (G.t - g.t) / 0.8;
+  if (g.pull) { const s = Math.max(0, 1 - k * 2); if (s <= 0) return; const img = g.pull.t === "m" ? MUSH[0] : g.pull.t === "s" ? SUN[0] : SPROUT, h = Math.round(img.height * s); b.drawImage(img, 0, img.height - h, 16, h, ox + g.pull.x * TS, TOP + g.pull.y * TS + 14 - h, 16, h); return; }
+  for (let i = 1; i <= 4; i++) { const sag = Math.round(k * k * 18 * i / 4); if ((k * 10 + i) % 2 < 1.2 || k < 0.6) px(b, PAL, "V", ox + (g.x + g.dx * i) * TS + 4, TOP + (g.y + g.dy * i) * TS + 6 + sag, 8, 4); }
+}
+function drawHero(ox) {
+  const h = G.hero, d = G.S.d, X = ox + Math.round(h.x * TS), Y = TOP + Math.round(h.y * TS) - 3;
+  if (h.pose !== "fall" || h.z > -6) { b.fillStyle = PAL.k; b.fillRect(X + 3, Y + 15, 10, 3); }
+  let img; const walkF = h.pose === "walk" ? 1 + (Math.floor(G.t * 8) % 2) : 0;
+  if (h.pose === "happy") img = HERO.happy;
+  else if (d === 0) img = HERO.up[walkF]; else if (d === 2) img = HERO.down[walkF]; else img = (d === 1 ? HERO.side : HERO.sideL)[walkF];
+  const crouch = h.pose === "crouch" ? 2 : 0, bob = h.pose === "stand" && Math.floor(G.t * 2) % 2 ? 1 : 0;
+  if (h.pose === "fall") { const s = clamp(1 + h.z / 12, 0.2, 1), w = Math.round(16 * s); b.drawImage(img, X + (16 - w) / 2 | 0, Y + 16 - w, w, w); return; }
+  b.drawImage(img, 0, 0, 16, 16 - crouch, X, Y - Math.round(h.z) + crouch + bob, 16, 16 - crouch);
+}
+function drawCursor(ox) {   // corner brackets on the tile you would plant into or pull; × where nothing can grow
+  if (G.scene !== "play" || busy() || G.S.won) return;
+  const [dx, dy] = DIRS[G.S.d], fx = G.S.x + dx, fy = G.S.y + dy, c = raw(G.room, fx, fy), p = plantAt(G.S, fx, fy);
+  const ok = p || (isSoilC(c) && G.S.seeds[G.sel] > 0) || (bridgeAt(G.S, fx, fy) && G.sel !== "v" && G.S.seeds[G.sel] > 0);
+  if (!ok || (G.room.R.dark && !lit(G.S, G.room, fx, fy) && !p && Math.hypot(fx - G.S.x, fy - G.S.y) > 1.5)) return;
+  const X = ox + fx * TS, Y = TOP + fy * TS, col = Math.floor(G.t * 3) % 2 ? "L" : "w";
+  for (const [ax, ay, sx, sy] of [[0, 0, 1, 1], [15, 0, -1, 1], [0, 15, 1, -1], [15, 15, -1, -1]]) { px(b, PAL, col, X + ax, Y + ay, 1, 1); px(b, PAL, col, X + ax + sx, Y + ay, 1, 1); px(b, PAL, col, X + ax, Y + ay + sy, 1, 1); px(b, PAL, col, X + ax + 2 * sx, Y + ay, 1, 1); px(b, PAL, col, X + ax, Y + ay + 2 * sy, 1, 1); }
+}
+function drawHUD() {
+  px(b, PAL, "k", 0, 0, VW, TOP); px(b, PAL, "S", 0, TOP - 1, VW, 1);
+  let x = 4;
+  for (const t of ["v", "m", "s"]) {
+    if (!G.room.R.seeds[t]) continue;
+    const on = G.sel === t, n = G.S.seeds[t];
+    px(b, PAL, on ? "S" : "k", x, 2, 26, 15); b.drawImage(SEEDICON[t], x + 3, 5); digits(b, n, x + 15, 7, n ? PAL.L : PAL.g);
+    if (on) for (const [ax, ay] of [[0, 2], [25, 2], [0, 16], [25, 16]]) { px(b, PAL, "L", x + ax, ay, 1, 1); px(b, PAL, "L", x + ax + (ax ? -1 : 1), ay, 1, 1); px(b, PAL, "L", x + ax, ay + (ay > 2 ? -1 : 1), 1, 1); }
+    const tt = t; G.btns.push({ hud: 1, x, y: 0, w: 26, h: 19, fn: () => { G.sel = tt; SFX.ui(); } }); x += 29;
+  }
+  if (G.roomT < 2.6 || G.scene !== "play") say(tr("rooms")[G.ri], 160, 1, PAL.L, "center");
+  else for (let i = 0; i < ROOMS.length; i++) px(b, PAL, i < G.ri ? "M" : i === G.ri ? "L" : "S", 136 + i * 8, 8, 5, 5);
+  const icons = [["undo", undo], ["reset", reset], ["pause", () => { G.scene = "pause"; G.menu = 0; }]];
+  icons.forEach(([k, fn], i) => {
+    const X = VW - 62 + i * 20; px(b, PAL, "S", X, 2, 16, 15);
+    if (k === "undo") { px(b, PAL, "L", X + 5, 6, 6, 1); px(b, PAL, "L", X + 11, 7, 1, 4); px(b, PAL, "L", X + 6, 11, 5, 1); px(b, PAL, "L", X + 4, 5, 1, 3); px(b, PAL, "L", X + 3, 6, 3, 1); }
+    if (k === "reset") { px(b, PAL, "L", X + 5, 5, 6, 1); px(b, PAL, "L", X + 4, 6, 1, 6); px(b, PAL, "L", X + 5, 12, 6, 1); px(b, PAL, "L", X + 11, 6, 1, 3); px(b, PAL, "L", X + 10, 9, 3, 1); }
+    if (k === "pause") { px(b, PAL, "L", X + 5, 5, 2, 8); px(b, PAL, "L", X + 9, 5, 2, 8); }
+    G.btns.push({ hud: 1, x: X, y: 0, w: 16, h: 19, fn });
+  });
+}
+function panel(x, y, w, h) { px(b, PAL, "k", x, y, w, h); px(b, PAL, "S", x + 1, y + 1, w - 2, h - 2); px(b, PAL, "k", x + 2, y + 2, w - 4, h - 4); px(b, PAL, "g", x + 1, y + 1, w - 2, 1); }
+function button(label, x, y, w, i, fn) {
+  const on = G.menu === i; if (on) { px(b, PAL, "S", x, y, w, 18); for (let k = 0; k < 4; k++) px(b, PAL, "L", x + 5 + k, y + 5 + k, 1, 9 - 2 * k); }
+  say(label, x + w / 2, y + 1, on ? PAL.y : PAL.L, "center"); G.btns.push({ x, y, w, h: 18, fn, i });
+}
+function drawTitle() {
+  const P = BLOOM; b.drawImage(LAYER.bloom, 0, TOP - 8);
+  px(b, PAL, "k", 0, 0, VW, 74); for (let x = 0; x < VW; x += 2) px(b, PAL, "k", x + (x % 4 ? 1 : 0), 74, 1, 2);
+  for (let x = 6; x < VW; x += 22) { px(b, PAL, "V", x, 66, 16, 2); px(b, PAL, "v", x + 4, 64, 2, 2); px(b, PAL, "v", x + 12, 68, 2, 2); }
+  const w = text(tr("title")).width * 2; say(tr("title"), 160 - w / 2, 12, PAL.L, "left", 2);
+  say(tr("sub"), 160, 46, PAL.y, "center");
+  b.drawImage(MUSH[0], 34, 124); b.drawImage(HERO.happy, 56, 122); b.drawImage(SPROUT, 18, 126);
+  b.drawImage(SUN[Math.floor(G.t / 0.6) % 2], 262, 108); b.drawImage(SPROUT, 284, 126); b.drawImage(SEEDICON.v, 248, 132);
+  const items = [[tr("start"), () => startGame(0)]];
+  if (G.save > 0 && G.save < ROOMS.length) items.push([`${tr("cont")} (${G.save + 1}/6)`, () => startGame(G.save)]);
+  items.push([tr("lang"), () => { LANG = LANG === "ja" ? "en" : "ja"; try { localStorage.setItem("dg_lang", LANG); } catch (e) { /* not saved */ } SFX.ui(); }]);
+  panel(84, 92, 152, 8 + items.length * 19);
+  items.forEach(([l, fn], i) => button(l, 88, 96 + i * 19, 144, i, fn));
+  G.menuN = items.length;
+  px(b, PAL, "k", 0, 156, VW, 24); say(tr("c1"), 160, 158, PAL.l, "center");
+  void P;
+}
+function drawPause() {
+  panel(70, 38, 180, 126); say(tr("pause"), 160, 42, PAL.y, "center");
+  const rows = [[tr("resume"), () => { G.scene = "play"; }], [`${tr("bgm")} ${Math.round(AU.bgm * 10)}`, () => vol("bgm")], [`${tr("sfx")} ${Math.round(AU.sfx * 10)}`, () => vol("sfx")], [tr("toTitle"), () => { G.scene = "title"; G.menu = 0; enterRoom(0, false); }]];
+  rows.forEach(([l, fn], i) => button(l, 80, 64 + i * 19, 160, i, fn)); G.menuN = rows.length;
+  say(tr("c2"), 160, 142, PAL.l, "center");
+}
+function vol(k, dir = 1) { AU[k] = Math.round(((AU[k] * 10 + dir + 11) % 11)) / 10; if (AU.m) { AU.m.gain.value = AU.bgm * 0.5; AU.s.gain.value = AU.sfx; } try { localStorage.setItem("dg_vol", JSON.stringify({ bgm: AU.bgm, sfx: AU.sfx })); } catch (e) { /* not saved */ } SFX.ui(); }
+function drawDiary(page) {
+  panel(24, 50, 272, 84); px(b, PAL, "L", 28, 54, 264, 76); px(b, PAL, "y", 28, 54, 264, 2); px(b, PAL, "f", 28, 128, 264, 2);
+  say(`${tr("diary")} ${LANG === "ja" ? ["一", "二", "三"][page] : page + 1}`, 160, 58, PAL.t, "center");
+  TX[LANG].pages[page].forEach((line, i) => say(line, 160, 80 + i * 20, PAL.S, "center"));
+  if (Math.floor(G.t * 2) % 2) say("▼", 280, 114, PAL.t, "center");
+}
+function disc(cx, cy, r, P, col) { for (let y = -r; y <= r; y++) { const w = Math.floor(Math.sqrt(r * r - y * y)); px(b, P, col, cx - w, cy + y, w * 2 + 1, 1); } }
+function drawEnd() {
+  const k = Math.min(1, (G.endT || 0) / 1.6), P = BLOOM;
+  // the whole garden in bloom: sky bands, far hills, the great tree, flowers; the gardener resting at its foot
+  [["a", 0], ["L", 46], ["w", 54]].forEach(([c, y]) => px(b, P, c, 0, y, VW, 70 - y));
+  for (let i = 0; i < 5; i++) disc(40 + i * 70, 96, 46, P, i % 2 ? "M" : "n");
+  px(b, P, "M", 0, 100, VW, 80); for (let i = 0; i < 260; i++) px(b, P, hash(i, 3) < 0.5 ? "m" : "n", Math.floor(hash(i, 4) * VW), 100 + Math.floor(hash(i, 5) * 80), 2, 1);
+  px(b, P, "B", 184, 84, 14, 50); px(b, P, "b", 186, 84, 4, 50); px(b, P, "B", 172, 130, 38, 5); for (let i = 0; i < 6; i++) px(b, P, "t", 187, 76 + i * 9, 1, 3);
+  const can = [[190, 80, 28], [162, 88, 20], [218, 90, 20], [178, 66, 20], [206, 68, 18], [192, 58, 14]];
+  can.forEach(([x, y, r], i) => disc(x, y + 3, Math.round(r * (0.5 + k * 0.5)), P, "N"));
+  can.forEach(([x, y, r]) => disc(x, y, Math.round(r * (0.5 + k * 0.5)), P, "n"));
+  can.forEach(([x, y, r]) => disc(x - 4, y - 5, Math.round(r * 0.6 * (0.5 + k * 0.5)), P, "M"));
+  can.forEach(([x, y, r]) => disc(x - 7, y - 9, Math.round(r * 0.25 * (0.5 + k * 0.5)), P, "m"));
+  for (let i = 0; i < 70 * k; i++) { const a = hash(i, 11) * 6.28, r = hash(i, 12) * 32; px(b, P, ["L", "w", "a"][i % 3], 190 + Math.round(Math.cos(a) * r * 1.3), 76 + Math.round(Math.sin(a) * r * 0.7), 2, 2); }
+  for (let i = 0; i < 90 * k; i++) { const x = Math.floor(hash(i, 9) * VW), y = 104 + Math.floor(hash(i, 10) * 70); px(b, P, ["L", "a", "w", "y"][i % 4], x, y, 2, 1); px(b, P, ["L", "a", "w", "y"][i % 4], x, y - 1, 1, 3); }
+  b.drawImage(HERO.happy, 204, 120); b.drawImage(SUN[Math.floor(G.t / 0.6) % 2], 230, 104); b.drawImage(MUSH[0], 150, 120); b.drawImage(SPROUT, 132, 122);
+  panel(10, 6, 300, 58); say(tr("endH"), 160, 9, PAL.y, "center");
+  TX[LANG].pages[2].forEach((l, i) => say(l, 160, 27 + i * 17, PAL.L, "center"));
+  // stats as icons, so they read in any language: time, undos, resets, falls
+  const tot = ROOMS.reduce((acc, _, i) => acc + (G.stats["room" + i] || 0), 0), m = Math.floor(tot / 60), sec = Math.floor(tot % 60);
+  panel(10, 138, 300, 40);
+  const stat = (x, icon, n) => { icon(x); digits(b, n, x + 12, 145, PAL.L); };
+  px(b, PAL, "L", 23, 142, 7, 7); px(b, PAL, "k", 24, 143, 5, 5); px(b, PAL, "L", 26, 144, 1, 3); px(b, PAL, "L", 27, 146, 2, 1);
+  digits(b, m, 34, 145, PAL.L); px(b, PAL, "L", 34 + String(m).length * 5, 146, 1, 1); px(b, PAL, "L", 34 + String(m).length * 5, 148, 1, 1); digits(b, String(sec).padStart(2, "0"), 36 + String(m).length * 5, 145, PAL.L);
+  stat(96, (x) => { px(b, PAL, "L", x + 2, 143, 6, 1); px(b, PAL, "L", x + 8, 144, 1, 4); px(b, PAL, "L", x + 3, 148, 5, 1); px(b, PAL, "L", x, 142, 3, 1); px(b, PAL, "L", x + 1, 141, 1, 3); }, G.stats.undos);
+  stat(160, (x) => { px(b, PAL, "L", x + 2, 142, 6, 1); px(b, PAL, "L", x + 1, 143, 1, 5); px(b, PAL, "L", x + 2, 148, 6, 1); px(b, PAL, "L", x + 8, 143, 1, 2); px(b, PAL, "L", x + 7, 145, 3, 1); }, G.stats.resets);
+  stat(224, (x) => { px(b, PAL, "b", x, 142, 9, 2); px(b, PAL, "k", x, 144, 9, 5); }, G.stats.falls);
+  button(tr("again"), 16, 156, 140, 0, () => startGame(0)); button(tr("arcade"), 164, 156, 140, 1, () => { location.href = "../"; }); G.menuN = 2;
+}
+function startGame(i) {
+  audio(); G.stats = { t0: G.t, undos: 0, resets: 0, falls: 0 }; enterRoom(i); G.scene = "intro"; G.introT = 0; G.menu = 0; G.endT = undefined; SFX.ui();
+}
+function startSlide() { G.slideT = 0; G.slid = 0; }
+function render() {
+  G.btns = [];
+  b.fillStyle = PAL.k; b.fillRect(0, 0, VW, VH);
+  if (G.scene === "title") { drawTitle(); return; }
+  if (G.scene === "end") { drawEnd(); return; }
+  let ox = 0;
+  if (G.slideT >= 0) ox = G.slideT < 0.25 ? -Math.round(G.slideT / 0.25 * VW) : Math.round((1 - (G.slideT - 0.25) / 0.25) * VW);
+  if (G.scene === "intro") {   // cold open: the old bridge gives way and the gardener drops into the moat garden
+    const k = clamp(G.introT / 1.2, 0, 1);
+    G.hero.z = (1 - k * k) * 120; G.hero.pose = "jump"; drawRoom(0);
+    for (let i = 0; i < 6; i++) px(b, PAL, "t", 40 + i * 9 + Math.floor(G.introT * 20 * (i % 3)), TOP - 6 + Math.floor(G.introT * G.introT * 140 * (0.6 + (i % 3) * 0.3)), 7, 3);
+    if (G.introT > 1.2 && G.introT < 1.3) { puff(G.S.x, G.S.y, PAL.l); G.shake = 0.2; SFX.bump(); }
+    if (G.introT > 1.2) { G.hero.z = 0; G.hero.pose = "stand"; }
+  } else drawRoom(ox);
+  drawCursor(ox);
+  for (const m of G.marks) b.drawImage(m.kind === "moon" ? MOON : XMARK, ox + m.x * TS + 4, TOP + m.y * TS + 4 - Math.round((G.t - m.t) * 6));
+  for (const p of G.parts) { b.fillStyle = p.col; b.fillRect(ox + Math.round(p.x), TOP + Math.round(p.y), 2, 2); }
+  drawHUD();
+  if (G.scene === "pause") drawPause();
+  if (G.scene === "diary") drawDiary(G.diary);
+}
+// integer upscale: the largest whole multiple that fits, letterboxed
+let SCALE = 4;
+function scaleFor(w, h) { return Math.max(1, Math.floor(Math.min(w / VW, h / VH))); }
+function fit() {
+  SCALE = scaleFor(innerWidth, innerHeight); screen.width = VW * SCALE; screen.height = VH * SCALE;
+  screen.style.left = Math.floor((innerWidth - VW * SCALE) / 2) + "px"; screen.style.top = Math.floor((innerHeight - VH * SCALE) / 2) + "px"; sg.imageSmoothingEnabled = false;
+}
+function present() {
+  const sh = G.shake > 0 ? Math.round((Math.random() - 0.5) * 2) : 0;
+  sg.imageSmoothingEnabled = false; sg.fillStyle = PAL.k; sg.fillRect(0, 0, screen.width, screen.height);
+  sg.drawImage(buf, 0, 0, VW, VH, sh * SCALE, 0, VW * SCALE, VH * SCALE);
+}
+
+// ---- input ----
+const held = {};
+const KEYDIR = { ArrowUp: 0, KeyW: 0, ArrowRight: 1, KeyD: 1, ArrowDown: 2, KeyS: 2, ArrowLeft: 3, KeyA: 3 };
+function heldDir() { let best = null, bt = -1; for (const [k, d] of Object.entries(KEYDIR)) if (held[k] && held[k] > bt) { bt = held[k]; best = d; } return best; }
+addEventListener("keydown", (e) => {
+  if (e.code in KEYDIR || e.code === "Space") e.preventDefault();
+  audio();
+  if (G.scene === "title" || G.scene === "pause" || G.scene === "end") {
+    const n = G.menuN || 1;
+    if (e.code === "ArrowDown" || e.code === "KeyS") { G.menu = (G.menu + 1) % n; SFX.ui(); }
+    else if (e.code === "ArrowUp" || e.code === "KeyW") { G.menu = (G.menu + n - 1) % n; SFX.ui(); }
+    else if ((e.code === "ArrowLeft" || e.code === "ArrowRight") && G.scene === "pause" && (G.menu === 1 || G.menu === 2)) vol(G.menu === 1 ? "bgm" : "sfx", e.code === "ArrowLeft" ? -1 : 1);
+    else if (e.code === "Enter" || e.code === "Space") { const btn = G.btns.find((t) => t.i === G.menu && !t.hud); if (btn) btn.fn(); }
+    else if (e.code === "Escape" && G.scene === "pause") G.scene = "play";
+    return;
+  }
+  if (G.scene === "diary") { G.scene = "play"; G.diary = null; startSlide(); SFX.ui(); return; }
+  if (G.scene !== "play") return;
+  if (e.code === "Escape" || e.code === "KeyP") { G.scene = "pause"; G.menu = 0; return; }
+  if (e.code in KEYDIR) { if (!held[e.code]) { held[e.code] = performance.now(); G.path = []; G.lastMove = G.t; input("URDL"[KEYDIR[e.code]]); } return; }
+  if (e.code === "Space" || e.code === "Enter" || e.code === "KeyE") input("act");
+  if (e.code === "KeyZ") undo();
+  if (e.code === "KeyR") reset();
+  if (e.code === "Digit1" || e.code === "Digit2" || e.code === "Digit3") { const t = ["v", "m", "s"].filter((k) => G.room.R.seeds[k])[+e.code.slice(-1) - 1]; if (t) { G.sel = t; SFX.ui(); } }
+  if (e.code === "Tab") { e.preventDefault(); const ts = ["v", "m", "s"].filter((k) => G.room.R.seeds[k]); G.sel = ts[(ts.indexOf(G.sel) + 1) % ts.length]; SFX.ui(); }
+});
+addEventListener("keyup", (e) => { delete held[e.code]; });
+addEventListener("blur", () => { for (const k in held) delete held[k]; });
+screen.addEventListener("pointerdown", (e) => {
+  audio(); const r = screen.getBoundingClientRect(), x = (e.clientX - r.left) / SCALE, y = (e.clientY - r.top) / SCALE;
+  const btn = G.btns.find((t) => x >= t.x && x < t.x + t.w && y >= t.y && y < t.y + t.h && !(t.hud && G.scene !== "play"));
+  if (btn) { if (btn.i !== undefined) G.menu = btn.i; btn.fn(); return; }
+  if (G.scene === "diary") { G.scene = "play"; G.diary = null; startSlide(); return; }
+  if (G.scene !== "play" || busy() || y < TOP) return;
+  const tx = Math.floor(x / TS), ty = Math.floor((y - TOP) / TS), dx = tx - G.S.x, dy = ty - G.S.y;
+  if (Math.abs(dx) + Math.abs(dy) === 1) {   // a neighbour: face it, then act on it if it is a bed or a plant, else step
+    const d = DIRS.findIndex(([a, c]) => a === dx && c === dy), k = kind(G.S, G.room, tx, ty), p = plantAt(G.S, tx, ty);
+    if (G.S.d !== d && (k.k === "bed" || p)) { G.S = { ...G.S, d }; return; }
+    if ((k.k === "bed" || (p && p.t === "s")) || (p && G.S.d === d && e.button === 2)) return action();
+    return doAct("URDL"[d]);
+  }
+  if (dx || dy) walkTo(tx, ty);
+});
+screen.addEventListener("contextmenu", (e) => e.preventDefault());
+addEventListener("resize", fit);
+
+// ---- self-test (?test=1): every room is solvable, every seed matters, and the twists hold ----
+function selftest() {
+  const out = [], ok = (name, pass, info = "") => out.push({ name, pass: !!pass, info: String(info) });
+  const lens = ROOMS.map((_, i) => solve(loadRoom(i)));
+  ok("all six rooms are solvable (breadth-first search over every state)", lens.every((r) => r.path), lens.map((r, i) => `R${i + 1} ${r.path ? r.path.length : "✗"} moves`).join(" · "));
+  const essential = ROOMS.map((R, i) => ["v", "m", "s"].filter((t) => R.seeds[t]).every((t) => { R.seeds[t]--; const r = solve(loadRoom(i)); R.seeds[t]++; return !r.path; }));
+  ok("every seed a room gives you is needed (one fewer = unsolvable)", essential.every(Boolean), essential.map((e, i) => `R${i + 1}${e ? "✓" : "✗"}`).join(" "));
+  const noPull = [4, 5].map((i) => { const room = loadRoom(i), S0 = newState(room), seen = new Set([keyOf(S0)]), q = [S0];
+    for (let h = 0; h < q.length; h++) for (const a of ["U", "R", "D", "L", "Pv", "Pm", "Ps"]) { const r = act(q[h], room, a); if (!r || seen.has(keyOf(r.S))) continue; if (r.S.won) return true; seen.add(keyOf(r.S)); q.push(r.S); } return false; });
+  ok("R5 and R6 need pulling a plant up (no solution without it)", !noPull[0] && !noPull[1], `without pulling: R5 ${noPull[0] ? "solvable" : "stuck"}, R6 ${noPull[1] ? "solvable" : "stuck"}`);
+  const fin = [{ v: 0, m: 1, s: 0 }, { v: 0, m: 0, s: 1 }].map((seeds) => { const room = loadRoom(5); room.start = [9, 3]; room.R = { ...room.R, seeds }; return solve(room).path; });
+  ok("R6's last stage has two ways through (mushroom or sunflower)", fin[0] && fin[1], `mushroom ${fin[0] ? fin[0].length : "✗"} · sunflower ${fin[1] ? fin[1].length : "✗"} moves`);
+  const r1 = solve(loadRoom(0)).path, first = r1.findIndex((a) => a[0] === "P");
+  ok("the first seed goes in within 30 s (hook)", first * 0.17 < 30, `${first} moves before planting ≈ ${(first * 0.17).toFixed(1)} s of walking`);
+  // rule checks on a scratch room
+  const scratch = (rows, seeds = { v: 2, m: 2, s: 1 }, extra = {}) => { const R0 = { key: "t", seeds, dark: false, sprout: false, hint: [0, 0], map: rows.map((r) => (r + "#".repeat(20)).slice(0, 20)), ...extra }; ROOMS.push(R0); const room = loadRoom(ROOMS.length - 1); ROOMS.pop(); room.R = R0; return room; };
+  let room = scratch(["####################", "#@s~~~~~.##########", ...Array(7).fill("####################"), "####################"]);
+  let S = newState(room); let r = act(S, room, "Pv");
+  ok("a vine that cannot reach in 4 tiles droops and the seed comes back", r.ev.some((e) => e.e === "droop") && r.S.seeds.v === 2 && !r.S.plants.length);
+  room = scratch(["####################", "#@s~~~.############", ...Array(7).fill("####################"), "####################"]);
+  S = act(newState(room), room, "Pv").S; ok("a vine bridges a 3-tile gap", S.plants[0] && S.plants[0].br.length === 3);
+  room = scratch(["####################", "#@s.#..############", ...Array(7).fill("####################"), "####################"]);
+  S = act(newState(room), room, "Pm").S; S = act(S, room, "R").S; ok("a mushroom will not throw you into a wall", S.x === 2, `stopped at x=${S.x}`);
+  room = scratch(["####################", "#@so.##############", ...Array(7).fill("####################"), "####################"]);
+  S = act(newState(room), room, "Pm").S; S = act(S, room, "R").S; ok("a mushroom jumps over a 1-tile pit", S.x === 4, `landed at x=${S.x}`);
+  room = scratch(["####################", "#@s................#", ...Array(7).fill("####################"), "####################"], { v: 1, m: 0, s: 1 }, { sprout: true });
+  r = act(newState(room), room, "Pv"); ok("in the dark, a seed will not sprout outside light", r.ev.some((e) => e.e === "dark") && !r.S.plants.length);
+  room = scratch(["####################", "#@s................#", ...Array(7).fill("####################"), "####################"]);
+  S = act(newState(room), room, "Ps").S; r = act(S, room, "R"); ok("a sunflower blocks its tile", r.S.x === 1 && r.ev.some((e) => e.e === "bump"));
+  ok("integer scaling: 1280×720 → ×4, 1920×1080 → ×6, never below ×1", scaleFor(1280, 720) === 4 && scaleFor(1920, 1080) === 6 && scaleFor(300, 100) === 1);
+  const base = new Set(Object.values(PAL)); ok("base palette stays within 32 colours (27 + reserved)", base.size <= 32, `${base.size} colours`);
+  const pass = out.every((o) => o.pass), el = document.getElementById("selftest");
+  el.textContent = JSON.stringify({ game: "dot-gardener", pass, results: out }, null, 1); el.hidden = false; document.title = "SELFTEST " + (pass ? "PASS" : "FAIL");
+}
+// ?shot=1: the broken fountain blooming (vine bridge + mushroom, the colour wave spreading); 2: the dark heart; title; end
+function setShot(k) {
+  if (k === "title") { G.scene = "title"; G.t = 1; return; }
+  if (k === "end") { enterRoom(5); G.scene = "end"; G.endT = 3; G.stats = { undos: 4, resets: 1, falls: 2, room0: 70, room1: 95, room2: 120, room3: 88, room4: 160, room5: 151 }; return; }
+  const room = k === "2" ? 5 : 3; enterRoom(room); G.scene = "play";
+  const seq = room === 5 ? "R U Ps D R Pv L U X R R D R R R R R U Ps L U Pm".split(" ") : "R R R R Pv R R Pm".split(" ");
+  for (const a of seq) { const r = act(G.S, G.room, a); if (r) G.S = r.S; }
+  syncVis(); G.hero = { x: G.S.x, y: G.S.y, z: 0, pose: "stand" }; G.roomT = 10; G.t = 3.3;
+  if (room === 3) { for (const a of ["R", "U", "R", "R"]) { const r = act(G.S, G.room, a); if (r) G.S = r.S; } G.hero = { x: G.S.x, y: G.S.y, z: 0, pose: "happy" }; G.bloomT = 0.42; G.leaving = 1; }
+}
+
+// ---- main ----
+fit(); enterRoom(0, false);
+if (TEST) selftest();
+if (SHOT) { document.body.classList.add("shot"); setShot(params.get("shot")); }
+let last = performance.now();
+(function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (!SHOT) update(dt); else G.t += 0;
+  G.shake = Math.max(0, G.shake - dt);
+  if (G.scene === "play" || G.scene === "title") music(G.scene === "title" ? "bloom" : G.bloomT >= 0 ? "bloom" : G.room.R.dark ? "dark" : "decay");
+  render(); present(); requestAnimationFrame(frame);
+})(last);
+</script>
+</body>
+</html>
