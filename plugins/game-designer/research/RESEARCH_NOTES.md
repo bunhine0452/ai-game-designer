@@ -285,6 +285,28 @@ balancing levers, reference games, talks) are in `skills/genre-design/references
 - **Audio direction:** Overwatch's audio goal was "play by sound". It required a clean mix, precisely
   locatable sounds, audio that carries gameplay information, and distinct ally/enemy sounds such as
   footsteps [D13].
+- **Pixel art craft (added in 1.10.0):** practitioner sources agree on one vocabulary.
+  - The cluster, not the pixel, is the unit of decision. Lone pixels read as noise unless
+    deliberate [D23], [D25].
+  - Lines use consistent step patterns; banding and pillow shading are the common shading faults
+    [D18], [D23].
+  - Anti-aliasing works through perceived value. Sel-out is anti-aliasing on the outline, and
+    sub-pixel animation is anti-aliasing animated over frames [D24], [D26].
+  - Ramps brighten steadily, peak in saturation mid-ramp and shift hue: warm lights, cool shadows,
+    at most about 20° per step [D25], [D23]. OKLab gives the perceptual lightness to space those
+    steps evenly [D30].
+  - Dithering lost its CRT blur, so modern work uses less of it [D23], [D33].
+  - Production can trade hand-pixelling for 3D-to-pixel pipelines (Dead Cells) [D34]. Remakes keep
+    the remembered constraints, not the hardware ones (Shovel Knight) [D32].
+  - *Evidence level:* craft consensus, not experiments. The one controlled comparison found
+    expert pixel artists preferred jointly optimised palette-and-mapping results over naive
+    downsampling [D29].
+  - *Implication:* the plugin ships two checks rather than more prose. `pixel_audit.py` finds the
+    grid, mixels, off-palette colours, noise and value range, and repairs AI-generated images the
+    way the published tools do [D31]. `palette_ramp.py` builds and checks hue-shifted ramps.
+  - The repair was measured on our own game art, degraded on purpose: 96% of art pixels recovered
+    after nearest-neighbour 4× + JPEG, 93% after bicubic 5.7× + JPEG, and about 80% after bilinear
+    3.3× + JPEG when told the art size.
 
 ---
 

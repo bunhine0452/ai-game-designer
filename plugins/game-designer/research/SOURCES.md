@@ -188,6 +188,20 @@ members-only, and many are mirrored free on the official GDC YouTube channel.
 | D20 | P | Haigh-Hutchinson, M. (2009). *Real-Time Cameras: A Guide for Game Designers and Developers*. Morgan Kaufmann. ISBN 9780123116345. |
 | D21 | P | Nesky, J. (2014). *50 Game Camera Mistakes*. GDC 2014. https://gdcvault.com/play/1020460/50-Camera |
 | D22 | P | Keren, I. (2015). *Scroll Back: The Theory and Practice of Cameras in Side-Scrollers*. GDC 2015. https://gdcvault.com/play/1022243/Scroll-Back-The-Theory-and |
+| D23 | S | Pixel Joint community. *The Pixel Art Tutorial* (clusters, AA, dithering, banding, pillow shading, sel-out, ramps and hue shifting; built on Pixelation's "Ramblethread"). https://pixeljoint.com/forum/forum_posts.asp?TID=11299 |
+| D24 | S | Pixel Parmesan (2020). *Anti-Aliasing Fundamentals for Pixel Artists* (perceived value, stacked AA, sel-out as outline AA, sub-pixel as animated AA). https://pixelparmesan.com/blog/anti-aliasing-fundamentals-for-pixel-artists |
+| D25 | S | Schlitter, R. (SLYNYRD, 2018–2026). *Pixelblog* series: 1 Color Palettes, 2 Texture, 3 Graphical Projections, 5 Back to Basics, 6 Light and Shadow, 8 Intro to Animation, 20 Top Down Tiles, 25 Motion Cycles, 26 UX/UI Design Basics, 41 Isometric Pixel Art, 47 Tiny Pixels. https://www.slynyrd.com/pixelblog-catalogue ; palettes: https://www.slynyrd.com/blog/2018/1/10/pixelblog-1-color-palettes |
+| D26 | S | 2D Will Never Die. *Give your sprites depth with sub-pixel animation*. https://2dwillneverdie.com/tutorial/give-your-sprites-depth-with-sub-pixel-animation/ |
+| D27 | S | Red Blob Games. *Autotiling* (4-bit, 47-tile blob and dual-grid sets; the page's path marks it as drafted with an AI assistant, so it is used only for tile counts that match OpenGameArt's blob template). https://www.redblobgames.com/articles/autotile/claude/ ; https://opengameart.org/node/24859 |
+| D28 | P | Kopf, J., Lischinski, D. (2011). Depixelizing Pixel Art. *ACM Transactions on Graphics* 30(4), 99:1–99:8 (SIGGRAPH 2011). https://johanneskopf.de/publications/pixelart/ |
+| D29 | P | Gerstner, T., DeCarlo, D., Alexa, M., Finkelstein, A., Gingold, Y., Nealen, A. (2012). Pixelated Image Abstraction. *NPAR 2012* (user study with expert pixel artists). https://pixl.cs.princeton.edu/pubs/Gerstner_2012_PIA/ |
+| D30 | P | Ottosson, B. (2020). *A perceptual color space for image processing* (OKLab). https://bottosson.github.io/posts/oklab/ |
+| D31 | P | AI pixel-art repair tools and their documentation: Smirnov, E., *unfake.js*, and Paine, B., *unfake* (Python port; runs- and edge-based scale detection, dominant-colour downscaling). https://pypi.org/project/unfake/ ; Hugo-Dz, *Sprite Fusion Pixel Snapper* (grid snapping and palette quantization for AI output). https://github.com/Hugo-Dz/spritefusion-pixel-snapper |
+| D32 | P | D'Angelo, D. (2014). *Breaking the NES for Shovel Knight*. Yacht Club Games / Gamasutra. https://www.yachtclubgames.com/blog/breaking-the-nes/ ; palette detail (NES palette plus four colours) from coverage: https://mcvuk.com/business-news/plain-sailing-for-yacht-club-games/ |
+| D33 | P | Ferrari, M. (2016). *8 Bit & '8 Bitish' Graphics — Outside the Box*. GDC 2016 (dithering on CRTs, colour cycling). Interview: https://www.cgmagonline.com/articles/an-interview-with-pixel-artist-extraordinaire-mark-ferrari ; Huckaby's HTML5 colour-cycling engine: https://80.lv/articles/color-cycling-from-the-90s-returns-with-html5 |
+| D34 | P | Vasseur, T. (2018). *Art Design Deep Dive: Using a 3D pipeline for 2D animation in Dead Cells*. Gamasutra. Case study: https://80.lv/articles/case-study-dead-cells-character-art-pipeline/ |
+| D35 | L | Reported internal resolutions (Celeste 320×180, Hyper Light Drifter 480×270); developer posts and forum comments, not official documentation. https://shweep.itch.io/the-machine-that-breathes/devlog/114161/resolving-resolutions ; https://gamingbolt.com/our-game-is-480p-yeah-its-low-resolution-and-very-intentionally-so |
+| D36 | P | GrafxKid. *Sweetie 16* palette. Lospec. https://lospec.com/palette-list/sweetie-16 |
 
 ## E. Competitive scan (existing agent skills / plugins)
 

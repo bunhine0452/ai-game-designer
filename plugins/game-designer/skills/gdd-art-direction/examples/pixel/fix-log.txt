@@ -1,0 +1,1 @@
+scale 5.69 -> art 160x90; colours 5641 -> 25; stray pixels removed 88; wrote fixed.png

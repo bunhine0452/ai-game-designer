@@ -1,12 +1,12 @@
 ---
 name: gdd-art-direction
-description: Writes game design documents and art and audio direction for any genre, from one-page designs and pitch summaries to full living GDDs, feature specs, asset lists with scope estimates, and art or audio style guides with visual pillars, shape language, color scripts, silhouette and readability tests, UI/HUD clarity and accessibility checklists (Game Accessibility Guidelines, Xbox Accessibility Guidelines). Use when the user asks for a GDD, design doc, one-pager, feature spec, asset list, content inventory, scope estimate, art bible, style guide, art direction, audio direction or accessibility review. Covers pixel art and 3D (low poly, toon, PBR) art direction, metrics and cameras. Also triggers on 기획서, 게임 기획서, 원페이지, 기능 명세서, 에셋 리스트, 아트 디렉션, 스타일 가이드, 접근성; 企画書, 仕様書, ワンページ, アセットリスト, アートディレクション, アクセシビリティ; 策划案, 设计文档, 功能文档, 美术风格, 资源清单, 无障碍; documento de diseño, guía de estilo, accesibilidad.
+description: Writes game design documents and art and audio direction for any genre: one-page designs, living GDDs, feature specs, asset lists with scope estimates, and art or audio style guides with visual pillars, shape language, color scripts, silhouette and readability tests, UI/HUD clarity and accessibility checklists (Game Accessibility Guidelines, Xbox Accessibility Guidelines). Use when the user asks for a GDD, design doc, one-pager, feature spec, asset list, scope estimate, art bible, style guide, art or audio direction or accessibility review. Covers 3D (low poly, toon, PBR) and pixel art, including pixel-art critique, palette ramps and auditing or cleaning up AI-generated pixel art. Also triggers on 기획서, 원페이지, 기능 명세서, 에셋 리스트, 아트 디렉션, 스타일 가이드, 접근성, 픽셀아트, 도트; 企画書, 仕様書, アセットリスト, アートディレクション, アクセシビリティ, ドット絵; 策划案, 设计文档, 美术风格, 资源清单, 无障碍, 像素画; documento de diseño, guía de estilo, accesibilidad, pixel art.
 argument-hint: "[one-pager | gdd | spec | style guide | accessibility] [topic]"
 license: MIT
-compatibility: Any agent that reads SKILL.md folders (Claude Code, Claude apps, Codex, Antigravity, Cursor, Copilot). Scripts need Python 3; matplotlib optional.
+compatibility: Any agent that reads SKILL.md folders (Claude Code, Claude apps, Codex, Antigravity, Cursor, Copilot). Scripts need Python 3; matplotlib and Pillow optional.
 metadata:
   author: bunhine0452
-  version: "1.9.0"
+  version: "1.10.0"
   repository: https://github.com/bunhine0452/ai-game-designer
 ---
 
@@ -35,6 +35,7 @@ document that gets the decision made, keep it alive, and make it visual where po
 | Plan content and estimate scope | Asset list / content inventory | `references/templates/asset-list.csv` + `references/scope-and-assets.md` |
 | Define the look and sound | Art and audio style guide | `references/templates/style-guide.md` |
 | Pixel art game: canvas, palette, animation rules | Pixel art style block | `references/pixel-art-direction.md` |
+| Pixel art looks off; critique, palette or AI-made pixel art | Pixel audit and fix list | `references/pixel-art-craft.md` + the scripts below |
 | 3D game: style, budgets, metrics, camera | 3D style, metrics and camera block | `references/3d-art-direction.md` |
 
 Default to the **one-page design** at concept stage, the **living GDD hub plus feature specs**
@@ -76,6 +77,21 @@ in production, and the **style guide** once a visual target exists.
 - **UI/HUD:** a clear hierarchy, minimal persistent HUD, consistent iconography, readable
   type sizes, and colorblind-safe status with redundant shape or icon.
 
+## Pixel art checks (detail in `references/pixel-art-craft.md`)
+
+Run the scripts rather than judging pixel art by eye alone:
+
+- `python3 scripts/pixel_audit.py audit shot.png [--palette pal.hex] [--bg "#hex"]` finds the
+  scale of a screenshot or AI image. It reports mixels, non-integer scaling, off-palette or
+  near-duplicate colours, stray pixels, value range and eye-burning colours, each with a fix.
+- `python3 scripts/pixel_audit.py fix ai.png -o clean.png --palette pal.hex [--size 64x64]` turns
+  AI-generated "pixel art" into a real grid and palette. Repaint lines and light by hand after.
+- `python3 scripts/palette_ramp.py ramp --base "#3f8f5a"` builds an evenly stepped, hue-shifted
+  ramp. `palette_ramp.py check pal.hex` flags straight ramps, uneven steps and near-duplicates.
+
+In a critique, name defects in the order of the checklist in `pixel-art-craft.md` §14 (most
+visible first). Give each a concrete fix: which pixels, which colour, which rule.
+
 ## Audio direction essentials (detail in `references/audio-direction.md`)
 
 Audio pillars mirror the visual pillars. Define the mix priorities (gameplay-critical cues
@@ -102,8 +118,11 @@ critical audio cue with a visual one (accessibility).
   information.
 - `references/accessibility.md`: Game Accessibility Guidelines tiers, XAG areas, APX patterns,
   checklist.
-- `references/pixel-art-direction.md`: integer-scaled canvas, palette ramps, clean lines, outlines, animation frames and timing, tiles and bitmap fonts, scope math.
+- `references/pixel-art-direction.md`: integer-scaled canvas, projection, outline/AA/dither policy, palette ramps, animation frames and timing, tiles and bitmap fonts, scope math, checks.
+- `references/pixel-art-craft.md`: the craft theory (clusters, lines, banding, light and form, anti-aliasing and sel-out, hue-shifted ramps, dithering, texture, tiles, animation, AI-generated art) and the defect checklist.
+- `scripts/pixel_audit.py` (audit, fix, selftest) and `scripts/palette_ramp.py` (ramp, check, selftest): Python 3 standard library; Pillow speeds up reading.
 - `references/3d-art-direction.md`: choosing a finishable 3D style, polygon/texel/draw-call budgets, player metrics, camera rules, landmarks and wayfinding, color scripts.
 - `references/templates/`: one-page design, full GDD, feature spec, asset list (CSV), style guide.
 - `examples/one-page-gdd-example.md`: a complete one-pager for an original concept.
 - `examples/asset-list-example.csv`: an inventory with estimates for the same concept.
+- `examples/pixel/`: an AI-like degraded image audited, repaired to its 160×90 grid and palette (93% of pixels recovered), plus a palette check and a generated ramp.

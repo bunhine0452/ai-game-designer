@@ -1,0 +1,10 @@
+# Pixel audit: fixed.png  ->  WARN
+
+- Grid: 640x360 image = 160x90 art pixels at scale 4.0 (cell widths {4: 160}, heights {4: 90})
+- Grid fit: 100% of edge energy on grid lines; cell noise 0.0%; mixed cells 0.0%
+- Colours: 25 (top: #ab9e9c x4978, #76697a x3204, #3c6e8f x2000, #503f52 x1415, #1f3b5a x405, #1a1726 x381)
+- Values: lightness 0.35-0.71 (range 0.36); eyeburn share 0%
+- Single pixels: 1 low-contrast (noise), 667 high-contrast (accents: eyes, highlights, stars)
+
+[WARN] LOW_VALUE_RANGE: values span only 0.36 of the lightness scale (5th-95th percentile)
+       fix: Spread darks and lights further; check the image in greyscale.

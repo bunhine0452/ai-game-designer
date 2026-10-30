@@ -1,0 +1,18 @@
+# Pixel audit: ai-like-input.jpg  ->  FAIL
+
+- Grid: 912x513 image = 160x90 art pixels at scale 5.69 (cell widths {5: 48, 6: 112}, heights {5: 28, 6: 61, 7: 1})
+- Grid fit: 58% of edge energy on grid lines; cell noise 47.1%; mixed cells 89.7%
+- Colours: 5641 (top: #76697a x1248, #ad9d9e x821, #3d6e8f x619, #ad9e9b x490, #3c6d8e x107, #ad9e9c x84)
+- Values: lightness 0.34-0.73 (range 0.39); eyeburn share 0%
+- Single pixels: 4330 low-contrast (noise), 4063 high-contrast (accents: eyes, highlights, stars)
+
+[FAIL] AI_OR_RESAMPLED: cells are not flat (47% of pixels disagree with their cell; widths [5, 6]): smooth scaling, JPEG compression or AI generation
+       fix: Run `pixel_audit.py fix` to snap to the grid, then repaint the details by hand.
+[FAIL] TOO_MANY_COLORS: 5641 colours (budget 32)
+       fix: Reduce to ramps per material; merge near-duplicates (`fix --colors N`).
+[WARN] SIMILAR_COLORS: more than 256 colours: too many to check pairwise
+       fix: Quantize first (`fix`).
+[WARN] NOISE_PIXELS: 4330 stray single pixels that barely differ from their surroundings, e.g. at (14,0), (22,0), (23,0), (24,0), (25,0)
+       fix: Join them to a cluster or remove them; single pixels should be deliberate (eyes, highlights, stars).
+[WARN] LOW_VALUE_RANGE: values span only 0.39 of the lightness scale (5th-95th percentile)
+       fix: Spread darks and lights further; check the image in greyscale.

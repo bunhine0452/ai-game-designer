@@ -4,6 +4,11 @@ Pixel art is a set of constraints chosen on purpose: a fixed grid, a small palet
 frames. Decide the constraints first and write them down. Most "it looks off" problems come
 from breaking them by accident (mixed pixel sizes, rotated sprites, smooth scaling).
 
+This file covers the decisions. The craft behind them (clusters, lines, banding, light and form,
+anti-aliasing, ramps, dithering, texture, tiles, animation, AI-generated art) and a defect
+checklist are in `pixel-art-craft.md`. The checks run with `scripts/pixel_audit.py` and
+`scripts/palette_ramp.py` (section 8).
+
 ## 1. Lock the canvas
 
 | Decision | Options | Rule of thumb |
@@ -13,6 +18,10 @@ from breaking them by accident (mixed pixel sizes, rotated sprites, smooth scali
 | Character size | 16–48 px tall | Decide how much face and silhouette you need. A 16 px hero reads by pose; 32 px and up can show expression. |
 | Pixel density | One size for everything | Never mix pixel sizes: no 2× sprites beside 1× tiles, no smooth-scaled UI. |
 | Camera | Pixel-snapped | Snap the camera and sprites to whole pixels of the internal buffer. Sub-pixel movement shimmers. |
+| Projection | Side view, top-down 3/4, isometric (2:1 lines) | One projection per scene; never mix viewpoints. |
+| Outline policy | None, dark, coloured, selective (sel-out) | One policy per layer. Outer outlines keep sprites readable on any background. |
+| Anti-aliasing | None, inner only | Never outer AA on game sprites: the background is unknown. |
+| Dithering | None, 50% checker on large areas | Skies and rough materials only; add a colour instead of dithering half a sprite. |
 
 Write these in the style guide as **hard rules** with a one-line reason each.
 
@@ -22,7 +31,9 @@ Write these in the style guide as **hard rules** with a one-line reason each.
   material: skin, foliage, stone, water, metal, UI. Published palettes (for example on Lospec)
   are good starting points; adjust them to your pillars.
 - **Hue-shift the ramps:** shadows drift toward cool or purple, highlights toward warm or
-  yellow. That reads livelier than plain darker and lighter versions of one hue.
+  yellow. That reads livelier than plain darker and lighter versions of one hue. Build ramps
+  with `palette_ramp.py ramp --base "#hex"` (even perceptual steps, at most about 20° of hue per
+  step) and check a finished palette with `palette_ramp.py check`.
 - **Reserve colors for gameplay:** danger, pickup and interactable each get a hue that
   decoration never uses (the readability rule in `art-direction.md`).
 - **Check value first:** grayscale a screenshot. The player, hazards and the goal must
@@ -79,17 +90,33 @@ Put this count into the asset list (`scope-and-assets.md`) before promising cont
 
 ```
 Canvas: 384×216, ×5 to 1920×1080, nearest-neighbour, pixel-snapped camera
-Tiles: 16 px · Hero: 24 px tall · Enemies: 16–32 px
+Projection: top-down 3/4 · Tiles: 16 px · Hero: 24 px tall · Enemies: 16–32 px
 Palette: 24 colors in 6 ramps (+2 reserved: danger #e43b44, pickup #feae34)
-Outlines: selout on characters, none on tiles · Light: top-left
+Outlines: selout on characters, none on tiles · Light: top-left · AA: inner only
+Dithering: 50% checker on skies and rough stone only
 Animation: 12 ticks/s base; hero walk 6 frames, attack 5 (smear on frame 3)
 Font: 6×8 bitmap, integer scaling only
-Never: rotated sprites, mixed pixel sizes, smooth scaling, unreserved red
+Checks: pixel_audit.py PASS on every screenshot; palette_ramp.py check on the palette
+Never: rotated sprites, mixed pixel sizes, smooth scaling, unreserved red, JPEG
 ```
+
+## 8. Checks and AI-generated assets
+
+- **Every screenshot:** `python3 scripts/pixel_audit.py audit shot.png --palette palette.hex`.
+  It finds the scale and reports mixels, off-palette colours, noise, near-duplicate colours,
+  value range and eye-burning colours, each with a fix. A prototype's own `?test=1` should also
+  assert that a drawn frame holds palette colours only (the pixel template does).
+- **Sprites on a known background:** add `--bg "#hex"` to catch sprites whose edges melt into
+  it.
+- **AI-generated "pixel art":** never use it as is. Run
+  `pixel_audit.py fix ai.png -o clean.png --palette palette.hex`, giving `--size WxH` when you
+  know the art size. Then repaint lines, anti-aliasing and light by hand, and audit again. See
+  `pixel-art-craft.md` §13 for what the repair can and cannot recover.
 
 ## Sources
 - [D16] Azzi, M. (2017; revised 2022). *Pixel Logic: A Guide to Pixel Art*.
 - [D17] Medeiros, P. (Saint11). Pixel art tutorials (animated GIF series).
 - [D18] Yu, D. *Pixel Art Tutorial* and *Common Mistakes* (derekyu.com).
+- [D23] Pixel Joint, *The Pixel Art Tutorial*; [D25] Schlitter (SLYNYRD), *Pixelblog*; [D30] Ottosson, OKLab; [D31] AI pixel-art repair tools.
 - [D5] Readability and silhouettes (TF2); [D11] color-vision deficiency; [D12] WCAG contrast.
 - Full bibliography: `research/SOURCES.md` in the repository.
