@@ -45,12 +45,25 @@
 9. **Scale canvas text for its display size.** A 960-px canvas shown at 670 px shrinks text
    by 30%. Size canvas fonts for the displayed size.
 
+10. **Rules emit events; the presentation plays them back.** Rule functions push events
+    (`hit`, `crest`, `draw`, `kill`) and return at once. The UI drains the queue with
+    `await`ed delays, updating a separate view model from each event's payload. Bots run the
+    same rules with events switched off. Split multi-actor phases into steps
+    (`beginEnemyPhase`, `enemyAct(e)`, `finish`) so the screen can show each actor in turn.
+11. **Keep a handle on what is on screen.** Rules often clear state at the end
+    (`G.fight = null`). The last blow still has to animate, so keep a `SHOWN` reference
+    for the duration of the playback.
+12. **Previews run the real rules on a copy.** `structuredClone(state)`, stub the RNG, play,
+    read the outcome, and restore. Then test that every preview equals the real result.
+
 ## Input and layout
 
 - Keyboard plus pointer for every action. Touch: `touch-action: manipulation` on the canvas.
 - Map pointer coordinates through `getBoundingClientRect()` and the canvas size, so the
   page works at any width.
-- A two-column grid that collapses to one column under ~880 px.
+- Prefer a fixed 1280×720 stage scaled with `transform: scale(k)` to fit the window. The
+  composition then holds on every screen. Use body-colored bands for the letterbox and a
+  "turn your phone sideways" hint for portrait phones.
 
 ## Sources
 

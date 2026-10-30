@@ -4,6 +4,25 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [1.3.1] - 2026-10-30
+
+### Changed
+- **Tidecaller rebuilt** to a real demo standard. It now has an illustrated moonlit sea and a
+  diegetic tide pole whose water line is the gauge, illustrated enemies with idle, hit and death
+  animations, and a painted vignette on each of the 24 cards. Hovering a card previews the
+  damage and where the water lands. Big moments get a crest wave, slack ripples and an eclipse
+  for the boss. It adds synthesized sound and title, route, reward, rest and end screens, plus
+  coach tips and keyboard play. Rules and numbers are unchanged. There are 16 self-tests,
+  including a check that the preview matches the real play in 240 of 240 random states.
+- `playable-prototype` skill: adds a presentation bar (screen-first stage, diegetic gauges,
+  illustrated units and cards, previews, feedback, a loop of screens, real-browser playtests)
+  and the event-playback architecture, after the first builds passed every test but looked
+  like dashboards.
+
+### Fixed
+- Tidecaller: an enemy defeated by a Crest mid-turn no longer acts later in the same
+  enemy phase.
+
 ## [1.3.0] - 2026-10-30
 
 ### Added

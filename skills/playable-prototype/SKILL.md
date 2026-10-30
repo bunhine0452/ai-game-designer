@@ -43,7 +43,8 @@ riskiest assumption**, built so the numbers can be trusted and the result can be
    - *bots*: a simple policy plays the whole session to an end state, many seeds, no errors;
    - *balance probes*: report the bot's outcome (win rate, resources left) as information.
    Details and pitfalls: `references/testing-and-bots.md`.
-7. **Placeholder art and sound that respect the art direction.** Procedural SVG/canvas
+7. **Make it look and feel like a game, not a dashboard.** Clear the presentation bar in
+   `references/assets-and-feel.md` before you call it done. Then add art and sound that respect the art direction: Procedural SVG/canvas
    shapes following the style guide's shape language and palette; WebAudio tones for key
    events; captions for every sound cue. See `references/assets-and-feel.md`. For production
    art, hand off to asset tools (e.g. an image or canvas-design skill, an engine plugin).
@@ -67,6 +68,8 @@ riskiest assumption**, built so the numbers can be trusted and the result can be
   and sets `document.title` to `SELFTEST PASS|FAIL`.
 - `?shot=1` builds a deterministic, representative mid-game state for the screenshot.
 - Optional storage wrapped in try/catch; the game works without it.
+- Screen-first layout: a fixed 16:9 stage scaled to fit the window, with the play space as the
+  hero. No sidebar of stat text. Numbers live on the units, cards and diegetic gauges.
 - Accessibility: keyboard and pointer input, captions for audio cues, a reduce-flashing option
   when anything flashes, readable text sizes, no color-only signals.
 
@@ -80,6 +83,10 @@ riskiest assumption**, built so the numbers can be trusted and the result can be
   the UI decides how to show them. That one rule makes bots and tests possible.
 - **Original work only.** Prototype the user's design. Use reference games as lessons, never
   as assets, names or layouts to copy.
+- **Fidelity is the floor, not the bar.** Correct numbers in a stat-dump UI still read as
+  "terrible" to players. Ship one polished loop rather than six greyboxes.
+- **Playtest in a real browser.** Click through every screen with the mouse before you report.
+  Headless tests and screenshots miss hover, timing and end-of-fight bugs.
 - **Small and finished beats big and broken.** End the session cleanly (a win, a summary,
   "the demo ends here") so testers can say what they felt.
 

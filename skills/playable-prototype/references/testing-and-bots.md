@@ -51,6 +51,12 @@ Hoshiyobi Island, 40,000 simulated pulls matched the exact mean within 2%.
 - **Testing only `file://`.** Re-run against the deployed URL. In our case all six passed on
   GitHub Pages, but paths and fonts can differ there.
 
+- **Headless screenshots freeze compositor animations.** Entrance animations
+  (opacity and transform keyframes) can be captured on frame 0 and look like missing content.
+  Add a `shot` class that disables them in screenshot mode, and confirm in a real browser.
+- **Never kill a process you didn't start.** Before starting a local server, check that the
+  port is free (`lsof -iTCP:<port> -sTCP:LISTEN`) and pick another one if it isn't.
+
 ## Screenshots
 
 `?shot=1` should build the most informative state: mid-session, several systems visible, a
