@@ -36,3 +36,21 @@ catches, a climb through rising peaks, a summit near the end, a short exhale. Th
 piece should look like the final plate of a long study, refined across countless passes until
 nothing could be removed. It should be crisp, quiet and complete, the kind of work only a
 master would dare to leave this spare.
+
+## Plate 2: From Curve to Play
+
+The first plate charted delight as pure evidence: one curve, a cloud of traces, nothing else. The
+second plate keeps the instrument and lets the subject in. The gold line still rises from a hook
+to a climax, but it no longer stays inside the chart. It leaves the type and climbs across a wall
+of real screens, the eight games made with these skills, set in deep perspective so the eye
+travels the same way the curve does: from the quiet name on the left into the noise and color of
+play on the right.
+
+The rules hold. Ink-dark space carries the composition. Ivory is for structure and words, slate
+for everything secondary, gold only for the line that matters, and now for the two frames it
+passes through first, the 3D game and the pixel game. Numbers are set like specimen labels:
+large serif figures, small tracked mono captions. The screens recede in shadow and dim toward the
+back, so the wall reads as depth rather than collage. Pixel art keeps its hard edges; nothing is
+smoothed that was drawn on a grid. Every placement is measured, and nothing touches the type.
+
+Source: `docs/design/banner.html`, rendered by `docs/design/make_banner.py`.
