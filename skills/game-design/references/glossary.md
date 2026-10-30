@@ -32,6 +32,9 @@ Conventions:
 | Lens (design lens) | 렌즈 (디자인 관점) | レンズ（設計の視点） | 透镜 / 设计视角 | lente de diseño |
 | Prototype | 프로토타입 | プロトタイプ | 原型 | prototipo |
 | Vertical slice | 버티컬 슬라이스 | バーティカルスライス | 垂直切片 | corte vertical |
+| Greybox | 그레이박스 | グレーボックス | 灰盒 | caja gris (greybox) |
+| Self-test (automated) | 자체 테스트 | セルフテスト | 自测 | autoprueba |
+| Bot (scripted player) | 봇 (자동 플레이어) | ボット（自動プレイヤー） | 机器人（脚本玩家） | bot (jugador automático) |
 | Scope creep | 스코프 크립 (범위 팽창) | スコープクリープ | 范围蔓延 | desbordamiento del alcance |
 | Soft launch | 소프트 런칭 | ソフトローンチ | 软启动 / 测试上线 | lanzamiento suave |
 

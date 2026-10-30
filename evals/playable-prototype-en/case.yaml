@@ -1,0 +1,22 @@
+schema_version: "1.1"
+name: playable-prototype-en
+description: "English prompt should trigger the playable-prototype skill and be answered in English."
+tags: [trigger, en, playable-prototype]
+execution:
+  prompt: "Here's my one-pager: a cozy farming game where monsters you befriend tend crops; pillars are 'no failure, only detours' and 'helpers have personalities'; biggest risk: is placing helpers fun? Turn it into a playable prototype plan: scope, which numbers to copy, and how to test that the build matches the design."
+  max_turns: 8
+  timeout_seconds: 300
+  allowed_tools: [Skill, Read, Glob, Grep]
+runs: 1
+graders:
+  - type: tool_used
+    name: skill-fired
+    tool: Skill
+    input_match: "playable-prototype"
+    min: 1
+  - type: llm
+    name: answer-language
+    criteria: "The final response is written in English (code, file names and English terms in parentheses are allowed)."
+  - type: llm
+    name: useful-answer
+    criteria: "The response addresses the request with concrete, actionable game-design content (specific mechanics, numbers, steps or fixes), not generic advice."

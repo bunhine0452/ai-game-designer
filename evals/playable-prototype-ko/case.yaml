@@ -1,0 +1,25 @@
+schema_version: "1.1"
+name: playable-prototype-ko
+description: "Korean prompt should trigger the playable-prototype skill and be answered in Korean."
+tags: [trigger, ko, playable-prototype]
+execution:
+  prompt: "원페이지 기획서가 있어: 몬스터 친구들이 농사를 돕는 힐링 농장 게임이고, 기둥은 '실패 없이 우회만'과 '도우미마다 성격이 있다', 가장 큰 리스크는 '도우미 배치가 재미있는가'야. 이걸로 바로 플레이해 볼 수 있는 프로토타입을 만들고 싶어. 범위, 옮길 수치, 기획대로 만들어졌는지 검증하는 방법을 정리해줘."
+  max_turns: 8
+  timeout_seconds: 300
+  allowed_tools: [Skill, Read, Glob, Grep]
+runs: 1
+graders:
+  - type: tool_used
+    name: skill-fired
+    tool: Skill
+    input_match: "playable-prototype"
+    min: 1
+  - type: llm
+    name: answer-language
+    criteria: "The final response is written in Korean (code, file names and English terms in parentheses are allowed)."
+  - type: llm
+    name: useful-answer
+    criteria: "The response addresses the request with concrete, actionable game-design content (specific mechanics, numbers, steps or fixes), not generic advice."
+  - type: llm
+    name: localized-terms
+    criteria: "The response uses Korean terminology for game-design concepts, and at least one technical term is shown on first use with its English equivalent in parentheses, for example a localized term followed by (Prototype), (Greybox), (Self-test), (Core Loop) or (Pillar)."

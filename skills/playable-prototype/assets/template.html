@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prototype title</title>
+<style>
+  /* Palette from the style guide: keep gameplay colors reserved. */
+  :root { --bg:#0d121d; --panel:#151c2b; --ink:#ede6d6; --ink2:#9aa6ba; --accent:#f0b44c; --line:#26304a; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif; }
+  header { display:flex; flex-wrap:wrap; gap:6px 16px; align-items:baseline; padding:12px 16px; border-bottom:1px solid var(--line); }
+  header h1 { margin:0; font-size:20px; } .sub { color:var(--ink2); font-size:13px; } a { color:var(--accent); }
+  main { display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:16px; padding:16px; max-width:1100px; margin:0 auto; }
+  @media (max-width:860px){ main { grid-template-columns:1fr; } }
+  canvas { width:100%; height:auto; display:block; border-radius:12px; background:#050814; }
+  .panel { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:12px 14px; }
+  button { font:inherit; cursor:pointer; border-radius:10px; border:1px solid var(--line); background:#1e2840; color:var(--ink); padding:9px 14px; }
+  button.primary { background:var(--accent); color:#221800; border-color:var(--accent); font-weight:700; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .overlay { position:fixed; inset:0; background:rgba(0,0,0,.7); display:none; align-items:center; justify-content:center; padding:16px; }
+  .overlay.show { display:flex; } .overlay .panel { max-width:460px; text-align:center; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Prototype title <span class="sub">genre · one-line fantasy</span></h1>
+  <span class="sub">Implements <a href="#">design-doc.md</a> (link the exact document and version)</span>
+</header>
+<main>
+  <section><canvas id="c" width="960" height="560" aria-label="Describe what the player sees"></canvas></section>
+  <aside class="panel">
+    <div id="stats"></div>
+    <p><button class="primary" id="act">Harvest</button> <button id="up">Upgrade</button></p>
+    <p class="sub">Replace this demo loop (earn → upgrade → reach the goal) with the design's core loop.</p>
+  </aside>
+</main>
+<div class="overlay" id="overlay"><div class="panel" id="box"></div></div>
+<pre id="selftest" hidden></pre>
+<script>
+"use strict";
+// 1. DATA: copied verbatim from the design, with provenance. Mark guesses as placeholders.
+const DATA = { goalLevel: 5, baseCost: 10, costGrowth: 1.5, baseYield: 3 };   // source: design-doc.md §Economy (placeholder values)
+const cost = (lvl) => DATA.baseCost * Math.pow(DATA.costGrowth, lvl - 1);
+
+// 2. Seeded RNG: every random call goes through rng() so tests and screenshots repeat exactly.
+let rng = Math.random;
+function seeded(a) { return () => { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+
+// 3. One state object.
+const fresh = () => ({ level: 1, coins: 0, harvests: 0, pending: null, sparkle: 0 });
+let S = fresh();
+
+// 4. Rules: change S only. Record outcomes in S.pending; never open UI from here.
+function harvest() { const gain = DATA.baseYield * S.level + (rng() < 0.2 ? 1 : 0); S.coins += gain; S.harvests++; S.sparkle = 1; return gain; }
+function upgrade() {
+  if (S.level >= DATA.goalLevel || S.coins < cost(S.level)) return false;
+  S.coins -= cost(S.level); S.level++;
+  if (S.level >= DATA.goalLevel) S.pending = "win";
+  return true;
+}
+
+// 5. Rendering reads S. setHTML rebuilds DOM only when markup changes (ui() runs every frame).
+const $ = (id) => document.getElementById(id);
+const setHTML = (el, html) => { if (el._html !== html) { el._html = html; el.innerHTML = html; } };
+const cv = $("c"), g = cv.getContext("2d");
+function draw(dt) {
+  S.sparkle = Math.max(0, S.sparkle - dt * 2);
+  g.fillStyle = "#050814"; g.fillRect(0, 0, cv.width, cv.height);
+  const r = 60 + S.level * 18 + S.sparkle * 10;
+  g.fillStyle = "#f0b44c"; g.beginPath(); g.arc(cv.width / 2, cv.height / 2, r, 0, Math.PI * 2); g.fill();
+  g.fillStyle = "#ede6d6"; g.font = "600 28px system-ui"; g.textAlign = "center";
+  g.fillText(`Level ${S.level} / ${DATA.goalLevel}`, cv.width / 2, cv.height - 40); g.textAlign = "left";
+}
+function ui() {
+  setHTML($("stats"), `<b>${Math.floor(S.coins)}</b> coins · level ${S.level} · next upgrade ${S.level >= DATA.goalLevel ? "—" : Math.ceil(cost(S.level))}`);
+  $("up").disabled = S.level >= DATA.goalLevel || S.coins < cost(S.level);
+  if (S.pending === "win" && !$("overlay").classList.contains("show")) {
+    $("box").innerHTML = `<h2>Goal reached</h2><p>${S.harvests} harvests.</p><button class="primary" id="again">Play again</button>`;
+    $("overlay").classList.add("show");
+    $("again").onclick = () => { S = fresh(); $("overlay").classList.remove("show"); };
+  }
+}
+
+// 6. Input calls rules, then the frame loop re-renders.
+$("act").onclick = () => harvest();
+$("up").onclick = () => upgrade();
+addEventListener("keydown", (e) => { if (e.key === " ") { e.preventDefault(); harvest(); } if (e.key.toLowerCase() === "u") upgrade(); });
+
+// 7. Self-test (?test=1) and screenshot state (?shot=1).
+function selftest() {
+  const out = [], ok = (name, cond, info = "") => out.push({ name, pass: !!cond, info });
+  ok("fidelity: cost(1) equals the design's base cost", cost(1) === DATA.baseCost);
+  ok("fidelity: cost grows by the design's factor", Math.abs(cost(3) / cost(2) - DATA.costGrowth) < 1e-9);
+  S = fresh(); ok("rule: cannot upgrade without coins", !upgrade());
+  // Bot: harvest, upgrade when affordable, many seeds, must reach the goal.
+  const seeds = 20; let finished = 0, steps = 0;
+  for (let s = 0; s < seeds; s++) { rng = seeded(100 + s); S = fresh(); let guard = 0;
+    while (!S.pending && guard++ < 1000) { harvest(); while (upgrade()); }
+    if (S.pending === "win") finished++; steps += S.harvests; }
+  ok("bot reaches the goal on every seed", finished === seeds, `avg ${(steps / seeds).toFixed(1)} harvests`);
+  const pass = out.every((o) => o.pass);
+  $("selftest").textContent = JSON.stringify({ game: "template", pass, results: out }, null, 1);
+  $("selftest").hidden = false; document.title = `SELFTEST ${pass ? "PASS" : "FAIL"}`;
+  S = fresh(); rng = Math.random;
+}
+const params = new URLSearchParams(location.search);
+if (params.has("test")) selftest();
+else if (params.has("shot")) { rng = seeded(7); S = fresh(); for (let i = 0; i < 12; i++) { harvest(); upgrade(); } }
+
+// 8. Frame loop.
+let last = performance.now();
+function frame(now) { const dt = Math.min(0.1, (now - last) / 1000); last = now; draw(dt); ui(); requestAnimationFrame(frame); }
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

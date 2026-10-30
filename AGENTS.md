@@ -5,7 +5,7 @@ and others) working **in this repository** or **with these skills**.
 
 ## What this repo is
 
-Six Agent Skills for game design in `skills/<name>/SKILL.md` (the open SKILL.md format):
+Seven Agent Skills for game design in `skills/<name>/SKILL.md` (the open SKILL.md format):
 
 | Skill | Use it for |
 |---|---|
@@ -15,6 +15,7 @@ Six Agent Skills for game design in `skills/<name>/SKILL.md` (the open SKILL.md 
 | `balance-economy` | XP curves, combat math, cost curves, economies, drop rates, gacha and pity |
 | `gdd-art-direction` | One-page designs, GDDs, feature specs, asset lists, art and audio direction, accessibility |
 | `design-review` | Critiques of concepts, specs, builds and playtest notes, with a dark-pattern ethics pass |
+| `playable-prototype` | Turn design documents into single-file browser prototypes with self-tests, bots and screenshots |
 
 ## Using the skills from an agent without native skill support
 

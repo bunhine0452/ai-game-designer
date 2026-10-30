@@ -1,6 +1,6 @@
 ---
 name: game-design
-description: Entry point for game design work in any genre, from first concept to soft launch. Use when the user pitches or describes a game idea, asks how to design a game, wants a design brief, design pillars, a core loop, MDA analysis, target aesthetics or player motivations, or is unsure which design skill applies. Routes to fun-curve (pacing), genre-design (genre playbooks), balance-economy (numbers, economy, gacha), gdd-art-direction (documents, art, audio, accessibility) and design-review (critique, playtest notes, dark patterns). Also triggers on 게임 기획, 게임 디자인, 게임 아이디어, 코어 루프, 디자인 기둥, 기획 도와줘; ゲーム企画, ゲームデザイン, ゲームのアイデア, コアループ, デザインの柱; 游戏策划, 游戏设计, 游戏创意, 核心循环, 设计支柱; diseño de juegos, idea de juego, bucle principal, pilares de diseño.
+description: Entry point for game design work in any genre, from first concept to soft launch. Use when the user pitches or describes a game idea, asks how to design a game, wants a design brief, design pillars, a core loop, MDA analysis, target aesthetics or player motivations, or is unsure which design skill applies. Routes to fun-curve (pacing), genre-design (genre playbooks), balance-economy (numbers, economy, gacha), gdd-art-direction (documents, art, audio, accessibility) design-review (critique, playtest notes, dark patterns) and playable-prototype (playable browser prototypes). Also triggers on 게임 기획, 게임 디자인, 게임 아이디어, 코어 루프, 디자인 기둥, 기획 도와줘; ゲーム企画, ゲームデザイン, ゲームのアイデア, コアループ, デザインの柱; 游戏策划, 游戏设计, 游戏创意, 核心循环, 设计支柱; diseño de juegos, idea de juego, bucle principal, pilares de diseño.
 ---
 
 # Game Design (entry point and router)
@@ -63,6 +63,7 @@ do the work here with this skill's references and general expertise.
 | XP tables, stats, damage, TTK, economy, currencies, drop rates, gacha, pity, cost curves | `balance-economy` | Numbers or a draft table |
 | One-page design, GDD, feature spec, asset list, art or audio direction, accessibility | `gdd-art-direction` | Pillars, stage, team size |
 | Critique a concept, prototype or playtest notes; ethics or monetization review | `design-review` | The material to review, goals |
+| Make the design playable: prototype, greybox, demo, vertical slice | `playable-prototype` | The documents to build from |
 
 ## 4. Core frameworks (use them; don't lecture about them)
 
