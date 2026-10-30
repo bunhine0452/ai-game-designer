@@ -111,7 +111,7 @@ def main():
     ax.text(L - 6, 720, "designer", fontproperties=italic, fontsize=pt(176), color=IVORY, ha="left", va="baseline")
     ax.text(L, 830, "Research-backed game design skills", fontproperties=sans, fontsize=pt(42), color=IVORY, alpha=.92, ha="left", va="baseline")
     ax.text(L, 888, "for any AI agent.", fontproperties=sans, fontsize=pt(42), color=IVORY, alpha=.92, ha="left", va="baseline")
-    ax.text(L, 1010, "PACING  ·  GENRES  ·  BALANCE  ·  DOCUMENTS  ·  REVIEW", fontproperties=mono, fontsize=pt(19.5), color=SLATE, ha="left", va="baseline")
+    ax.text(L, 1010, "PACING  ·  GENRES  ·  BALANCE  ·  DOCUMENTS  ·  REVIEW  ·  PROTOTYPES", fontproperties=mono, fontsize=pt(19.5), color=SLATE, ha="left", va="baseline")
 
     # Paper grain
     grain = rng.normal(0, 1, (H // 2, W // 2))

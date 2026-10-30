@@ -4,6 +4,21 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [1.3.0] - 2026-10-30
+
+### Added
+- Seventh skill, **`playable-prototype`**: turns design documents into single-file browser
+  prototypes. Numbers are copied verbatim with provenance, logic is decoupled from the UI, and
+  every prototype has `?test=1` self-tests (fidelity, rules, bots, balance probes) and a
+  `?shot=1` screenshot state. It ships a starter template, a cross-platform headless-Chrome runner
+  (`scripts/check.py`) and the six live games as examples. It distills what worked, and the
+  bugs we hit, while building `games/`.
+- Router route, eval cases (EN/KO/JA) and README rows for the new skill.
+
+### Changed
+- `games/tools/check.py` moved to `skills/playable-prototype/scripts/check.py` and was
+  generalized (any folder or HTML file; finds Chrome, Chromium or Edge on macOS, Linux or Windows).
+
 ## [1.2.0] - 2026-10-30
 
 ### Added

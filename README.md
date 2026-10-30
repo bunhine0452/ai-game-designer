@@ -4,7 +4,7 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
-  <img alt="Skills: 6" src="https://img.shields.io/badge/skills-6-fcbf49">
+  <img alt="Skills: 7" src="https://img.shields.io/badge/skills-7-fcbf49">
   <img alt="Genre playbooks: 26" src="https://img.shields.io/badge/genre%20playbooks-26-2a78d6">
   <img alt="Languages" src="https://img.shields.io/badge/answers%20in-EN%20%C2%B7%20KO%20%C2%B7%20JA%20%C2%B7%20ZH%20%C2%B7%20ES-1baf7a">
   <img alt="Works with Claude Code, Codex, Antigravity, Gemini CLI, Cursor, Copilot" src="https://img.shields.io/badge/works%20with-Claude%20Code%20%C2%B7%20Codex%20%C2%B7%20Antigravity%20%C2%B7%20Gemini%20CLI%20%C2%B7%20Cursor%20%C2%B7%20Copilot-14213d">
@@ -14,7 +14,7 @@
 
 # ai-game-designer
 
-**Turn any AI agent into a senior game designer who can show its work.** Six skills cover every genre,
+**Turn any AI agent into a senior game designer who can show its work.** Seven skills cover every genre,
 from first concept to soft launch: pacing you can plot, numbers you can simulate, documents your
 team will actually read, and reviews that catch dark patterns before players or regulators do.
 
@@ -46,6 +46,7 @@ team will actually read, and reviews that catch dark patterns before players or 
 | **`genre-design`** | Genre playbooks: core loop, signature mechanics, pacing shape, progression, balancing levers, failure modes, reference games and *why* they work, and the talks behind them. | 26 playbooks plus a hybrid-genre method |
 | **`balance-economy`** | XP tables, combat math (TTK, DPS, armor), cost curves, faucets and sinks, inflation, drop rates, pity, and the 2026 loot-box legal landscape. | `progression_curve.py`, `economy_sim.py`, `cost_curve.py` |
 | **`gdd-art-direction`** | One-page designs, living GDDs, feature specs, asset lists with scope estimates, art and audio style guides, readability and silhouette rules, accessibility checklists. | 5 templates, accessibility (GAG/XAG/APX) guide |
+| **`playable-prototype`** | Turns design documents into a single-file browser prototype whose numbers come straight from the docs, with procedural art and sound, self-tests (`?test=1`), bots that play it start to finish, and screenshots. | Template, `check.py` runner, 6 live examples |
 | **`design-review`** | Structured critique of concepts, specs, builds or playtest notes, with prioritized issues, evidence and specific fixes, plus a **mandatory ethics pass** for dark patterns. | 12 review lenses, P0–P3 rubric, dark-pattern taxonomy |
 
 ## See it work
@@ -157,6 +158,7 @@ Ask in any language. These are just starting points.
 | `genre-design` | "What do players expect from a metroidvania, and how could mine stand out?" | "로그라이크 덱빌딩 장르 관습이랑 흔한 실패 요인 알려줘." |
 | `balance-economy` | "Build a 50-level XP table where the cap takes about 40 hours." · "Simulate this economy JSON for 60 sessions." | "가챠 0.6%에 90회 천장이면 평균 몇 번 뽑아야 해? 확률 공개 주의점도." |
 | `gdd-art-direction` | "Write a one-page design for a cozy fishing game on a floating island." | "2인 팀용 아트 스타일 가이드 만들어줘. 실루엣·가독성 기준 포함." |
+| `playable-prototype` | "Turn this one-pager into a playable browser prototype with tests." | "이 원페이지 기획서로 플레이 가능한 프로토타입 만들어줘." |
 | `design-review` | "Review my monetization: streaks reset daily, energy costs gems, 0.5% rares with no pity." | "플레이테스트 노트 정리해서 문제점 우선순위 매겨줘." |
 
 It also understands Japanese, Chinese and Spanish (e.g. 「ホラーの緩急を見て」, 「塔防加放置怎么结合？」,
@@ -182,6 +184,7 @@ It also understands Japanese, Chinese and Spanish (e.g. 「ホラーの緩急を
 | `skills/balance-economy/scripts/progression_curve.py` | CLI flags (curve family, levels, first, total, income) | XP tables (CSV), report, chart |
 | `skills/balance-economy/scripts/economy_sim.py` | economy JSON (currencies, archetypes, faucets, sinks, gacha) | per-session and per-player CSVs, exact pity CSV, report, charts |
 | `skills/balance-economy/scripts/cost_curve.py` | items CSV (`name,cost,attributes…`) | fitted weights, fair costs, outliers, chart |
+| `skills/playable-prototype/scripts/check.py` | prototype folders or HTML files | self-test results per game, screenshots (headless Chrome) |
 
 All scripts use only the Python 3 standard library. When matplotlib isn't installed they
 write text and CSV outputs instead of charts.
@@ -216,10 +219,12 @@ with engine or production plugins. See the competitive scan in
   (`codex plugin marketplace add` then `codex plugin add`).
 - Codex and Antigravity both discovered all six skills from a project's `.agents/skills` folder.
 - Every script runs against the bundled examples (with and without matplotlib).
-- `evals/`: 18 trigger-and-language cases (3 per skill: English, Korean, and Japanese, Chinese or
+- All six games pass their self-tests locally and on GitHub Pages (`skills/playable-prototype/scripts/check.py games/`).
+- `evals/`: 21 trigger-and-language cases (3 per skill: English, Korean, and Japanese, Chinese or
   Spanish), run with `claude plugin eval .`. In the v1.0.0 run (Sonnet, 1 run per case), the right
   skill fired 18/18, the answer was in the user's language 18/18, answers were judged useful 18/18,
-  and terms were localized with the English in parentheses 12/12.
+  and terms were localized with the English in parentheses 12/12. The three `playable-prototype`
+  cases added in v1.3.0 passed every grader, and the router cases still pass after adding its new route.
 
 ## Contributing
 

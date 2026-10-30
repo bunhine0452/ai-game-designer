@@ -4,7 +4,7 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
-  <img alt="Skills: 6" src="https://img.shields.io/badge/skills-6-fcbf49">
+  <img alt="Skills: 7" src="https://img.shields.io/badge/skills-7-fcbf49">
   <img alt="Genre playbooks: 26" src="https://img.shields.io/badge/genre%20playbooks-26-2a78d6">
   <img alt="Languages" src="https://img.shields.io/badge/answers%20in-EN%20%C2%B7%20KO%20%C2%B7%20JA%20%C2%B7%20ZH%20%C2%B7%20ES-1baf7a">
   <img alt="Works with Claude Code, Codex, Antigravity, Gemini CLI, Cursor, Copilot" src="https://img.shields.io/badge/works%20with-Claude%20Code%20%C2%B7%20Codex%20%C2%B7%20Antigravity%20%C2%B7%20Gemini%20CLI%20%C2%B7%20Cursor%20%C2%B7%20Copilot-14213d">
@@ -15,7 +15,7 @@
 # ai-game-designer
 
 **어떤 AI 에이전트든 근거를 대며 일하는 시니어 게임 디자이너로.** 첫 콘셉트부터 소프트 런칭까지, 모든
-장르를 다루는 스킬 6개입니다. 그래프로 그려 보는 페이싱, 시뮬레이션으로 확인하는 수치, 팀이 실제로
+장르를 다루는 스킬 7개입니다. 그래프로 그려 보는 페이싱, 시뮬레이션으로 확인하는 수치, 팀이 실제로
 읽는 문서, 그리고 플레이어나 규제 기관보다 먼저 다크 패턴을 잡아내는 리뷰를 제공합니다.
 
 - **연구 기반.** 모든 레퍼런스 파일에 출처가 달려 있습니다. GDC 강연, 개발자 포스트모템, 서적,
@@ -45,6 +45,7 @@
 | **`genre-design`** | 장르별 플레이북. 코어 루프, 대표 메커닉, 페이싱 형태, 성장 모델, 밸런스 레버, 실패 요인, 레퍼런스 게임과 *그것이 통하는 이유*, 근거 강연까지 정리했습니다. | 26개 플레이북 + 장르 혼합 설계법 |
 | **`balance-economy`** | 경험치 테이블, 전투 수식(TTK·DPS·방어), 비용 곡선, 재화 유입처·소모처, 인플레이션, 드롭률, 천장, 2026년 확률형 아이템 규제 현황. | `progression_curve.py`, `economy_sim.py`, `cost_curve.py` |
 | **`gdd-art-direction`** | 원페이지 기획서, 살아 있는 GDD, 기능 명세서, 규모 산정이 들어간 에셋 리스트, 아트·오디오 스타일 가이드, 가독성·실루엣 기준, 접근성 체크리스트. | 템플릿 5종, 접근성(GAG/XAG/APX) 가이드 |
+| **`playable-prototype`** | 기획 문서를 HTML 파일 하나짜리 브라우저 프로토타입으로 만듭니다. 문서의 수치를 그대로 쓰고, 절차적 아트·사운드, 자체 테스트(`?test=1`), 처음부터 끝까지 플레이하는 봇, 스크린샷까지 갖춥니다. | 템플릿, `check.py` 실행기, 라이브 예시 6개 |
 | **`design-review`** | 콘셉트·명세·빌드·플레이테스트 노트를 구조적으로 비평합니다. 우선순위가 매겨진 문제와 근거, 구체적인 해결책을 내고, 다크 패턴 **윤리 점검을 반드시** 함께 수행합니다. | 리뷰 렌즈 12종, P0–P3 기준, 다크 패턴 분류표 |
 
 ## 이렇게 동작합니다
@@ -155,6 +156,7 @@ Claude Code에서는 질문 내용에 맞춰 스킬이 자동으로 실행되고
 | `genre-design` | "메트로배니아에서 플레이어가 기대하는 것과 차별화 방법 알려줘." | "What are the conventions and common failure modes of roguelike deckbuilders?" |
 | `balance-economy` | "50레벨 경험치 테이블 만들어줘. 만렙까지 40시간 정도." · "이 경제 JSON을 60세션 돌려줘." | "With a 0.6% rate and pity at 90, how many pulls on average? What must I disclose?" |
 | `gdd-art-direction` | "떠 있는 섬에서 낚시하는 힐링 게임 원페이지 기획서 써줘." | "Create an art style guide for a two-person team, including silhouette and readability rules." |
+| `playable-prototype` | "이 원페이지 기획서로 플레이 가능한 프로토타입 만들어줘." | "Turn this one-pager into a playable browser prototype with tests." |
 | `design-review` | "과금 구조 리뷰해줘: 출석 연속 보상이 하루 빠지면 초기화, 에너지는 젬으로 충전, 레어 0.5%에 천장 없음." | "Turn my playtest notes into prioritized issues." |
 
 일본어, 중국어, 스페인어도 이해합니다 (예: 「ホラーの緩急を見て」, 「塔防加放置怎么结合？」,
@@ -179,6 +181,7 @@ Claude Code에서는 질문 내용에 맞춰 스킬이 자동으로 실행되고
 | `skills/balance-economy/scripts/progression_curve.py` | CLI 옵션 (곡선 계열, 레벨 수, 첫 레벨, 총량, 수입) | 경험치 테이블(CSV), 리포트, 차트 |
 | `skills/balance-economy/scripts/economy_sim.py` | 경제 JSON (재화, 플레이어 유형, 유입처, 소모처, 가챠) | 세션별·플레이어별 CSV, 정확한 천장 분포 CSV, 리포트, 차트 |
 | `skills/balance-economy/scripts/cost_curve.py` | 아이템 CSV (`name,cost,attributes…`) | 능력치별 가치, 적정 비용, 이상치, 차트 |
+| `skills/playable-prototype/scripts/check.py` | 프로토타입 폴더 또는 HTML 파일 | 게임별 자체 테스트 결과, 스크린샷 (헤드리스 Chrome) |
 
 모든 스크립트는 Python 3 표준 라이브러리만 사용합니다. matplotlib이 없으면 차트 대신 텍스트와
 CSV를 만듭니다.
@@ -211,9 +214,11 @@ Accessibility Guidelines, Xbox Accessibility Guidelines, APX. 모든 내용은 �
   `gemini extensions validate`, Codex 마켓플레이스 설치(`codex plugin marketplace add` → `codex plugin add`).
 - Codex와 Antigravity 모두 프로젝트의 `.agents/skills` 폴더에서 스킬 6개를 전부 인식했습니다.
 - 모든 스크립트를 동봉된 예제로 실행해 확인했습니다 (matplotlib 유무 모두).
-- `evals/`: 스킬당 3개씩 총 18개의 트리거·언어 테스트 케이스가 있습니다 (영어, 한국어, 그리고 일본어·
+- 게임 6개 모두 로컬과 GitHub Pages에서 자체 테스트를 통과합니다 (`skills/playable-prototype/scripts/check.py games/`).
+- `evals/`: 스킬당 3개씩 총 21개의 트리거·언어 테스트 케이스가 있습니다 (영어, 한국어, 그리고 일본어·
   중국어·스페인어 중 하나). `claude plugin eval .` 로 실행합니다. v1.0.0 실행 결과(Sonnet, 케이스당 1회):
-  올바른 스킬 실행 18/18, 사용자 언어로 답변 18/18, 유용한 답변 18/18, 영어 병기 용어 표기 12/12.
+  올바른 스킬 실행 18/18, 사용자 언어로 답변 18/18, 유용한 답변 18/18, 영어 병기 용어 표기 12/12. v1.3.0에서 추가한
+  `playable-prototype` 케이스 3개도 모든 채점 항목을 통과했고, 새 경로를 넣은 뒤에도 라우터 케이스는 그대로 통과합니다.
 
 ## 기여
 

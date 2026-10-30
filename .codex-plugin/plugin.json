@@ -1,7 +1,7 @@
 {
   "name": "game-designer",
-  "version": "1.1.0",
-  "description": "Research-backed game design skills for every genre: fun curves and pacing diagnostics, 26 genre playbooks, progression/economy/gacha simulators, GDD and art-direction templates, and design reviews with dark-pattern checks. Answers in your language.",
+  "version": "1.3.0",
+  "description": "Research-backed game design skills for every genre: fun curves and pacing diagnostics, 26 genre playbooks, progression/economy/gacha simulators, GDD and art-direction templates, design reviews with dark-pattern checks, and playable prototypes with self-tests. Answers in your language.",
   "author": {
     "name": "bunhine0452",
     "url": "https://github.com/bunhine0452"
@@ -14,7 +14,7 @@
   "interface": {
     "displayName": "AI Game Designer",
     "shortDescription": "Game design for every genre",
-    "longDescription": "Six skills that work like a senior game designer: design briefs (MDA, pillars, core loops), interest-curve plotting and pacing diagnostics, 26 genre playbooks, XP/economy/gacha simulators with exact pity math, cost-curve outlier detection, GDD and art/audio direction templates, accessibility checklists, and design reviews with a dark-pattern ethics pass. Answers in the user's language with English terms in parentheses.",
+    "longDescription": "Seven skills that work like a senior game designer: design briefs (MDA, pillars, core loops), interest-curve plotting and pacing diagnostics, 26 genre playbooks, XP/economy/gacha simulators with exact pity math, cost-curve outlier detection, GDD and art/audio direction templates, accessibility checklists, design reviews with a dark-pattern ethics pass, and playable browser prototypes with self-tests and bots. Answers in the user's language with English terms in parentheses.",
     "developerName": "bunhine0452",
     "category": "Productivity",
     "capabilities": [
@@ -23,7 +23,8 @@
       "26 genre playbooks and hybrid design",
       "XP, economy and gacha simulation",
       "GDD, art direction and accessibility",
-      "Design reviews with dark-pattern checks"
+      "Design reviews with dark-pattern checks",
+      "Playable browser prototypes with self-tests"
     ],
     "websiteURL": "https://github.com/bunhine0452/ai-game-designer",
     "supportURL": "https://github.com/bunhine0452/ai-game-designer/issues",

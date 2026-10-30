@@ -35,6 +35,7 @@ claude plugin validate .                     # Claude Code manifests and skills
 agy plugin validate . && gemini extensions validate .   # other agents, if installed
 python3 skills/fun-curve/scripts/fun_curve.py skills/fun-curve/examples/roguelite-20min-run.csv --out /tmp/fc
 python3 skills/balance-economy/scripts/economy_sim.py skills/balance-economy/examples/f2p-economy.json --out /tmp/eco
+python3 skills/playable-prototype/scripts/check.py games/   # game self-tests + screenshots
 python3 tools/package.py                     # builds dist/ (plugin + per-skill zips)
 claude plugin eval . --runs 1                # optional: multilingual trigger evals
 ```
