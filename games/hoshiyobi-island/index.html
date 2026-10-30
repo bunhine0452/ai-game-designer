@@ -2,107 +2,151 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Hoshiyobi Island · 星喚びの島</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hoshiyobi Island</title>
+<meta name="description" content="A transparent star-summoning demo: odds, guarantees and your exact chance always on screen. Original prototype designed with ai-game-designer.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&family=Zen+Maru+Gothic:wght@700;900&display=swap" rel="stylesheet">
 <style>
-  :root { --bg:#120d24; --panel:#1d1638; --ink:#f4f0ff; --ink2:#b9afd8; --ssr:#ffcf5a; --sr:#b58cff; --r:#8fb3d9; --good:#4ee1a0; --line:#352a63; }
+  :root { --ink:#f3f0ff; --ink2:#bdb5e6; --ink3:#857cb5; --glass:rgba(24,18,64,.78); --line:rgba(200,190,255,.2);
+    --r:#9fc4ff; --sr:#d59bff; --ssr:#ffd36b; --pick:#7ff7e3; --font:"M PLUS Rounded 1c","Zen Maru Gothic","Hiragino Maru Gothic ProN",system-ui,sans-serif; --disp:"Zen Maru Gothic","M PLUS Rounded 1c",system-ui,sans-serif; }
   * { box-sizing:border-box; }
-  body { margin:0; background:radial-gradient(1200px 600px at 70% -10%, #2c1f5c, var(--bg)); color:var(--ink); font:15px/1.45 system-ui,-apple-system,"Hiragino Sans","Yu Gothic",sans-serif; min-height:100vh; }
-  header { display:flex; flex-wrap:wrap; gap:6px 16px; align-items:baseline; padding:12px 16px; border-bottom:1px solid var(--line); }
-  header h1 { margin:0; font-size:20px; } .sub { color:var(--ink2); font-size:13px; } a { color:var(--ssr); }
-  main { display:grid; grid-template-columns:minmax(0,1.3fr) minmax(300px,1fr); gap:16px; padding:16px; max-width:1240px; margin:0 auto; }
-  @media (max-width:860px){ main { grid-template-columns:1fr; } }
-  .panel { background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:14px 16px; }
-  .banner { position:relative; border-radius:16px; overflow:hidden; min-height:230px; padding:18px; background:linear-gradient(135deg,#3b2a7a,#1b4a78 60%,#0f7a74); border:1px solid #5a49a8; display:flex; gap:16px; align-items:center; }
-  .banner h2 { margin:0 0 4px; font-size:26px; } .banner p { margin:4px 0; color:#e6e0ff; }
-  .badges { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0; }
-  .badge { border-radius:999px; padding:6px 12px; background:#2a2052; border:1px solid var(--line); font-size:13px; }
-  .badge.hot { background:rgba(78,225,160,.15); border-color:var(--good); color:#c8ffe6; }
-  .row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:8px 0; }
-  button { font:inherit; cursor:pointer; border-radius:12px; border:1px solid var(--line); background:#2a2052; color:var(--ink); padding:10px 14px; }
-  button.primary { background:var(--ssr); color:#2a1d00; border-color:var(--ssr); font-weight:750; }
-  button:disabled { opacity:.45; cursor:not-allowed; }
-  .results { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-top:12px; min-height:150px; }
-  @media (max-width:560px){ .results { grid-template-columns:repeat(3,1fr); } }
-  .card { border-radius:12px; padding:6px; text-align:center; background:#160f2e; border:2px solid var(--r); font-size:12px; }
-  .card.SSR { border-color:var(--ssr); box-shadow:0 0 18px rgba(255,207,90,.35); } .card.SR { border-color:var(--sr); }
-  .card svg { width:100%; height:auto; display:block; }
-  .card .tag { font-weight:700; } .card.SSR .tag { color:var(--ssr); } .card.SR .tag { color:var(--sr); } .card.R .tag { color:var(--r); }
-  table { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; } td, th { padding:5px 4px; border-bottom:1px solid var(--line); text-align:left; } th { color:var(--ink2); font-weight:600; font-size:13px; }
-  td.num { text-align:right; }
-  .muted { color:var(--ink2); font-size:13px; }
-  .book { display:grid; grid-template-columns:repeat(auto-fill,minmax(74px,1fr)); gap:8px; }
-  .book .card { opacity:.35; } .book .card.owned { opacity:1; }
-  canvas { width:100%; height:150px; display:block; }
-  #history { max-height:150px; overflow:auto; font-size:13px; margin:0; padding-left:18px; }
+  html,body { margin:0; height:100%; overflow:hidden; background:#080626; color:var(--ink); font:15px/1.45 var(--font); -webkit-user-select:none; user-select:none; }
+  #stage { position:absolute; left:0; top:0; width:1280px; height:720px; transform-origin:0 0; overflow:hidden; background:#0b0a2e; }
+  #cv { position:absolute; inset:0; width:1280px; height:720px; }
+  .hud { position:absolute; z-index:5; }
+  #top { left:0; right:0; top:0; height:68px; display:flex; align-items:center; gap:10px; padding:0 22px; background:linear-gradient(rgba(8,6,38,.85),rgba(8,6,38,0)); }
+  .brand { font:900 24px/1 var(--disp); white-space:nowrap; } .brand small { display:block; margin-top:4px; font:700 11.5px var(--font); color:var(--ink2); letter-spacing:.12em; }
+  .ib { height:38px; min-width:38px; padding:0 12px; border-radius:12px; border:1px solid var(--line); background:rgba(255,255,255,.08); color:var(--ink); font:700 13.5px var(--font); cursor:pointer; display:flex; gap:6px; align-items:center; justify-content:center; }
+  .ib:hover { background:rgba(255,255,255,.14); } .ib svg { width:18px; height:18px; } .ib.off { color:var(--ink3); }
+  .sp { margin-left:auto; }
+
+  #hero { left:34px; top:78px; width:440px; height:560px; }
+  #hero .tag { display:inline-flex; align-items:center; gap:8px; padding:6px 14px; border-radius:16px; background:linear-gradient(90deg,#7ff7e3,#b49bff); color:#1a1040; font:800 13px var(--font); letter-spacing:.14em; }
+  #hero h2 { margin:10px 0 0; font:900 46px/1.05 var(--disp); text-shadow:0 4px 24px rgba(127,247,227,.35); }
+  #hero h2 small { display:block; font:700 18px var(--font); color:var(--ink2); margin-top:4px; }
+  #heroArt { position:absolute; left:10px; top:118px; width:400px; height:400px; filter:drop-shadow(0 20px 40px rgba(0,0,0,.45)); animation:float 5s ease-in-out infinite; }
+  @keyframes float { 50% { transform:translateY(-10px); } }
+  #hero .rate { position:absolute; left:0; bottom:0; display:flex; gap:8px; }
+  .chip { padding:7px 12px; border-radius:12px; background:var(--glass); border:1px solid var(--line); font:700 13px var(--font); } .chip b { color:var(--pick); }
+
+  #panel { left:872px; top:78px; width:384px; height:622px; padding:18px 20px; border-radius:24px; background:var(--glass); border:1px solid var(--line); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); display:flex; flex-direction:column; gap:11px; box-shadow:0 20px 60px rgba(0,0,0,.4); }
+  .lab { font:800 11px var(--font); color:var(--ink3); letter-spacing:.16em; text-transform:uppercase; }
+  .stars { display:flex; align-items:baseline; gap:10px; } .stars b { font:900 38px/1 var(--disp); color:#ffe9a8; } .stars span { font:700 14px var(--font); color:var(--ink2); }
+  .pulls { display:grid; grid-template-columns:1fr 1.3fr; gap:9px; }
+  .pull { height:66px; border-radius:16px; border:0; cursor:pointer; font:900 18px/1.15 var(--disp); color:#1a1040; background:linear-gradient(#fff2c4,#ffd36b); box-shadow:0 5px 0 #b8892a,0 10px 24px rgba(0,0,0,.3); }
+  .pull small { display:block; font:700 12px var(--font); opacity:.8; } .pull.ten { background:linear-gradient(#d9fff8,#7ff7e3); box-shadow:0 5px 0 #2f9d8f,0 10px 24px rgba(0,0,0,.3); }
+  .pull:active { transform:translateY(3px); } .pull:disabled { filter:grayscale(.8) brightness(.6); cursor:default; transform:none; }
+  .state { display:flex; flex-direction:column; gap:8px; padding:12px 14px; border-radius:16px; background:rgba(255,255,255,.05); border:1px solid var(--line); }
+  .guar { display:flex; align-items:center; gap:8px; font:800 14px var(--font); } .guar i { width:10px; height:10px; border-radius:50%; background:var(--ink3); flex:none; } .guar.hot i { background:var(--pick); box-shadow:0 0 10px var(--pick); } .guar.hot { color:var(--pick); }
+  .spark { display:flex; justify-content:space-between; font:800 13px var(--font); } .spark span { color:var(--ink2); font-weight:700; }
+  .bar { height:9px; border-radius:5px; background:rgba(255,255,255,.1); overflow:hidden; } .bar i { display:block; height:100%; background:linear-gradient(90deg,#b49bff,#7ff7e3); }
+  #exchange { height:40px; border-radius:12px; border:1px solid var(--line); background:rgba(255,255,255,.06); color:var(--ink2); font:800 13.5px var(--font); cursor:pointer; }
+  #exchange:not(:disabled) { color:#1a1040; background:linear-gradient(90deg,#7ff7e3,#b49bff); border-color:transparent; animation:ready 1.4s infinite; } #exchange:disabled { cursor:default; }
+  @keyframes ready { 50% { box-shadow:0 0 24px rgba(127,247,227,.7); } }
+  .chance { padding:12px 14px; border-radius:16px; background:rgba(127,247,227,.07); border:1px solid rgba(127,247,227,.25); font:700 13.5px/1.5 var(--font); color:var(--ink); }
+  .chance b { color:var(--pick); font-size:15px; } #mini { display:block; width:100%; height:74px; margin-top:6px; }
+  .links { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; } .links .ib { height:40px; }
+  .free { display:flex; align-items:center; gap:10px; margin-top:auto; } .free button { flex:none; } .free span { font:600 11.5px/1.35 var(--font); color:var(--ink3); }
+
+  #results { position:absolute; inset:0; z-index:7; display:none; flex-direction:column; align-items:center; justify-content:center; background:radial-gradient(ellipse at 50% 55%,rgba(30,20,80,.55),rgba(6,4,24,.9)); }
+  #results.show { display:flex; animation:fade .3s; } @keyframes fade { from { opacity:0; } }
+  #results h3 { margin:0 0 6px; font:900 30px var(--disp); } #results .sum { font:800 15px var(--font); color:var(--ink2); margin-bottom:18px; } #results .sum b.ssr { color:var(--ssr); } #results .sum b.sr { color:var(--sr); } #results .sum b.r { color:var(--r); }
+  .grid { display:grid; grid-template-columns:repeat(5,128px); gap:14px; perspective:900px; } .grid.one { grid-template-columns:180px; }
+  .rc { position:relative; height:176px; transform-style:preserve-3d; transition:transform .45s cubic-bezier(.2,.8,.2,1); }
+  .grid.one .rc { height:240px; }
+  .rc.flip { transform:rotateY(180deg); }
+  .rc .bk, .rc .fr { position:absolute; inset:0; border-radius:16px; backface-visibility:hidden; -webkit-backface-visibility:hidden; }
+  .rc .bk { background:radial-gradient(circle at 50% 40%,#4a3d9a,#1e1650); border:2px solid rgba(200,190,255,.35); display:grid; place-items:center; }
+  .rc .bk svg { width:56px; height:56px; opacity:.8; }
+  .rc .fr { transform:rotateY(180deg); padding:8px 6px; display:flex; flex-direction:column; align-items:center; background:linear-gradient(170deg,#2b2370,#151140); border:3px solid var(--rc); box-shadow:0 0 0 1px rgba(0,0,0,.4),0 10px 24px rgba(0,0,0,.4); overflow:hidden; }
+  .rc .fr svg { width:96px; height:96px; flex:none; } .grid.one .rc .fr svg { width:150px; height:150px; }
+  .rc .nm { font:800 13px/1.15 var(--font); text-align:center; } .rc .jp { font:700 10.5px var(--font); color:var(--ink2); }
+  .rc .rr { position:absolute; left:7px; top:6px; font:900 13px var(--disp); color:var(--rc); text-shadow:0 1px 4px #000; }
+  .rc .new { position:absolute; right:6px; top:6px; padding:1px 6px; border-radius:7px; background:#ff6b8a; color:#fff; font:900 10px var(--font); }
+  .rc .how { font:700 10px var(--font); color:var(--ink3); margin-top:2px; }
+  .rc.R { --rc:var(--r); } .rc.SR { --rc:var(--sr); } .rc.SSR { --rc:var(--ssr); } .rc.PU { --rc:var(--pick); }
+  .rc.SSR .fr::after, .rc.PU .fr::after { content:""; position:absolute; inset:-40%; background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.35) 50%,transparent 60%); animation:shine 2.2s ease-in-out infinite; }
+  @keyframes shine { from { transform:translateX(-60%); } to { transform:translateX(60%); } }
+  .rc.PU .fr { background:linear-gradient(170deg,#1f5c6a,#2c1f6e); }
+  #results .row { display:flex; gap:12px; margin-top:22px; }
+  .btn { display:inline-block; text-decoration:none; padding:13px 28px; border-radius:15px; border:0; cursor:pointer; font:900 17px var(--disp); color:#1a1040; background:linear-gradient(#d9fff8,#7ff7e3); }
+  .btn.alt { background:rgba(255,255,255,.1); color:var(--ink); border:1px solid var(--line); }
+
+  #screen, #modal { position:absolute; inset:0; display:none; align-items:center; justify-content:center; z-index:8; }
+  #screen { background:linear-gradient(90deg,rgba(8,6,38,.15),rgba(8,6,38,.75)); } #modal { z-index:9; background:rgba(6,4,24,.78); }
+  #screen.show, #modal.show { display:flex; animation:fade .3s; }
+  .card { width:min(880px,92%); max-height:640px; overflow:auto; padding:26px 30px; border-radius:24px; background:rgba(24,18,64,.96); border:1px solid var(--line); box-shadow:0 30px 80px rgba(0,0,0,.55); text-align:center; }
+  .kicker { font:800 12px var(--font); letter-spacing:.28em; text-transform:uppercase; color:var(--pick); }
+  .card h2 { margin:8px 0 10px; font:900 36px/1.1 var(--disp); }
+  .muted { color:var(--ink2); }
+  table { width:100%; border-collapse:collapse; margin:14px 0; font:700 14px var(--font); text-align:left; }
+  td, th { padding:9px 10px; border-bottom:1px solid var(--line); } th { color:var(--ink3); font-size:12px; letter-spacing:.1em; text-transform:uppercase; } td.num { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  #big { width:100%; height:200px; display:block; }
+  .book { display:grid; grid-template-columns:repeat(8,1fr); gap:10px; margin-top:16px; }
+  .bk1 { padding:6px 4px; border-radius:14px; background:rgba(255,255,255,.05); border:2px solid var(--rc); font:700 11px var(--font); } .bk1 svg { width:72px; height:72px; } .bk1.no svg { filter:brightness(0) opacity(.35); } .bk1.no { border-color:rgba(255,255,255,.1); color:var(--ink3); }
+  .bk1.R { --rc:var(--r); } .bk1.SR { --rc:var(--sr); } .bk1.SSR { --rc:var(--ssr); } .bk1.PU { --rc:var(--pick); }
+  .hist { list-style:none; margin:14px 0 0; padding:0; text-align:left; columns:2; font:700 13.5px var(--font); } .hist li { padding:4px 0; break-inside:avoid; } .hist b.SSR { color:var(--ssr); } .hist b.SR { color:var(--sr); } .hist b.R { color:var(--r); } .hist span { color:var(--ink3); margin-right:6px; font-variant-numeric:tabular-nums; }
+  .how { display:grid; grid-template-columns:1fr 1fr; gap:12px; text-align:left; margin-top:14px; } .how div { padding:13px 15px; border-radius:16px; background:rgba(255,255,255,.05); border:1px solid var(--line); color:var(--ink2); font:600 14px/1.5 var(--font); } .how b { display:block; color:var(--ink); font:800 16px var(--font); margin-bottom:2px; }
+  .title-wrap { position:absolute; right:90px; top:170px; width:560px; text-align:right; }
+  .title-wrap h1 { margin:0; font:900 92px/1 var(--disp); background:linear-gradient(180deg,#ffffff 30%,#b8fff2 70%,#c6b4ff); -webkit-background-clip:text; background-clip:text; color:transparent; filter:drop-shadow(0 6px 30px rgba(127,247,227,.35)); }
+  .title-wrap .en { font:800 24px var(--font); letter-spacing:.18em; color:#ffe9a8; margin-top:6px; }
+  .title-wrap p { font:700 18px/1.55 var(--font); color:var(--ink2); margin:18px 0 26px; }
+  .title-wrap .row { display:flex; gap:12px; justify-content:flex-end; }
+  .foot { position:absolute; left:0; right:0; bottom:18px; text-align:center; font:600 12.5px var(--font); color:var(--ink3); } .foot a { color:var(--ink2); }
+  #tip { position:absolute; z-index:10; max-width:260px; padding:9px 12px; border-radius:12px; background:rgba(16,12,48,.97); border:1px solid var(--line); font:600 13px/1.45 var(--font); pointer-events:none; display:none; } #tip.show { display:block; }
+  #rotate { position:fixed; left:12px; right:12px; top:12px; z-index:20; padding:12px 14px; border-radius:12px; background:#1e1650; font:700 14px var(--font); display:none; } #rotate.show { display:block; } #rotate button { float:right; background:none; border:0; color:var(--ink2); font-size:18px; cursor:pointer; }
+  .shot #results.show, .shot #screen.show, .shot #modal.show, .shot #heroArt { animation:none; } .shot .rc { transition:none; }
 </style>
 </head>
 <body>
-<header>
-  <h1>Hoshiyobi Island <span class="sub">星喚びの島 · transparent gacha demo</span></h1>
-  <span class="sub">Prototype of the <a href="../../showcase/03-claude-ja-gacha-review/">reviewed v2 banner</a> made with <a href="../../">ai-game-designer</a>. Free stars only, no real money.</span>
-</header>
-<main>
-  <section>
-    <div class="banner">
-      <div id="heroArt" style="width:190px;flex:none"></div>
-      <div>
-        <div class="sub" style="color:#e6e0ff">Pickup banner · ピックアップ</div>
-        <h2>Aurora Kirin <span style="font-size:15px">オーロラ麒麟</span></h2>
-        <p>SSR 3% (pickup 1.5%) · SR 12% · R 85%</p>
-        <p>Lose the 50/50 once and your next SSR is guaranteed to be the pickup. At 120 pulls you can exchange for it, and points carry over to the next banner.</p>
-      </div>
-    </div>
-    <div class="badges" aria-live="polite">
-      <span class="badge" id="sparkBadge"></span>
-      <span class="badge" id="guarBadge"></span>
-      <span class="badge" id="starsBadge"></span>
-    </div>
-    <div class="row">
-      <button class="primary" id="pull1">Summon ×1 · 150★</button>
-      <button class="primary" id="pull10">Summon ×10 · 1,500★</button>
-      <button id="exchange" disabled>Exchange for Aurora Kirin</button>
-      <button id="earn">Expedition: +1,500★</button>
-    </div>
-    <p class="muted">Results are shown plainly, with no near-miss animations and no offers on the result screen.</p>
-    <div class="results" id="results"></div>
-    <h3>Collection · 図鑑</h3>
-    <div class="book" id="book"></div>
-  </section>
-  <section class="panel">
-    <h3 style="margin-top:0">Odds · 提供割合 <span class="muted">(shown before every summon)</span></h3>
-    <table>
-      <tr><th>Rarity</th><th>Units</th><th class="num">Rate per summon</th></tr>
-      <tbody id="oddsBody"></tbody>
-    </table>
-    <p class="muted" id="consolidated"></p>
-    <h3>Your chance with the stars you have</h3>
-    <p id="chanceLine"></p>
-    <canvas id="cdf" width="560" height="150" aria-label="Chance of getting the pickup by pull number"></canvas>
-    <p class="muted">Exact math from the current state (guarantee and spark points), not a simulation.</p>
-    <h3>Summon history</h3>
-    <ol id="history" reversed></ol>
-  </section>
-</main>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs id="defs">
+  <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <linearGradient id="mane" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9ffcf0"/><stop offset=".5" stop-color="#8fb8ff"/><stop offset="1" stop-color="#c79bff"/></linearGradient>
+</defs></svg>
+<div id="stage">
+  <canvas id="cv"></canvas>
+  <div class="hud" id="top">
+    <div class="brand" id="brand"></div>
+    <button class="ib sp" id="bOdds"></button><button class="ib" id="bBook"></button><button class="ib" id="bHist"></button>
+    <button class="ib" id="bLang"></button><button class="ib" id="bSound"></button><button class="ib" id="bHelp">?</button>
+  </div>
+  <div class="hud" id="hero"><span class="tag" id="heroTag"></span><h2 id="heroName"></h2><div id="heroArt"></div><div class="rate" id="heroRate"></div></div>
+  <div class="hud" id="panel">
+    <div><div class="lab" id="lStars"></div><div class="stars"><b id="stars"></b><span id="starsN"></span></div></div>
+    <div class="pulls"><button class="pull" id="p1"></button><button class="pull ten" id="p10"></button></div>
+    <div class="state"><div class="guar" id="guar"><i></i><span></span></div><div class="spark" id="spark"></div><div class="bar"><i id="sparkBar"></i></div><button id="exchange"></button></div>
+    <div class="chance" id="chance"><span id="chanceTxt"></span><canvas id="mini" width="680" height="148"></canvas></div>
+    <div class="free"><button class="ib" id="free"></button><span id="freeTxt"></span></div>
+  </div>
+  <div id="results"></div>
+  <div id="screen"></div>
+  <div id="modal"></div>
+  <div id="tip"></div>
+</div>
+<div id="rotate"><button id="rotX" aria-label="Dismiss">×</button>Turn your phone sideways for the best view.</div>
+<div style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)" aria-live="polite" id="live"></div>
 <pre id="selftest" hidden></pre>
+
 <script>
 "use strict";
-// ---- Banner rules: showcase/03 config/hoshiyobi_economy_v2.json + review --------------------
+// =====================================================================================
+// RULES. Banner from the design (showcase/03 config/hoshiyobi_economy_v2.json + review).
+// =====================================================================================
 const RATE = { SSR: 0.03, SR: 0.12 }, PICKUP_SHARE = 0.5, SPARK = 120, COST = 150;
-const PICKUP = { id: "kirin", name: "Aurora Kirin", jp: "オーロラ麒麟", hue: 170, horn: 1, ears: 1, r: "SSR" };
+const PICKUP = { id: "kirin", name: "Aurora Kirin", jp: "オーロラ麒麟", hue: 170 };
 const POOL = {
-  SSR: [{ id: "whale", name: "Tide Whale", jp: "潮鯨", hue: 205, fin: 1 }, { id: "fox", name: "Ember Fox", jp: "熾火狐", hue: 18, ears: 1, flame: 1 },
-        { id: "owl", name: "Moon Owl", jp: "月梟", hue: 255, ears: 1 }, { id: "golem", name: "Thorn Golem", jp: "茨巨人", hue: 110, spikes: 1 }],
-  SR: [{ id: "sprout", name: "Sproutling", hue: 95, leaf: 1 }, { id: "puff", name: "Puffcap", hue: 330, spikes: 1 }, { id: "ray", name: "Glow Ray", hue: 190, fin: 1 },
-       { id: "bat", name: "Dusk Bat", hue: 280, ears: 1 }, { id: "crab", name: "Coral Crab", hue: 8 }, { id: "moth", name: "Lantern Moth", hue: 48, ears: 1 }],
-  R: [{ id: "slime", name: "Star Slime", hue: 210 }, { id: "pebble", name: "Pebble", hue: 30 }, { id: "drop", name: "Dewdrop", hue: 185, fin: 1 },
-      { id: "mote", name: "Mote", hue: 60 }, { id: "frog", name: "Bog Frog", hue: 120, ears: 1 }],
+  SSR: [{ id: "whale", name: "Tide Whale", jp: "潮鯨", hue: 205 }, { id: "fox", name: "Ember Fox", jp: "熾火狐", hue: 18 },
+        { id: "owl", name: "Moon Owl", jp: "月梟", hue: 255 }, { id: "golem", name: "Thorn Golem", jp: "茨巨人", hue: 110 }],
+  SR: [{ id: "sprout", name: "Sproutling", jp: "芽ぐみ", hue: 95 }, { id: "puff", name: "Puffcap", jp: "ふわ茸", hue: 330 }, { id: "ray", name: "Glow Ray", jp: "灯エイ", hue: 190 },
+       { id: "bat", name: "Dusk Bat", jp: "宵コウモリ", hue: 280 }, { id: "crab", name: "Coral Crab", jp: "珊瑚ガニ", hue: 8 }, { id: "moth", name: "Lantern Moth", jp: "灯蛾", hue: 48 }],
+  R: [{ id: "slime", name: "Star Slime", jp: "星スライム", hue: 210 }, { id: "pebble", name: "Pebble", jp: "小石っこ", hue: 30 }, { id: "drop", name: "Dewdrop", jp: "露しずく", hue: 185 },
+      { id: "mote", name: "Mote", jp: "綿ぼこり", hue: 60 }, { id: "frog", name: "Bog Frog", jp: "沼ガエル", hue: 120 }],
 };
 let rng = Math.random;
 function seeded(a) { return () => { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
 const fresh = () => ({ stars: 3000, spark: 0, guaranteed: false, pulls: 0, owned: {}, history: [] });
 let S = fresh();
-
 // One summon: returns {r, unit, how}. Spark points accrue per summon and carry over.
 function summon() {
   S.pulls++; S.spark = Math.min(SPARK, S.spark + 1);
@@ -111,33 +155,25 @@ function summon() {
     let unit;
     if (S.guaranteed || rng() < PICKUP_SHARE) { unit = PICKUP; S.guaranteed = false; }
     else { unit = POOL.SSR[Math.floor(rng() * POOL.SSR.length)]; S.guaranteed = true; }
-    return grant("SSR", unit, unit === PICKUP ? "pickup" : "lost 50/50");
+    return grant("SSR", unit, unit === PICKUP ? "pickup" : "lost");
   }
   if (x < RATE.SSR + RATE.SR) return grant("SR", POOL.SR[Math.floor(rng() * POOL.SR.length)], "");
   return grant("R", POOL.R[Math.floor(rng() * POOL.R.length)], "");
 }
 function grant(r, unit, how) {
-  S.owned[unit.id] = (S.owned[unit.id] || 0) + 1;
-  const res = { r, unit, how, n: S.pulls }; S.history.push(res); if (S.history.length > 200) S.history.shift();
+  const isNew = !S.owned[unit.id]; S.owned[unit.id] = (S.owned[unit.id] || 0) + 1;
+  const res = { r, unit, how, n: S.pulls, isNew }; S.history.push(res); if (S.history.length > 200) S.history.shift();
   return res;
 }
-function exchange() {
-  if (S.spark < SPARK) return false;
-  S.spark = 0; grant("SSR", PICKUP, "exchange"); return true;
-}
-function pull(n) {
-  if (S.stars < COST * n) return [];
-  S.stars -= COST * n; const out = []; for (let i = 0; i < n; i++) out.push(summon()); return out;
-}
-
-// ---- Exact odds from any state: P(pickup obtained by summon k), k = 1..max -------------------
+function exchange() { if (S.spark < SPARK) return false; S.spark = 0; grant("SSR", PICKUP, "exchange"); return true; }
+function pull(n) { if (S.stars < COST * n) return []; S.stars -= COST * n; const out = []; for (let i = 0; i < n; i++) out.push(summon()); return out; }
+// Exact odds from any state: P(pickup obtained by summon k), k = 1..max.
 function pickupCdf(state, maxK = SPARK) {
   let notYet = [state.guaranteed ? 0 : 1, state.guaranteed ? 1 : 0];   // [not guaranteed, guaranteed]
   const cdf = []; let got = 0;
   for (let k = 1; k <= maxK; k++) {
     if (state.spark + k >= SPARK) { got += notYet[0] + notYet[1]; notYet = [0, 0]; cdf.push(got); continue; }  // can exchange
-    const p = RATE.SSR;
-    const g0 = notYet[0], g1 = notYet[1];
+    const p = RATE.SSR, g0 = notYet[0], g1 = notYet[1];
     got += g1 * p + g0 * p * PICKUP_SHARE;
     notYet = [g0 * (1 - p), g1 * (1 - p) + g0 * p * (1 - PICKUP_SHARE)];
     cdf.push(got);
@@ -147,72 +183,360 @@ function pickupCdf(state, maxK = SPARK) {
 }
 const meanFromCdf = (cdf) => cdf.reduce((s, c, i) => s + (c - (i ? cdf[i - 1] : 0)) * (i + 1), 0);
 
-// ---- Art: procedural creature portraits (round = friendly, element shown in silhouette) -------
-function art(u, size = 120) {
-  const h = u.hue, body = `hsl(${h} 70% 62%)`, dark = `hsl(${h} 55% 30%)`, light = `hsl(${h} 85% 82%)`;
-  let extra = "";
-  if (u.ears) extra += `<path d="M34 40 L44 14 L54 38 Z M66 38 L76 14 L86 40 Z" fill="${dark}"/>`;
-  if (u.horn) extra += `<path d="M60 8 L66 34 L54 34 Z" fill="#fff6c8" stroke="#ffcf5a" stroke-width="2"/>`;
-  if (u.fin) extra += `<path d="M60 22 Q72 6 84 24 Q72 22 66 34 Z" fill="${dark}"/>`;
-  if (u.spikes) extra += `<path d="M30 52 L22 40 L38 46 Z M90 52 L98 40 L82 46 Z M60 26 L56 12 L64 12 Z" fill="${dark}"/>`;
-  if (u.leaf) extra += `<path d="M60 26 Q48 6 62 4 Q70 16 60 26 Z" fill="hsl(110 60% 45%)"/>`;
-  if (u.flame) extra += `<path d="M92 78 Q108 60 98 44 Q112 52 106 74 Q102 88 92 78 Z" fill="hsl(28 95% 60%)"/>`;
-  return `<svg viewBox="0 0 120 120" width="${size}" height="${size}" role="img" aria-label="${u.name}">
-    <defs><radialGradient id="g${u.id}${size}" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="${light}"/><stop offset="1" stop-color="${body}"/></radialGradient></defs>
-    <ellipse cx="60" cy="104" rx="34" ry="7" fill="rgba(0,0,0,.25)"/>${extra}
-    <circle cx="60" cy="68" r="36" fill="url(#g${u.id}${size})" stroke="${dark}" stroke-width="3"/>
-    <circle cx="48" cy="64" r="6" fill="#1a1230"/><circle cx="72" cy="64" r="6" fill="#1a1230"/>
-    <circle cx="50" cy="62" r="2" fill="#fff"/><circle cx="74" cy="62" r="2" fill="#fff"/>
-    <path d="M52 80 Q60 86 68 80" stroke="#1a1230" stroke-width="3" fill="none" stroke-linecap="round"/>
-    <circle cx="42" cy="76" r="5" fill="hsl(${h} 90% 75% / .55)"/><circle cx="78" cy="76" r="5" fill="hsl(${h} 90% 75% / .55)"/></svg>`;
-}
-
-// ---- UI --------------------------------------------------------------------------------------
+// =====================================================================================
+// PRESENTATION
+// =====================================================================================
 const $ = (id) => document.getElementById(id);
-function render(last = []) {
-  $("sparkBadge").textContent = `Exchange points ${S.spark} / ${SPARK}${S.spark >= SPARK ? " — exchange ready" : ` · ${SPARK - S.spark} to go (carries over)`}`;
-  $("guarBadge").textContent = S.guaranteed ? "Next SSR: pickup guaranteed" : "Next SSR: 50/50 for the pickup";
-  $("guarBadge").classList.toggle("hot", S.guaranteed);
-  $("starsBadge").textContent = `★ ${S.stars.toLocaleString()} (${Math.floor(S.stars / COST)} summons)`;
-  $("pull1").disabled = S.stars < COST; $("pull10").disabled = S.stars < COST * 10;
-  $("exchange").disabled = S.spark < SPARK;
-  if (last.length) $("results").innerHTML = last.map((x) => `<div class="card ${x.r}">${art(x.unit, 96)}<div class="tag">${x.r}</div>${x.unit.name}${x.how ? `<div class="muted">${x.how}</div>` : ""}</div>`).join("");
-  const all = [{ ...PICKUP, r: "SSR" }, ...POOL.SSR.map((u) => ({ ...u, r: "SSR" })), ...POOL.SR.map((u) => ({ ...u, r: "SR" })), ...POOL.R.map((u) => ({ ...u, r: "R" }))];
-  $("book").innerHTML = all.map((u) => `<div class="card ${u.r} ${S.owned[u.id] ? "owned" : ""}" title="${u.name}">${art(u, 64)}<div>${S.owned[u.id] ? "×" + S.owned[u.id] : "?"}</div></div>`).join("");
-  $("history").innerHTML = S.history.slice(-40).reverse().map((x) => `<li value="${x.n}"><b style="color:var(--${x.r.toLowerCase()})">${x.r}</b> ${x.unit.name}${x.how ? ` (${x.how})` : ""}</li>`).join("");
-  const cdf = pickupCdf(S), have = Math.floor(S.stars / COST);
-  const within = have ? cdf[Math.min(have, cdf.length) - 1] : 0;
-  const worst = cdf.findIndex((c) => c > 1 - 1e-9) + 1;
-  $("chanceLine").innerHTML = `With <b>${have}</b> summons you have a <b>${(within * 100).toFixed(1)}%</b> chance to get Aurora Kirin. It is guaranteed by summon <b>#${worst || "—"}</b> from now (exchange or 50/50 guarantee).`;
-  drawCdf(cdf, have);
-}
-function drawCdf(cdf, have) {
-  const c = $("cdf"), g = c.getContext("2d"), W = c.width, H = c.height, pad = 26;
-  g.clearRect(0, 0, W, H); g.strokeStyle = "#352a63"; g.lineWidth = 1;
-  for (let y = 0; y <= 4; y++) { const yy = H - pad - (H - 2 * pad) * y / 4; g.beginPath(); g.moveTo(pad, yy); g.lineTo(W - 8, yy); g.stroke(); }
-  g.fillStyle = "#b9afd8"; g.font = "12px system-ui"; g.fillText("100%", 0, pad + 4); g.fillText("0", 12, H - pad + 4); g.fillText(`summons from now → ${SPARK}`, W - 170, H - 6);
-  g.strokeStyle = "#ffcf5a"; g.lineWidth = 2.5; g.beginPath();
-  cdf.forEach((v, i) => { const x = pad + (W - pad - 8) * (i + 1) / SPARK, y = H - pad - (H - 2 * pad) * v; i ? g.lineTo(x, y) : g.moveTo(x, y); });
-  g.stroke();
-  if (have) { const x = pad + (W - pad - 8) * Math.min(have, SPARK) / SPARK; g.strokeStyle = "#4ee1a0"; g.setLineDash([4, 4]); g.beginPath(); g.moveTo(x, pad); g.lineTo(x, H - pad); g.stroke(); g.setLineDash([]); g.fillStyle = "#4ee1a0"; g.fillText("your stars", Math.min(x + 4, W - 70), pad + 10); }
-}
-function odds() {
-  const per = (r, n) => (r / n * 100).toFixed(3) + "%";
-  $("oddsBody").innerHTML =
-    `<tr><td>SSR (pickup)</td><td>Aurora Kirin</td><td class="num">${(RATE.SSR * PICKUP_SHARE * 100).toFixed(2)}%</td></tr>` +
-    `<tr><td>SSR (others)</td><td>${POOL.SSR.map((u) => u.name).join(", ")}</td><td class="num">${(RATE.SSR * (1 - PICKUP_SHARE) * 100).toFixed(2)}% (${per(RATE.SSR * (1 - PICKUP_SHARE), POOL.SSR.length)} each)</td></tr>` +
-    `<tr><td>SR</td><td>${POOL.SR.length} units</td><td class="num">${(RATE.SR * 100).toFixed(2)}% (${per(RATE.SR, POOL.SR.length)} each)</td></tr>` +
-    `<tr><td>R</td><td>${POOL.R.length} units</td><td class="num">${((1 - RATE.SSR - RATE.SR) * 100).toFixed(2)}% (${per(1 - RATE.SSR - RATE.SR, POOL.R.length)} each)</td></tr>`;
-  const m = meanFromCdf(pickupCdf(fresh()));
-  $("consolidated").textContent = `Consolidated pickup rate from a fresh start: ${(100 / m).toFixed(2)}% (1 in ${m.toFixed(1)} summons on average), at most ${SPARK} summons. Displayed rates are the actual rates; there is no hidden rate increase.`;
-}
-$("pull1").onclick = () => render(pull(1));
-$("pull10").onclick = () => render(pull(10));
-$("exchange").onclick = () => { exchange(); render([S.history[S.history.length - 1]]); };
-$("earn").onclick = () => { S.stars += 1500; render(); };
-$("heroArt").innerHTML = art(PICKUP, 190);
+const setHTML = (el, html) => { if (el._html !== html) { el._html = html; el.innerHTML = html; } };
+const STW = 1280, STH = 720, ALTAR = { x: 664, y: 566 };
+const rnd = (a, b) => a + Math.random() * (b - a);
+const KEY = "hoshiyobi-island";
+const SET = (() => { const d = { sound: true, lang: (navigator.language || "").startsWith("ja") ? "ja" : "en" }; try { return { ...d, ...JSON.parse(localStorage.getItem(KEY) || "{}") }; } catch (e) { return d; } })();
+function saveSet() { try { localStorage.setItem(KEY, JSON.stringify(SET)); } catch (e) { /* optional */ } }
+const UI = { screen: "title", falling: [], parts: [], lanterns: [], flash: 0, busy: false, reveal: null };
 
-// ---- Self-test (?test=1) and screenshot state (?shot=1) --------------------------------------
+const STR = {
+  en: { brand: "Hoshiyobi Island<small>星喚びの島 · STAR SUMMON</small>", odds: "Rates", book: "Collection", hist: "History", lang: "日本語",
+    pickupTag: "★ PICKUP SSR", stars: "Your stars", starsN: "= {n} summons", p1: "Summon ×1<small>150 ★</small>", p10: "Summon ×10<small>1,500 ★</small>",
+    g50: "Next SSR: 50/50 for the pickup", gOn: "Next SSR: the pickup, guaranteed", spark: "Exchange points", sparkLeft: "{n} to go · carries over",
+    sparkReady: "ready to exchange", exch: "Exchange 120 points for Aurora Kirin", chance: "With your <b>{n}</b> summons: <b>{p}%</b> chance of Aurora Kirin. Guaranteed by summon <b>#{w}</b> at the latest.",
+    chanceNone: "No summons left. Guaranteed by summon <b>#{w}</b> from now.", free: "+1,500 ★", freeTxt: "Free demo stars. Nothing here can be bought.",
+    rateChip: "Pickup <b>1.50%</b>", rateChip2: "SSR <b>3%</b> · SR 12% · R 85%", results: "Results", sum: "{ssr} SSR · {sr} SR · {r} R", ok: "OK", again: "Summon ×10 again", skip: "Show all",
+    lost: "lost 50/50", pickupHow: "pickup", exchHow: "exchange", "new": "NEW",
+    oddsTitle: "Rates and guarantees", oddsNote: "Displayed rates are the actual rates. There is no hidden rate increase.", rarity: "Rarity", units: "Units", rate: "Rate",
+    consolidated: "Consolidated pickup rate from a fresh start: <b>{r}%</b> (1 in {m} summons on average). Guaranteed within <b>120</b> summons.",
+    chartCap: "Chance to have Aurora Kirin after N more summons, from your current state", bookTitle: "Collection", owned: "{n} of {t} found", histTitle: "Summon history", histEmpty: "No summons yet.",
+    tagline: "A star-summoning demo that shows all of its math: rates, guarantees, and your exact chance.", start: "Enter the shrine", how: "How it works",
+    howTitle: "How the star summon works", h1: "Rates", h1t: "SSR 3% (pickup 1.5%), SR 12%, R 85%. They're always on screen, and they're the real rates.",
+    h2: "The 50/50", h2t: "Each SSR is 50% the pickup. If it isn't, your next SSR is the pickup, guaranteed.", h3: "Exchange", h3t: "Every summon adds a point. At 120, exchange for the pickup. Points carry over.",
+    h4: "Your chance", h4t: "The panel computes your exact chance from the stars you have, and the latest summon by which it's guaranteed.",
+    foot: "Original game · designed with <a href=\"https://github.com/bunhine0452/ai-game-designer\">ai-game-designer</a> (<a href=\"../../showcase/03-claude-ja-gacha-review/\">showcase session 03</a>) · v2 banner after the monetization review · <a href=\"../\">← Arcade</a>" },
+  ja: { brand: "星喚びの島<small>HOSHIYOBI ISLAND · 星喚び</small>", odds: "提供割合", book: "図鑑", hist: "履歴", lang: "English",
+    pickupTag: "★ ピックアップ SSR", stars: "所持している星", starsN: "= {n}回分", p1: "1回召喚<small>150 ★</small>", p10: "10回召喚<small>1,500 ★</small>",
+    g50: "次のSSR：ピックアップ確率50%", gOn: "次のSSR：ピックアップ確定", spark: "交換ポイント", sparkLeft: "あと{n} · 引き継ぎあり",
+    sparkReady: "交換できます", exch: "120ポイントでオーロラ麒麟と交換", chance: "所持の<b>{n}</b>回でオーロラ麒麟を入手できる確率は<b>{p}%</b>。遅くとも<b>{w}</b>回目で確定します。",
+    chanceNone: "召喚できる星がありません。今から<b>{w}</b>回目までに確定します。", free: "+1,500 ★", freeTxt: "デモ用の無料の星です。購入はできません。",
+    rateChip: "ピックアップ <b>1.50%</b>", rateChip2: "SSR <b>3%</b> · SR 12% · R 85%", results: "召喚結果", sum: "SSR {ssr} · SR {sr} · R {r}", ok: "OK", again: "もう一度10回召喚", skip: "すべて表示",
+    lost: "すり抜け", pickupHow: "ピックアップ", exchHow: "交換", "new": "NEW",
+    oddsTitle: "提供割合と天井", oddsNote: "表示している確率が実際の確率です。隠れた確率変動はありません。", rarity: "レアリティ", units: "対象", rate: "確率",
+    consolidated: "初期状態からのピックアップ実質確率：<b>{r}%</b>（平均{m}回に1体）。<b>120</b>回以内に確定。",
+    chartCap: "現在の状態から、あとN回でオーロラ麒麟を持っている確率", bookTitle: "図鑑", owned: "{t}体中{n}体を発見", histTitle: "召喚履歴", histEmpty: "まだ召喚していません。",
+    tagline: "確率も天井も、あなたの入手確率も。数字をすべて見せる星喚びのデモ。", start: "社へ入る", how: "しくみ",
+    howTitle: "星喚びのしくみ", h1: "提供割合", h1t: "SSR 3%（ピックアップ1.5%）、SR 12%、R 85%。常に画面に表示され、実際の確率です。",
+    h2: "50/50", h2t: "SSRの半分はピックアップ。すり抜けたら、次のSSRはピックアップ確定です。", h3: "交換", h3t: "召喚ごとに1ポイント。120でピックアップと交換できます。ポイントは引き継がれます。",
+    h4: "入手確率", h4t: "所持している星から正確な入手確率と、確定する最遅の回数を計算して表示します。",
+    foot: "オリジナルゲーム · <a href=\"https://github.com/bunhine0452/ai-game-designer\">ai-game-designer</a> で設計（<a href=\"../../showcase/03-claude-ja-gacha-review/\">ショーケース 03</a>）· 課金設計レビュー後の v2 バナー · <a href=\"../\">← アーケード</a>" },
+};
+const T = (k, v = {}) => (STR[SET.lang][k] ?? STR.en[k] ?? k).replace(/\{(\w+)\}/g, (_, n) => v[n]);
+const uname = (u) => SET.lang === "ja" ? u.jp : u.name;
+const usub = (u) => SET.lang === "ja" ? u.name : u.jp;
+
+// ---- creature art: one hand-built SVG per creature ---------------------------------------------
+const ALL = [{ ...PICKUP, r: "SSR", pu: 1 }, ...POOL.SSR.map((u) => ({ ...u, r: "SSR" })), ...POOL.SR.map((u) => ({ ...u, r: "SR" })), ...POOL.R.map((u) => ({ ...u, r: "R" }))];
+(function defs() {
+  let h = "";
+  for (const u of ALL) h += `<radialGradient id="b-${u.id}" cx="38%" cy="32%" r="75%"><stop offset="0" stop-color="hsl(${u.hue} 90% 86%)"/><stop offset=".55" stop-color="hsl(${u.hue} 68% 62%)"/><stop offset="1" stop-color="hsl(${u.hue} 55% 38%)"/></radialGradient>`;
+  $("defs").insertAdjacentHTML("beforeend", h);
+})();
+const O = (h) => `stroke="hsl(${h} 50% 18%)" stroke-width="3" stroke-linejoin="round"`;
+const eyes = (x1, x2, y, r = 6.5, h = 260) => [x1, x2].map((x) => `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r * 1.15}" fill="hsl(${h} 45% 14%)"/><circle cx="${x + r * .35}" cy="${y - r * .45}" r="${r * .38}" fill="#fff"/><circle cx="${x - r * .35}" cy="${y + r * .35}" r="${r * .18}" fill="#fff" opacity=".8"/>`).join("");
+const blush = (x1, x2, y, h) => `<ellipse cx="${x1}" cy="${y}" rx="6" ry="3.6" fill="hsl(${(h + 340) % 360} 90% 72% / .6)"/><ellipse cx="${x2}" cy="${y}" rx="6" ry="3.6" fill="hsl(${(h + 340) % 360} 90% 72% / .6)"/>`;
+const smile = (x, y, w = 8, h = 260) => `<path d="M${x - w / 2} ${y} Q${x} ${y + w * .7} ${x + w / 2} ${y}" stroke="hsl(${h} 45% 14%)" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;
+const shadow = `<ellipse cx="60" cy="110" rx="34" ry="6" fill="rgba(0,0,0,.28)"/>`;
+const ART = {
+  kirin: (u) => `<ellipse cx="62" cy="112" rx="40" ry="5" fill="rgba(0,0,0,.25)"/>
+    ${[[28, 108], [50, 112], [80, 110], [98, 106]].map(([x, y]) => `<ellipse cx="${x}" cy="${y}" rx="13" ry="6" fill="#f3f0ff" opacity=".85"/><ellipse cx="${x + 8}" cy="${y - 3}" rx="8" ry="5" fill="#fff"/>`).join("")}
+    <path d="M30 76 C12 70 2 52 10 34 C14 50 22 56 30 58 C18 44 22 26 34 18 C32 36 38 50 44 60Z" fill="url(#mane)" ${O(u.hue)}/>
+    ${[[42, 86, 38, 106], [52, 88, 50, 108], [80, 86, 82, 106], [90, 84, 94, 104]].map(([x1, y1, x2, y2]) => `<path d="M${x1} ${y1} L${x2} ${y2}" stroke="hsl(170 45% 22%)" stroke-width="7" stroke-linecap="round"/><path d="M${x1} ${y1} L${x2} ${y2}" stroke="hsl(170 60% 58%)" stroke-width="4" stroke-linecap="round"/><ellipse cx="${x2}" cy="${y2 + 1}" rx="4" ry="2.6" fill="#ffd36b" stroke="hsl(40 60% 30%)" stroke-width="1.4"/>`).join("")}
+    <ellipse cx="64" cy="76" rx="34" ry="19" fill="url(#b-kirin)" ${O(u.hue)}/>
+    <path d="M46 72 q6 6 12 0 q6 6 12 0 q6 6 12 0" stroke="hsl(170 80% 88%)" stroke-width="2" fill="none" opacity=".75"/>
+    <path d="M78 66 C80 52 82 44 86 36 L100 42 C96 50 94 60 92 70Z" fill="url(#b-kirin)" ${O(u.hue)}/>
+    <path d="M74 14 C60 18 56 34 62 48 C64 58 70 64 76 68 C72 56 74 46 80 40 C72 36 70 24 74 14Z" fill="url(#mane)" ${O(u.hue)}/>
+    <path d="M92 6 C96 -6 104 -14 112 -16 C106 -8 102 2 100 12Z" fill="#fff3c4" stroke="#c9952a" stroke-width="2.4" filter="url(#glow)"/>
+    <path d="M78 30 C76 14 86 6 96 8 C108 10 114 20 112 30 C120 32 124 38 120 44 C116 48 106 48 98 46 C88 48 80 42 78 30Z" fill="url(#b-kirin)" ${O(u.hue)}/>
+    <path d="M82 14 L74 2 L88 10Z" fill="hsl(170 60% 52%)" ${O(u.hue)}/>
+    <path d="M90 16 l2 4 4 1 -3 3 1 4 -4 -2 -4 2 1 -4 -3 -3 4 -1z" fill="#fff" filter="url(#glow)"/>
+    <ellipse cx="100" cy="28" rx="5.4" ry="6.4" fill="hsl(260 45% 14%)"/><circle cx="102" cy="25.6" r="2.2" fill="#fff"/><circle cx="98.6" cy="30.4" r="1" fill="#fff"/>
+    <ellipse cx="108" cy="38" rx="5" ry="3" fill="hsl(330 90% 75% / .6)"/><circle cx="118" cy="40" r="1.4" fill="hsl(170 45% 22%)"/>
+    <path d="M110 44 q4 2 8 -1" stroke="hsl(260 45% 14%)" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M116 44 C124 52 120 60 112 62" stroke="url(#mane)" stroke-width="3" fill="none" stroke-linecap="round"/>`,
+  whale: (u) => `${shadow}<path d="M96 70 C110 60 116 48 112 40 C106 48 98 52 92 56 C100 46 102 36 96 30 C92 42 86 52 82 60Z" fill="url(#b-whale)" ${O(u.hue)}/>
+    <path d="M14 70 C14 44 36 32 60 32 C88 32 100 50 100 72 C100 92 82 104 58 104 C34 104 14 94 14 70Z" fill="url(#b-whale)" ${O(u.hue)}/>
+    <path d="M22 82 C36 98 74 100 92 84 C82 96 38 98 22 82Z" fill="hsl(205 80% 90%)" opacity=".8"/>
+    ${[0, 1, 2, 3].map((i) => `<path d="M${36 + i * 10} ${88 + (i % 2)} q4 3 8 0" stroke="hsl(205 50% 40%)" stroke-width="2" fill="none"/>`).join("")}
+    <path d="M56 32 C54 22 60 14 62 8 C66 16 70 22 66 32Z" fill="hsl(205 60% 50%)" ${O(u.hue)}/>
+    <path d="M48 20 q-6 -10 -2 -16 M52 18 q2 -12 10 -14 M44 22 q-12 -4 -14 -10" stroke="#bff0ff" stroke-width="3" fill="none" stroke-linecap="round"/>
+    ${eyes(42, 66, 62, 6)}${blush(34, 74, 72, u.hue)}${smile(54, 74, 9)}`,
+  fox: (u) => `${shadow}<path d="M84 92 C108 92 116 70 106 50 C104 62 98 66 92 66 C100 56 98 42 88 34 C90 50 84 60 76 66Z" fill="hsl(28 95% 60%)" stroke="hsl(18 70% 30%)" stroke-width="3" stroke-linejoin="round" filter="url(#glow)"/>
+    <path d="M96 80 C104 72 104 62 100 56" stroke="#ffe39a" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M30 32 L36 6 L52 26Z M90 32 L84 6 L68 26Z" fill="url(#b-fox)" ${O(u.hue)}/><path d="M36 28 L38 14 L46 26Z M84 28 L82 14 L74 26Z" fill="hsl(18 80% 85%)"/>
+    <path d="M22 66 C22 38 40 24 60 24 C80 24 98 38 98 66 C98 90 82 106 60 106 C38 106 22 90 22 66Z" fill="url(#b-fox)" ${O(u.hue)}/>
+    <path d="M34 78 C42 96 78 96 86 78 C80 90 66 98 60 98 C54 98 40 90 34 78Z" fill="#fff4ea"/>
+    <path d="M22 70 l-8 4 8 2 M98 70 l8 4 -8 2" stroke="hsl(18 50% 20%)" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+    ${eyes(46, 74, 60, 6)}${blush(38, 82, 72, u.hue)}<path d="M57 72 l3 3 3 -3" stroke="hsl(260 45% 14%)" stroke-width="2.6" fill="none" stroke-linecap="round"/>`,
+  owl: (u) => `${shadow}<path d="M24 30 L34 12 L44 30Z M96 30 L86 12 L76 30Z" fill="url(#b-owl)" ${O(u.hue)}/>
+    <path d="M22 66 C22 36 40 24 60 24 C80 24 98 36 98 66 C98 94 80 108 60 108 C40 108 22 94 22 66Z" fill="url(#b-owl)" ${O(u.hue)}/>
+    <path d="M22 62 C8 70 10 92 26 98 C24 86 26 74 32 66Z M98 62 C112 70 110 92 94 98 C96 86 94 74 88 66Z" fill="hsl(255 50% 45%)" ${O(u.hue)}/>
+    <ellipse cx="60" cy="84" rx="20" ry="18" fill="hsl(255 80% 90%)" opacity=".85"/>${[0, 1, 2].map((i) => `<path d="M${50 + i * 8} ${80 + (i % 2) * 6} q4 4 8 0" stroke="hsl(255 40% 55%)" stroke-width="2" fill="none"/>`).join("")}
+    <circle cx="45" cy="54" r="14" fill="#fff8e0" ${O(u.hue)}/><circle cx="75" cy="54" r="14" fill="#fff8e0" ${O(u.hue)}/>${eyes(45, 75, 55, 7, 255)}
+    <path d="M56 64 L60 72 L64 64Z" fill="#ffc94d" stroke="hsl(30 60% 30%)" stroke-width="2"/>
+    <path d="M60 12 A8 8 0 1 0 66 26 A6 6 0 1 1 60 12Z" fill="#fff3c4" filter="url(#glow)"/>`,
+  golem: (u) => `${shadow}<path d="M28 36 L20 22 L34 30Z M92 36 L100 22 L86 30Z M48 20 L50 6 L56 20Z M66 20 L72 6 L74 20Z" fill="hsl(110 40% 30%)" ${O(u.hue)}/>
+    <rect x="20" y="20" width="80" height="86" rx="22" fill="url(#b-golem)" ${O(u.hue)}/>
+    <path d="M30 40 C40 34 48 44 58 38 C66 34 74 42 86 36" stroke="hsl(110 60% 30%)" stroke-width="7" fill="none" stroke-linecap="round"/>
+    <path d="M40 92 l6 -12 6 8 M72 94 l4 -10 6 6" stroke="hsl(110 30% 25%)" stroke-width="2.4" fill="none"/>
+    <path d="M18 70 l-10 6 10 4 M102 70 l10 6 -10 4" fill="hsl(110 40% 30%)" ${O(u.hue)}/>
+    <rect x="36" y="54" width="14" height="9" rx="4" fill="#d9ff8a" filter="url(#glow)"/><rect x="70" y="54" width="14" height="9" rx="4" fill="#d9ff8a" filter="url(#glow)"/>
+    <path d="M50 78 h20" stroke="hsl(110 45% 14%)" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="86" cy="28" r="6" fill="#ff8fb8" stroke="hsl(330 50% 30%)" stroke-width="2"/><circle cx="86" cy="28" r="2.4" fill="#ffe066"/>`,
+  sprout: (u) => `${shadow}<path d="M60 34 C60 22 58 14 60 6" stroke="hsl(110 50% 30%)" stroke-width="4" fill="none"/>
+    <path d="M60 14 C44 2 30 8 30 18 C42 22 52 20 60 14Z M60 10 C72 -2 88 4 90 14 C78 20 68 18 60 10Z" fill="hsl(105 60% 50%)" ${O(110)}/>
+    <path d="M26 74 C26 48 42 34 60 34 C78 34 94 48 94 74 C94 96 80 108 60 108 C40 108 26 96 26 74Z" fill="url(#b-sprout)" ${O(u.hue)}/>
+    ${eyes(48, 72, 70, 6)}${blush(40, 80, 82, u.hue)}${smile(60, 84, 8)}`,
+  puff: (u) => `${shadow}<path d="M40 70 C40 96 48 106 60 106 C72 106 80 96 80 70Z" fill="#fff4e6" ${O(30)}/>
+    <path d="M14 66 C14 32 36 16 60 16 C84 16 106 32 106 66 C90 74 30 74 14 66Z" fill="url(#b-puff)" ${O(u.hue)}/>
+    ${[[36, 38, 8], [64, 28, 7], [86, 46, 6], [52, 52, 5]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#fff6fb"/>`).join("")}
+    ${eyes(50, 70, 86, 5)}${blush(44, 76, 94, u.hue)}${smile(60, 96, 6)}`,
+  ray: (u) => `${shadow}<path d="M60 40 C80 40 108 52 114 70 C100 70 86 74 74 84 C70 96 66 104 60 104 C54 104 50 96 46 84 C34 74 20 70 6 70 C12 52 40 40 60 40Z" fill="url(#b-ray)" ${O(u.hue)}/>
+    <path d="M60 104 C62 110 70 116 80 114" stroke="hsl(190 55% 30%)" stroke-width="3" fill="none" stroke-linecap="round"/>
+    ${[[30, 62], [90, 62], [60, 52], [44, 74], [76, 74]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3" fill="#dfffff" filter="url(#glow)"/>`).join("")}
+    ${eyes(50, 70, 66, 5)}${smile(60, 78, 7)}`,
+  bat: (u) => `${shadow}<path d="M36 62 C20 46 4 50 2 64 C10 62 14 70 12 78 C20 72 26 78 28 86 C32 78 36 74 42 74Z M84 62 C100 46 116 50 118 64 C110 62 106 70 108 78 C100 72 94 78 92 86 C88 78 84 74 78 74Z" fill="hsl(280 40% 32%)" ${O(u.hue)}/>
+    <path d="M36 40 L30 16 L50 32Z M84 40 L90 16 L70 32Z" fill="url(#b-bat)" ${O(u.hue)}/>
+    <path d="M32 66 C32 42 44 30 60 30 C76 30 88 42 88 66 C88 90 76 102 60 102 C44 102 32 90 32 66Z" fill="url(#b-bat)" ${O(u.hue)}/>
+    ${eyes(50, 70, 62, 6)}${blush(42, 78, 74, u.hue)}<path d="M54 76 l3 4 3 -4 3 4 3 -4" stroke="hsl(260 45% 14%)" stroke-width="2.2" fill="#fff" stroke-linejoin="round"/>`,
+  crab: (u) => `${shadow}<path d="M26 56 C12 54 6 40 14 30 C18 40 24 42 28 40 C24 34 26 26 32 24 C38 34 36 48 30 56Z M94 56 C108 54 114 40 106 30 C102 40 96 42 92 40 C96 34 94 26 88 24 C82 34 84 48 90 56Z" fill="url(#b-crab)" ${O(u.hue)}/>
+    ${[36, 46, 74, 84].map((x) => `<path d="M${x} 96 l${x < 60 ? -8 : 8} 10" stroke="hsl(8 50% 30%)" stroke-width="4" stroke-linecap="round"/>`).join("")}
+    <path d="M22 78 C22 56 40 46 60 46 C80 46 98 56 98 78 C98 96 80 104 60 104 C40 104 22 96 22 78Z" fill="url(#b-crab)" ${O(u.hue)}/>
+    <path d="M48 46 L44 30 M72 46 L76 30" stroke="hsl(8 50% 30%)" stroke-width="3.4"/><circle cx="44" cy="28" r="7" fill="#fff" ${O(u.hue)}/><circle cx="76" cy="28" r="7" fill="#fff" ${O(u.hue)}/>
+    <circle cx="45" cy="29" r="3.6" fill="hsl(260 45% 14%)"/><circle cx="75" cy="29" r="3.6" fill="hsl(260 45% 14%)"/>${blush(40, 80, 80, u.hue)}${smile(60, 82, 10)}
+    <circle cx="70" cy="60" r="4" fill="#fff" opacity=".5"/><circle cx="50" cy="58" r="2.6" fill="#fff" opacity=".5"/>`,
+  moth: (u) => `${shadow}<path d="M40 58 C18 34 2 46 6 66 C10 82 28 84 42 74Z M80 58 C102 34 118 46 114 66 C110 82 92 84 78 74Z" fill="hsl(48 80% 70%)" ${O(u.hue)}/>
+    <circle cx="22" cy="62" r="7" fill="hsl(30 90% 60%)"/><circle cx="98" cy="62" r="7" fill="hsl(30 90% 60%)"/>
+    <path d="M50 30 C44 18 36 14 30 16 M70 30 C76 18 84 14 90 16" stroke="hsl(48 40% 25%)" stroke-width="2.6" fill="none" stroke-linecap="round"/><circle cx="30" cy="16" r="4" fill="#ffe066" filter="url(#glow)"/><circle cx="90" cy="16" r="4" fill="#ffe066" filter="url(#glow)"/>
+    <path d="M38 64 C38 42 48 30 60 30 C72 30 82 42 82 64 C82 88 72 104 60 104 C48 104 38 88 38 64Z" fill="url(#b-moth)" ${O(u.hue)}/>
+    <path d="M44 76 C50 82 70 82 76 76 C74 90 46 90 44 76Z" fill="#fff6c8" opacity=".9"/>
+    ${eyes(51, 69, 58, 5)}${blush(45, 75, 68, u.hue)}${smile(60, 68, 6)}`,
+  slime: (u) => `${shadow}<path d="M20 100 C16 72 34 40 60 40 C86 40 104 72 100 100 C92 104 86 98 80 104 C72 108 66 100 60 106 C52 100 46 108 38 104 C32 98 26 104 20 100Z" fill="url(#b-slime)" ${O(u.hue)}/>
+    <path d="M60 22 l4 9 10 1 -8 6 3 10 -9 -6 -9 6 3 -10 -8 -6 10 -1z" fill="#ffe680" stroke="hsl(45 60% 35%)" stroke-width="2"/>
+    <ellipse cx="42" cy="58" rx="8" ry="5" fill="#fff" opacity=".55" transform="rotate(-30 42 58)"/>${eyes(48, 72, 76, 6)}${smile(60, 88, 8)}`,
+  pebble: (u) => `${shadow}<path d="M18 86 C14 62 30 40 58 38 C86 36 104 56 102 80 C100 100 80 108 58 108 C36 108 20 102 18 86Z" fill="url(#b-pebble)" ${O(u.hue)}/>
+    ${[[40, 58, 3], [78, 54, 2.4], [86, 86, 3], [34, 90, 2]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="hsl(30 30% 40%)"/>`).join("")}
+    <path d="M46 46 l6 6" stroke="hsl(30 30% 40%)" stroke-width="2"/>${eyes(48, 70, 76, 5)}${smile(59, 88, 7)}`,
+  drop: (u) => `${shadow}<path d="M60 10 C72 34 96 54 96 78 C96 98 80 108 60 108 C40 108 24 98 24 78 C24 54 48 34 60 10Z" fill="url(#b-drop)" ${O(u.hue)}/>
+    <path d="M44 56 C40 66 40 74 44 80" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" opacity=".7"/>${eyes(50, 70, 80, 5.5)}${blush(42, 78, 90, u.hue)}${smile(60, 92, 7)}`,
+  mote: (u) => `${shadow}${Array.from({ length: 18 }, (_, i) => { const a = i / 18 * Math.PI * 2; return `<circle cx="${60 + Math.cos(a) * 34}" cy="${70 + Math.sin(a) * 32}" r="12" fill="url(#b-mote)"/>`; }).join("")}
+    <circle cx="60" cy="70" r="36" fill="url(#b-mote)"/><circle cx="60" cy="70" r="44" fill="none" stroke="hsl(60 40% 30%)" stroke-width="2" stroke-dasharray="3 6" opacity=".5"/>
+    ${eyes(48, 72, 68, 6)}${smile(60, 82, 7)}`,
+  frog: (u) => `${shadow}<path d="M16 84 C16 62 34 52 60 52 C86 52 104 62 104 84 C104 100 86 108 60 108 C34 108 16 100 16 84Z" fill="url(#b-frog)" ${O(u.hue)}/>
+    <circle cx="38" cy="52" r="15" fill="url(#b-frog)" ${O(u.hue)}/><circle cx="82" cy="52" r="15" fill="url(#b-frog)" ${O(u.hue)}/>${eyes(38, 82, 52, 7)}
+    <path d="M32 84 Q60 100 88 84" stroke="hsl(120 50% 18%)" stroke-width="3" fill="none" stroke-linecap="round"/>${blush(30, 90, 78, u.hue)}
+    <ellipse cx="60" cy="96" rx="20" ry="7" fill="hsl(120 70% 85%)" opacity=".6"/>`,
+};
+const artSVG = (u) => `<svg viewBox="${u.id === "kirin" ? "-2 -20 132 136" : "-4 -16 128 132"}" role="img" aria-label="${u.name}">${ART[u.id](u)}</svg>`;
+const STAR_SVG = `<svg viewBox="0 0 40 40"><path d="M20 3l5 11 12 1-9 8 3 12-11-6-11 6 3-12-9-8 12-1z" fill="none" stroke="#c9bfff" stroke-width="2.4" stroke-linejoin="round"/><circle cx="20" cy="21" r="3" fill="#c9bfff"/></svg>`;
+
+// ---- sound ------------------------------------------------------------------------------------
+const AU = { ctx: null, out: null, nbuf: null };
+function audioInit() {
+  if (AU.ctx) { if (AU.ctx.state === "suspended") AU.ctx.resume(); return; }
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)(); AU.ctx = ctx;
+    AU.out = ctx.createGain(); AU.out.gain.value = SET.sound ? 0.5 : 0; AU.out.connect(ctx.destination);
+    const n = ctx.sampleRate * 2, b = ctx.createBuffer(1, n, ctx.sampleRate), d = b.getChannelData(0); for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1; AU.nbuf = b;
+    const src = ctx.createBufferSource(), lp = ctx.createBiquadFilter(), gn = ctx.createGain(); src.buffer = b; src.loop = true; lp.type = "lowpass"; lp.frequency.value = 340; gn.gain.value = 0.03; src.connect(lp); lp.connect(gn); gn.connect(AU.out); src.start();
+    // a soft koto-like pentatonic pluck every few seconds
+    const notes = [392, 440, 523, 587, 659, 784];
+    setInterval(() => { if (SET.sound && UI.screen !== "title" && Math.random() < .55) pluck(notes[Math.floor(Math.random() * notes.length)], 0.04); }, 2400);
+  } catch (e) { AU.ctx = null; }
+}
+function pluck(f, peak = 0.08, delay = 0) { tone(f, 1.2, "triangle", peak, delay); tone(f * 2, 0.6, "sine", peak * .4, delay); }
+function tone(f, dur, type = "sine", peak = 0.1, delay = 0, f2 = 0) {
+  if (!AU.ctx) return; const t0 = AU.ctx.currentTime + delay, o = AU.ctx.createOscillator(), gn = AU.ctx.createGain();
+  o.type = type; o.frequency.setValueAtTime(f, t0); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t0 + dur);
+  gn.gain.setValueAtTime(0.0001, t0); gn.gain.exponentialRampToValueAtTime(peak, t0 + 0.008); gn.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  o.connect(gn); gn.connect(AU.out); o.start(t0); o.stop(t0 + dur + 0.05);
+}
+function hiss(dur, f1, f2, peak = 0.08, delay = 0) {
+  if (!AU.ctx) return; const t0 = AU.ctx.currentTime + delay, s = AU.ctx.createBufferSource(), fl = AU.ctx.createBiquadFilter(), gn = AU.ctx.createGain();
+  s.buffer = AU.nbuf; fl.type = "bandpass"; fl.Q.value = 2; fl.frequency.setValueAtTime(f1, t0); fl.frequency.exponentialRampToValueAtTime(f2, t0 + dur);
+  gn.gain.setValueAtTime(0.0001, t0); gn.gain.exponentialRampToValueAtTime(peak, t0 + dur * .4); gn.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  s.connect(fl); fl.connect(gn); gn.connect(AU.out); s.start(t0, Math.random()); s.stop(t0 + dur + 0.05);
+}
+// One summon sound for every outcome: the reveal is plain on purpose (design review).
+const sfx = { summon() { hiss(0.8, 3000, 600, 0.12); [784, 988, 1175].forEach((f, i) => pluck(f, 0.05, i * 0.09)); }, flip() { tone(1320, 0.08, "sine", 0.04); },
+  ui() { tone(880, 0.05, "sine", 0.05); }, coin() { [1047, 1319, 1568].forEach((f, i) => tone(f, 0.25, "sine", 0.05, i * 0.06)); } };
+
+// ---- background: aurora night, sea, island shrine -----------------------------------------------------
+const cv = $("cv"), g = cv.getContext("2d"); let K = 1;
+function fit() {
+  const W = innerWidth, H = innerHeight; K = Math.min(W / STW, H / STH);
+  const st = $("stage"); st.style.transform = `scale(${K})`; st.style.left = `${(W - STW * K) / 2}px`; st.style.top = `${(H - STH * K) / 2}px`;
+  const R = Math.min(2, (devicePixelRatio || 1) * K); cv.width = Math.round(STW * R); cv.height = Math.round(STH * R); g.setTransform(R, 0, 0, R, 0, 0);
+  $("rotate").classList.toggle("show", W < H && W < 760 && !UI.rotX);
+}
+const SR = seeded(5); const STARS = Array.from({ length: 220 }, () => ({ x: SR() * STW, y: SR() * 500, r: SR() * 1.4 + .3, p: SR() * 6 }));
+UI.lanterns = Array.from({ length: 9 }, (_, i) => ({ x: 520 + SR() * 300, y: 420 + SR() * 260, s: .5 + SR() * .6, v: 6 + SR() * 10, p: SR() * 6 }));
+let clock = 0, lastT = performance.now();
+function frame(now) { const dt = Math.min(0.05, (now - lastT) / 1000); lastT = now; clock += dt; draw(dt); requestAnimationFrame(frame); }
+function draw(dt) {
+  const t = clock;
+  const sky = g.createLinearGradient(0, 0, 0, 520); sky.addColorStop(0, "#07051f"); sky.addColorStop(.6, "#16114a"); sky.addColorStop(1, "#2b2066"); g.fillStyle = sky; g.fillRect(0, 0, STW, STH);
+  for (const s of STARS) { g.globalAlpha = .4 + .6 * Math.abs(Math.sin(t * .8 + s.p)); g.fillStyle = "#fff"; g.beginPath(); g.arc(s.x, s.y, s.r, 0, Math.PI * 2); g.fill(); } g.globalAlpha = 1;
+  // aurora ribbons
+  for (let k = 0; k < 3; k++) {
+    g.beginPath(); const base = 140 + k * 46;
+    for (let x = -20; x <= STW + 20; x += 20) g.lineTo(x, base + Math.sin(x * .006 + t * .35 + k * 2) * 40 + Math.sin(x * .013 - t * .5) * 16);
+    for (let x = STW + 20; x >= -20; x -= 20) g.lineTo(x, base + 120 + Math.sin(x * .006 + t * .35 + k * 2) * 40);
+    const ag = g.createLinearGradient(0, base - 40, 0, base + 160); ag.addColorStop(0, "rgba(127,247,227,0)"); ag.addColorStop(.35, `rgba(${k === 1 ? "180,155,255" : "127,247,227"},${.16 - k * .03})`); ag.addColorStop(1, "rgba(127,247,227,0)");
+    g.fillStyle = ag; g.fill();
+  }
+  // sea
+  const HZ = 520, sea = g.createLinearGradient(0, HZ, 0, STH); sea.addColorStop(0, "#1d1855"); sea.addColorStop(1, "#06051c"); g.fillStyle = sea; g.fillRect(0, HZ, STW, STH - HZ);
+  for (let i = 0; i < 22; i++) { const y = HZ + 6 + i * 9, w = 260 - i * 6; g.fillStyle = `rgba(127,247,227,${.09 - i * .003})`; g.fillRect(ALTAR.x - w / 2 + Math.sin(t + i) * 10, y, w, 1.6); }
+  // island and shrine
+  g.fillStyle = "#120e36"; g.beginPath(); g.moveTo(420, HZ + 4); g.quadraticCurveTo(520, 470, 664, 466); g.quadraticCurveTo(820, 468, 910, HZ + 4); g.closePath(); g.fill();
+  g.fillStyle = "#1b1650"; g.beginPath(); g.ellipse(ALTAR.x, ALTAR.y - 70, 150, 26, 0, 0, Math.PI * 2); g.fill();
+  g.strokeStyle = "rgba(200,190,255,.35)"; g.lineWidth = 2; g.beginPath(); g.ellipse(ALTAR.x, ALTAR.y - 70, 150, 26, 0, 0, Math.PI * 2); g.stroke();
+  // star sigil on the altar
+  g.save(); g.translate(ALTAR.x, ALTAR.y - 70); g.scale(1, .18); g.rotate(t * .25);
+  g.strokeStyle = `rgba(127,247,227,${.55 + .25 * Math.sin(t * 2) + UI.flash * .4})`; g.lineWidth = 6; g.shadowColor = "#7ff7e3"; g.shadowBlur = 20; g.beginPath();
+  for (let i = 0; i <= 5; i++) { const a = -Math.PI / 2 + i * Math.PI * 4 / 5; g.lineTo(Math.cos(a) * 110, Math.sin(a) * 110); } g.stroke();
+  g.beginPath(); g.arc(0, 0, 124, 0, Math.PI * 2); g.stroke(); g.shadowBlur = 0; g.restore();
+  // stone lanterns
+  for (const x of [ALTAR.x - 168, ALTAR.x + 168]) {
+    g.fillStyle = "#2a2468"; g.fillRect(x - 6, ALTAR.y - 110, 12, 40); g.fillRect(x - 16, ALTAR.y - 118, 32, 8); g.fillStyle = "#3a3388"; g.beginPath(); g.moveTo(x - 20, ALTAR.y - 132); g.lineTo(x + 20, ALTAR.y - 132); g.lineTo(x + 10, ALTAR.y - 142); g.lineTo(x - 10, ALTAR.y - 142); g.fill();
+    const fl = .7 + .3 * Math.sin(t * 9 + x); g.fillStyle = `rgba(255,214,120,${fl})`; g.shadowColor = "#ffd36b"; g.shadowBlur = 18; g.fillRect(x - 9, ALTAR.y - 131, 18, 12); g.shadowBlur = 0;
+  }
+  // light pillar during a summon
+  if (UI.flash > 0) { UI.flash = Math.max(0, UI.flash - dt * 1.4); const pg = g.createLinearGradient(ALTAR.x - 60, 0, ALTAR.x + 60, 0); pg.addColorStop(0, "rgba(127,247,227,0)"); pg.addColorStop(.5, `rgba(220,255,250,${UI.flash * .6})`); pg.addColorStop(1, "rgba(127,247,227,0)"); g.fillStyle = pg; g.fillRect(ALTAR.x - 60, 0, 120, ALTAR.y - 70); }
+  // floating lanterns
+  for (const l of UI.lanterns) { l.y -= l.v * dt; if (l.y < 60) { l.y = 700; l.x = 480 + Math.random() * 360; } const x = l.x + Math.sin(t * .6 + l.p) * 10, a = Math.min(1, (700 - l.y) / 120) * Math.min(1, (l.y - 60) / 200);
+    g.globalAlpha = a * .9; g.fillStyle = "#ffcf7a"; g.shadowColor = "#ffb84d"; g.shadowBlur = 14; g.beginPath(); g.roundRect(x - 6 * l.s, l.y - 9 * l.s, 12 * l.s, 16 * l.s, 4 * l.s); g.fill(); g.shadowBlur = 0; }
+  g.globalAlpha = 1;
+  // shooting stars into the altar
+  UI.falling = UI.falling.filter((f) => (f.k += dt / f.d) < 1);
+  for (const f of UI.falling) { if (f.k < 0) continue; const e = f.k * f.k, x = f.x0 + (ALTAR.x - f.x0) * e, y = f.y0 + (ALTAR.y - 80 - f.y0) * e, x2 = f.x0 + (ALTAR.x - f.x0) * Math.max(0, e - .08), y2 = f.y0 + (ALTAR.y - 80 - f.y0) * Math.max(0, e - .08);
+    const lg = g.createLinearGradient(x2, y2, x, y); lg.addColorStop(0, "rgba(255,255,255,0)"); lg.addColorStop(1, "#ffffff"); g.strokeStyle = lg; g.lineWidth = 3; g.beginPath(); g.moveTo(x2, y2); g.lineTo(x, y); g.stroke(); g.fillStyle = "#fff"; g.beginPath(); g.arc(x, y, 3, 0, Math.PI * 2); g.fill(); }
+  UI.parts = UI.parts.filter((p) => (p.life += dt) < p.max);
+  for (const p of UI.parts) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 40 * dt; g.globalAlpha = 1 - p.life / p.max; g.fillStyle = p.c; g.beginPath(); g.arc(p.x, p.y, p.r, 0, Math.PI * 2); g.fill(); }
+  g.globalAlpha = 1;
+}
+
+// ---- panel ----------------------------------------------------------------------------------------
+const IC = { sound: `<svg viewBox="0 0 20 20"><path fill="currentColor" d="M3 7h3l5-4v14l-5-4H3z"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M14 7c1.3 1.6 1.3 4.4 0 6"/></svg>`,
+  mute: `<svg viewBox="0 0 20 20"><path fill="currentColor" d="M3 7h3l5-4v14l-5-4H3z"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M14 8l4 4M18 8l-4 4"/></svg>` };
+function render() {
+  setHTML($("brand"), T("brand")); $("bOdds").textContent = T("odds"); $("bBook").textContent = T("book"); $("bHist").textContent = T("hist"); $("bLang").textContent = T("lang");
+  setHTML($("bSound"), SET.sound ? IC.sound : IC.mute); $("bSound").classList.toggle("off", !SET.sound);
+  setHTML($("heroTag"), T("pickupTag")); setHTML($("heroName"), `${uname(PICKUP)}<small>${usub(PICKUP)}</small>`);
+  setHTML($("heroRate"), `<span class="chip">${T("rateChip")}</span><span class="chip">${T("rateChip2")}</span>`);
+  $("lStars").textContent = T("stars"); $("stars").textContent = `★ ${S.stars.toLocaleString()}`; $("starsN").textContent = T("starsN", { n: Math.floor(S.stars / COST) });
+  setHTML($("p1"), T("p1")); setHTML($("p10"), T("p10")); $("p1").disabled = S.stars < COST || UI.busy; $("p10").disabled = S.stars < COST * 10 || UI.busy;
+  const gu = $("guar"); gu.classList.toggle("hot", S.guaranteed); gu.querySelector("span").textContent = S.guaranteed ? T("gOn") : T("g50");
+  setHTML($("spark"), `${T("spark")} ${S.spark} / ${SPARK}<span>${S.spark >= SPARK ? T("sparkReady") : T("sparkLeft", { n: SPARK - S.spark })}</span>`);
+  $("sparkBar").style.width = `${S.spark / SPARK * 100}%`; $("exchange").textContent = T("exch"); $("exchange").disabled = S.spark < SPARK || UI.busy;
+  const cdf = pickupCdf(S), have = Math.floor(S.stars / COST), within = have ? cdf[Math.min(have, cdf.length) - 1] : 0, worst = cdf.findIndex((c) => c > 1 - 1e-9) + 1;
+  setHTML($("chanceTxt"), have ? T("chance", { n: have, p: (within * 100).toFixed(1), w: worst }) : T("chanceNone", { w: worst }));
+  chart($("mini"), cdf, have, false);
+  $("free").textContent = T("free"); $("freeTxt").textContent = T("freeTxt");
+}
+function chart(c, cdf, have, big) {
+  const x = c.getContext("2d"), W = c.width, H = c.height, pad = big ? 34 : 6, bot = big ? 30 : 6;
+  x.clearRect(0, 0, W, H);
+  if (big) { x.strokeStyle = "rgba(200,190,255,.18)"; x.lineWidth = 1; x.fillStyle = "#857cb5"; x.font = "600 18px 'M PLUS Rounded 1c'";
+    for (let i = 0; i <= 4; i++) { const yy = H - bot - (H - bot - 12) * i / 4; x.beginPath(); x.moveTo(pad, yy); x.lineTo(W - 8, yy); x.stroke(); x.fillText(`${i * 25}%`, 0, yy + 6); }
+    for (const k of [30, 60, 90, 120]) x.fillText(String(k), pad + (W - pad - 8) * k / SPARK - 12, H - 4); }
+  const px = (k) => pad + (W - pad - 8) * k / SPARK, py = (v) => H - bot - (H - bot - 12) * v;
+  x.beginPath(); x.moveTo(px(0), py(0)); cdf.forEach((v, i) => x.lineTo(px(i + 1), py(v))); x.lineTo(px(cdf.length), py(0)); x.closePath();
+  const fg = x.createLinearGradient(0, 0, 0, H); fg.addColorStop(0, "rgba(127,247,227,.35)"); fg.addColorStop(1, "rgba(127,247,227,0)"); x.fillStyle = fg; x.fill();
+  x.beginPath(); cdf.forEach((v, i) => (i ? x.lineTo(px(i + 1), py(v)) : x.moveTo(px(1), py(v)))); x.strokeStyle = "#7ff7e3"; x.lineWidth = big ? 4 : 4; x.stroke();
+  if (have) { const hx = px(Math.min(have, SPARK)); x.strokeStyle = "#ffd36b"; x.setLineDash([8, 8]); x.lineWidth = 3; x.beginPath(); x.moveTo(hx, 8); x.lineTo(hx, H - bot); x.stroke(); x.setLineDash([]);
+    const v = cdf[Math.min(have, cdf.length) - 1]; x.fillStyle = "#ffd36b"; x.beginPath(); x.arc(hx, py(v), 7, 0, Math.PI * 2); x.fill(); }
+}
+
+// ---- summon flow: the same short animation for every outcome -------------------------------------------
+async function doSummon(n) {
+  if (UI.busy) return; audioInit();
+  const res = pull(n); if (!res.length) return;
+  UI.busy = true; render(); sfx.summon(); UI.flash = 1;
+  for (let i = 0; i < n; i++) UI.falling.push({ x0: rnd(700, 1250), y0: rnd(-40, 120), k: -i * 0.05, d: .7 });
+  await wait(780);
+  for (let i = 0; i < 40; i++) { const a = rnd(0, Math.PI * 2), v = rnd(40, 200); UI.parts.push({ x: ALTAR.x, y: ALTAR.y - 80, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 60, life: 0, max: rnd(.5, 1.1), r: rnd(1.5, 3), c: "#dffff9" }); }
+  showResults(res, n);
+}
+function doExchange() { if (UI.busy || !exchange()) return; audioInit(); sfx.coin(); UI.busy = true; render(); UI.flash = 1; showResults([S.history[S.history.length - 1]], 1); }
+const wait = (ms) => new Promise((r) => setTimeout(r, document.body.classList.contains("shot") ? 0 : ms));
+function cardHTML(x) {
+  const u = x.unit, cls = u === PICKUP ? "PU" : x.r, how = x.how === "lost" ? T("lost") : x.how === "pickup" ? T("pickupHow") : x.how === "exchange" ? T("exchHow") : "";
+  return `<div class="rc ${cls}"><div class="bk">${STAR_SVG}</div><div class="fr"><span class="rr">${x.r}</span>${x.isNew ? `<span class="new">${T("new")}</span>` : ""}${artSVG(u)}<div class="nm">${uname(u)}</div><div class="jp">${usub(u)}</div>${how ? `<div class="how">${how}</div>` : ""}</div></div>`;
+}
+async function showResults(res, n) {
+  const box = $("results"), c = { SSR: 0, SR: 0, R: 0 }; res.forEach((x) => c[x.r]++);
+  box.innerHTML = `<h3>${T("results")}</h3><div class="sum">${T("sum", { ssr: `<b class="ssr">${c.SSR}</b>`, sr: `<b class="sr">${c.SR}</b>`, r: `<b class="r">${c.R}</b>` })}</div>
+    <div class="grid ${res.length === 1 ? "one" : ""}">${res.map(cardHTML).join("")}</div>
+    <div class="row"><button class="btn alt" id="rSkip">${T("skip")}</button><button class="btn" id="rOk">${T("ok")}</button>${n === 10 ? `<button class="btn alt" id="rAgain">${T("again")}</button>` : ""}</div>`;
+  box.classList.add("show"); $("live").textContent = res.map((x) => `${x.r} ${uname(x.unit)}`).join(", ");
+  const cards = [...box.querySelectorAll(".rc")]; let skipped = false;
+  $("rSkip").onclick = () => { skipped = true; cards.forEach((el) => el.classList.add("flip")); };
+  $("rOk").onclick = () => { box.classList.remove("show"); box.innerHTML = ""; UI.busy = false; render(); };
+  if ($("rAgain")) $("rAgain").onclick = () => { box.classList.remove("show"); UI.busy = false; render(); doSummon(10); };
+  for (const el of cards) { if (skipped) break; await wait(110); el.classList.add("flip"); sfx.flip(); }
+  UI.busy = false; render();
+}
+
+// ---- modals ----------------------------------------------------------------------------------------------
+function showModal(html) { const m = $("modal"); m.innerHTML = html; m.classList.add("show"); const x = m.querySelector("[data-close]"); if (x) x.onclick = closeModal; }
+function closeModal() { $("modal").classList.remove("show"); $("modal").innerHTML = ""; }
+function oddsModal() {
+  const per = (r, n) => (r / n * 100).toFixed(3) + "%", m = meanFromCdf(pickupCdf(fresh()));
+  showModal(`<div class="card"><div class="kicker">${T("odds")}</div><h2>${T("oddsTitle")}</h2><p class="muted">${T("oddsNote")}</p>
+    <table><tr><th>${T("rarity")}</th><th>${T("units")}</th><th class="num">${T("rate")}</th></tr>
+    <tr><td>SSR ★ pickup</td><td>${uname(PICKUP)}</td><td class="num">${(RATE.SSR * PICKUP_SHARE * 100).toFixed(2)}%</td></tr>
+    <tr><td>SSR</td><td>${POOL.SSR.map(uname).join(", ")}</td><td class="num">${(RATE.SSR * (1 - PICKUP_SHARE) * 100).toFixed(2)}% (${per(RATE.SSR * (1 - PICKUP_SHARE), POOL.SSR.length)} each)</td></tr>
+    <tr><td>SR</td><td>${POOL.SR.map(uname).join(", ")}</td><td class="num">${(RATE.SR * 100).toFixed(2)}% (${per(RATE.SR, POOL.SR.length)} each)</td></tr>
+    <tr><td>R</td><td>${POOL.R.map(uname).join(", ")}</td><td class="num">${((1 - RATE.SSR - RATE.SR) * 100).toFixed(2)}% (${per(1 - RATE.SSR - RATE.SR, POOL.R.length)} each)</td></tr></table>
+    <p>${T("consolidated", { r: (100 / m).toFixed(2), m: m.toFixed(1) })}</p><p class="muted" style="margin-bottom:6px">${T("chartCap")}</p><canvas id="big" width="1600" height="400"></canvas>
+    <div style="margin-top:16px"><button class="btn" data-close>${T("ok")}</button></div></div>`);
+  chart($("big"), pickupCdf(S), Math.floor(S.stars / COST), true);
+}
+function bookModal() {
+  const got = ALL.filter((u) => S.owned[u.id]).length;
+  showModal(`<div class="card"><div class="kicker">${T("book")}</div><h2>${T("bookTitle")}</h2><p class="muted">${T("owned", { n: got, t: ALL.length })}</p>
+    <div class="book">${ALL.map((u) => `<div class="bk1 ${u.pu ? "PU" : u.r} ${S.owned[u.id] ? "" : "no"}">${artSVG(u)}<div>${S.owned[u.id] ? `${uname(u)} ×${S.owned[u.id]}` : "？"}</div></div>`).join("")}</div>
+    <div style="margin-top:16px"><button class="btn" data-close>${T("ok")}</button></div></div>`);
+}
+function histModal() {
+  const h = S.history.slice(-60).reverse();
+  showModal(`<div class="card"><div class="kicker">${T("hist")}</div><h2>${T("histTitle")}</h2>${h.length ? `<ul class="hist">${h.map((x) => `<li><span>#${x.n}</span><b class="${x.r}">${x.r}</b> ${uname(x.unit)}${x.how === "lost" ? ` · ${T("lost")}` : x.how === "exchange" ? ` · ${T("exchHow")}` : ""}</li>`).join("")}</ul>` : `<p class="muted">${T("histEmpty")}</p>`}
+    <div style="margin-top:16px"><button class="btn" data-close>${T("ok")}</button></div></div>`);
+}
+function howModal() {
+  showModal(`<div class="card"><div class="kicker">${T("how")}</div><h2>${T("howTitle")}</h2><div class="how"><div><b>${T("h1")}</b>${T("h1t")}</div><div><b>${T("h2")}</b>${T("h2t")}</div><div><b>${T("h3")}</b>${T("h3t")}</div><div><b>${T("h4")}</b>${T("h4t")}</div></div>
+    <div style="margin-top:16px"><button class="btn" data-close>${T("ok")}</button></div></div>`);
+}
+function titleScreen() {
+  UI.screen = "title"; for (const id of ["hero", "panel"]) $(id).style.visibility = "hidden";
+  const s = $("screen"); s.innerHTML = `<div class="title-wrap"><h1>星喚びの島</h1><div class="en">HOSHIYOBI ISLAND</div><p>${T("tagline")}</p>
+    <div class="row"><button class="btn" id="go">${T("start")}</button><button class="btn alt" id="how">${T("how")}</button></div></div><div class="foot">${T("foot")}</div>`; s.classList.add("show");
+  $("go").onclick = () => { audioInit(); sfx.ui(); s.classList.remove("show"); s.innerHTML = ""; UI.screen = "play"; for (const id of ["hero", "panel"]) $(id).style.visibility = ""; render(); };
+  $("how").onclick = () => { audioInit(); howModal(); };
+}
+
+// ---- input -------------------------------------------------------------------------------------------------
+$("p1").onclick = () => doSummon(1); $("p10").onclick = () => doSummon(10); $("exchange").onclick = doExchange;
+$("free").onclick = () => { S.stars += 1500; sfx.coin(); render(); };
+$("bOdds").onclick = oddsModal; $("bBook").onclick = bookModal; $("bHist").onclick = histModal; $("bHelp").onclick = howModal;
+$("bLang").onclick = () => { SET.lang = SET.lang === "ja" ? "en" : "ja"; saveSet(); render(); if (UI.screen === "title") titleScreen(); };
+$("bSound").onclick = () => { SET.sound = !SET.sound; saveSet(); audioInit(); if (AU.out) AU.out.gain.value = SET.sound ? 0.5 : 0; render(); };
+$("rotX").onclick = () => { UI.rotX = true; $("rotate").classList.remove("show"); };
+addEventListener("keydown", (ev) => { if ($("modal").classList.contains("show") && (ev.key === "Escape" || ev.key === "Enter")) closeModal(); else if ($("results").classList.contains("show") && (ev.key === "Enter" || ev.key === " ")) { ev.preventDefault(); const s = $("rSkip"); if ([...document.querySelectorAll(".rc:not(.flip)")].length) s.click(); else $("rOk").click(); } });
+addEventListener("resize", fit);
+$("heroArt").innerHTML = artSVG(PICKUP);
+
+// =====================================================================================
+// SELF-TEST (?test=1) and screenshot states (?shot=1, ?shot=title|odds|book|one)
+// =====================================================================================
 function selftest() {
   const out = [], ok = (name, cond, info = "") => out.push({ name, pass: !!cond, info });
   const exact = meanFromCdf(pickupCdf(fresh()));
@@ -225,25 +549,36 @@ function selftest() {
     tot += n; worst = Math.max(worst, n); }
   ok("Monte Carlo mean matches exact (±2%)", Math.abs(tot / N - exact) / exact < 0.02, (tot / N).toFixed(2));
   ok("Monte Carlo worst case ≤ 120", worst <= 120, String(worst));
-  // First roll: SSR; second roll: lose the 50/50.
   S = fresh(); let seq = [0.001, 0.9]; rng = () => seq.shift() ?? 0.5; pull(1); ok("losing 50/50 sets guarantee", S.guaranteed === true);
   seq = [0.001, 0.9]; rng = () => seq.shift() ?? 0.5; const r = pull(1)[0]; ok("guaranteed SSR is the pickup", r.unit === PICKUP && !S.guaranteed);
   S = fresh(); S.spark = 119; rng = () => 0.99; pull(1); ok("spark reaches 120 and exchange works", S.spark === 120 && exchange() && S.spark === 0);
   S = fresh(); pull(10); ok("ten summons cost 1,500 stars", S.stars === 1500);
   const sum = RATE.SSR + RATE.SR + (1 - RATE.SSR - RATE.SR); ok("odds table sums to 100%", Math.abs(sum - 1) < 1e-12);
+  ok("every creature has its own art", ALL.every((u) => typeof ART[u.id] === "function") && new Set(ALL.map((u) => ART[u.id])).size === ALL.length);
+  const missing = Object.keys(STR.en).filter((k) => !(k in STR.ja)); ok("every English string has a Japanese translation", !missing.length, missing.join(", "));
+  try { S = fresh(); render(); ok("panel renders the exact chance for the starting stars", /20/.test($("chanceTxt").textContent) && $("p10").textContent.length > 0, $("chanceTxt").textContent.slice(0, 80)); }
+  catch (e) { ok("panel renders the exact chance for the starting stars", false, String(e).slice(0, 200)); }
   const pass = out.every((o) => o.pass);
   $("selftest").textContent = JSON.stringify({ game: "hoshiyobi-island", pass, results: out }, null, 1);
   $("selftest").hidden = false; document.title = `SELFTEST ${pass ? "PASS" : "FAIL"}`;
   S = fresh(); rng = Math.random;
 }
+function setupShot(kind) {
+  document.body.classList.add("shot"); SET.sound = false;
+  if (kind === "title") return titleScreen();
+  UI.screen = "play"; rng = seeded(20261030); S = fresh(); S.stars = 6000; pull(10); pull(10); S.spark = 47; render();
+  if (kind === "main") return;
+  if (kind === "odds") return oddsModal();
+  if (kind === "book") { for (const u of ALL.slice(0, 11)) S.owned[u.id] = S.owned[u.id] || 1; return bookModal(); }
+  if (kind === "one") { S.spark = 120; doExchange(); setTimeout(() => document.querySelectorAll(".rc").forEach((el) => el.classList.add("flip")), 0); return; }
+  const seq = [0.001, 0.9]; const keep = rng; rng = () => (seq.length ? seq.shift() : keep()); const last = pull(10); S.guaranteed = true; render();
+  UI.busy = true; showResults(last, 10).then(() => {}); setTimeout(() => document.querySelectorAll(".rc").forEach((el) => el.classList.add("flip")), 0);
+}
 const params = new URLSearchParams(location.search);
-odds();
-if (params.has("test")) { selftest(); render(); }
-else if (params.has("shot")) {
-  rng = seeded(20261030); S = fresh(); S.stars = 6000; pull(10); pull(10); S.spark = 47;
-  const seq = [0.001, 0.9]; const keep = rng; rng = () => (seq.length ? seq.shift() : keep()); const last = pull(10);
-  render(last);
-} else render();
+fit();
+if (params.has("test")) selftest();
+if (params.get("shot")) setupShot(params.get("shot")); else titleScreen();
+render(); requestAnimationFrame(frame);
 </script>
 </body>
 </html>
