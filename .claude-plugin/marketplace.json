@@ -1,25 +1,25 @@
 {
-  "name": "claude-game-designer",
+  "name": "ai-game-designer",
   "owner": {
     "name": "bunhine0452",
     "url": "https://github.com/bunhine0452"
   },
   "metadata": {
-    "description": "Game design skills for Claude: pacing, genres, balance, documents and reviews.",
-    "version": "1.0.0"
+    "description": "Game design skills for AI agents: pacing, genres, balance, documents and reviews.",
+    "version": "1.1.0"
   },
   "plugins": [
     {
       "name": "game-designer",
       "source": "./",
       "description": "Research-backed game design skills for every genre: fun curves and pacing diagnostics, 26 genre playbooks, progression/economy/gacha simulators, GDD and art-direction templates, and design reviews with dark-pattern checks. Answers in your language.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "author": {
         "name": "bunhine0452",
         "url": "https://github.com/bunhine0452"
       },
-      "homepage": "https://github.com/bunhine0452/claude-game-designer",
-      "repository": "https://github.com/bunhine0452/claude-game-designer",
+      "homepage": "https://github.com/bunhine0452/ai-game-designer",
+      "repository": "https://github.com/bunhine0452/ai-game-designer",
       "license": "MIT",
       "category": "design",
       "keywords": ["game-design", "gamedev", "game-balance", "pacing", "gdd"]

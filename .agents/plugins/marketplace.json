@@ -1,0 +1,20 @@
+{
+  "name": "ai-game-designer",
+  "interface": {
+    "displayName": "AI Game Designer"
+  },
+  "plugins": [
+    {
+      "name": "game-designer",
+      "source": {
+        "source": "local",
+        "path": "./"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

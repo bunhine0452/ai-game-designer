@@ -17,8 +17,9 @@ import zipfile
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DIST = os.path.join(ROOT, "dist")
 GLOSSARY = os.path.join(ROOT, "skills", "game-design", "references", "glossary.md")
-PLUGIN_INCLUDE = [".claude-plugin", "skills", "research", "docs", "README.md", "README.ko.md",
-                  "CHANGELOG.md", "CONTRIBUTING.md", "LICENSE"]
+PLUGIN_INCLUDE = [".claude-plugin", ".codex-plugin", ".agents", "plugin.json", "gemini-extension.json",
+                  "assets", "skills", "research", "docs", "tools", "install.sh", "AGENTS.md", "README.md",
+                  "README.ko.md", "CHANGELOG.md", "CONTRIBUTING.md", "LICENSE"]
 SKIP_DIRS = {"__pycache__", ".git", "dist", "results"}
 SKIP_FILES = {".DS_Store"}
 

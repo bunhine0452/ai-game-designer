@@ -1,0 +1,39 @@
+{
+  "name": "game-designer",
+  "version": "1.1.0",
+  "description": "Research-backed game design skills for every genre: fun curves and pacing diagnostics, 26 genre playbooks, progression/economy/gacha simulators, GDD and art-direction templates, and design reviews with dark-pattern checks. Answers in your language.",
+  "author": {
+    "name": "bunhine0452",
+    "url": "https://github.com/bunhine0452"
+  },
+  "homepage": "https://github.com/bunhine0452/ai-game-designer",
+  "repository": "https://github.com/bunhine0452/ai-game-designer",
+  "license": "MIT",
+  "keywords": ["game-design", "gamedev", "game-balance", "pacing", "gdd", "gacha", "accessibility"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "AI Game Designer",
+    "shortDescription": "Game design for every genre",
+    "longDescription": "Six skills that work like a senior game designer: design briefs (MDA, pillars, core loops), interest-curve plotting and pacing diagnostics, 26 genre playbooks, XP/economy/gacha simulators with exact pity math, cost-curve outlier detection, GDD and art/audio direction templates, accessibility checklists, and design reviews with a dark-pattern ethics pass. Answers in the user's language with English terms in parentheses.",
+    "developerName": "bunhine0452",
+    "category": "Productivity",
+    "capabilities": [
+      "Design briefs with pillars and core loops",
+      "Interest-curve plots and pacing diagnostics",
+      "26 genre playbooks and hybrid design",
+      "XP, economy and gacha simulation",
+      "GDD, art direction and accessibility",
+      "Design reviews with dark-pattern checks"
+    ],
+    "websiteURL": "https://github.com/bunhine0452/ai-game-designer",
+    "supportURL": "https://github.com/bunhine0452/ai-game-designer/issues",
+    "defaultPrompt": [
+      "Turn my game idea into a design brief",
+      "Diagnose the pacing of my level",
+      "Simulate my game's economy"
+    ],
+    "brandColor": "#14213D",
+    "composerIcon": "./assets/icon.png",
+    "logo": "./assets/icon.png"
+  }
+}

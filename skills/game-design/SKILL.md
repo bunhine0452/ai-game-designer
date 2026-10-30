@@ -53,7 +53,7 @@ one line before the result.
 ## 3. Route to the right skill
 
 Pick the skill that matches the user's intent. When several apply, do them in the order
-listed. If a skill isn't installed (some Claude app setups upload skills individually),
+listed. If a skill isn't installed (some apps and agents install skills one at a time),
 do the work here with this skill's references and general expertise.
 
 | User intent | Skill | Bring along |
