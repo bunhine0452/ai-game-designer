@@ -4,6 +4,25 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [1.7.0] - 2026-10-30
+
+### Added
+- **Pixel art and 3D art direction** (gdd-art-direction): `pixel-art-direction.md` (integer-scaled
+  canvas, palette ramps and reserved colours, clean lines and outlines, animation frames and timing,
+  tiles and bitmap fonts, scope math) and `3d-art-direction.md` (finishable styles, polygon,
+  texel and draw-call budgets, player metrics, camera rules, landmarks and wayfinding, colour
+  scripts). Sources D16–D22.
+- **Pixel and 3D prototypes** (playable-prototype): `template-pixel.html` (320×180 integer
+  pipeline, palette sprites, a BFS bot), `template-3d.html` (pinned three.js, fixed-step
+  simulation separate from rendering, a draw-call budget test) and
+  `references/3d-and-pixel-prototypes.md`. `check.py` now enables SwiftShader so WebGL renders
+  in headless Chrome.
+- **Showcase sessions 07 and 08**: a 3D gliding delivery game (Korean) and a pixel-art garden
+  puzzle (Japanese), both real Claude Code runs with the plugin.
+- **Two games built from them**: *Kite Post* (three.js; its autopilot flies all eight deliveries
+  inside their target times) and *Dot Gardener* (pixel art; a breadth-first solver proves every
+  room, that every seed is needed, and both endings of the last room).
+
 ## [1.6.0] - 2026-10-30
 
 ### Added

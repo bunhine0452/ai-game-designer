@@ -44,8 +44,8 @@
 | **`fun-curve`** | 전투 하나, 레벨, 런, 게임 전체의 관심 곡선·몰입·페이싱을 설계하고 진단합니다. 훅 부재, 평탄 구간, 이완 없는 피크, 너무 이른 클라이맥스, 상승하지 않는 피크를 잡아냅니다. | `fun_curve.py`, 페이싱 모델, 게임 필·플레이테스트 가이드 |
 | **`genre-design`** | 장르별 플레이북. 코어 루프, 대표 메커닉, 페이싱 형태, 성장 모델, 밸런스 레버, 실패 요인, 레퍼런스 게임과 *그것이 통하는 이유*, 근거 강연까지 정리했습니다. | 26개 플레이북 + 장르 혼합 설계법 |
 | **`balance-economy`** | 경험치 테이블, 전투 수식(TTK·DPS·방어), 비용 곡선, 재화 유입처·소모처, 인플레이션, 드롭률, 천장, 2026년 확률형 아이템 규제 현황. | `progression_curve.py`, `economy_sim.py`, `cost_curve.py` |
-| **`gdd-art-direction`** | 원페이지 기획서, 살아 있는 GDD, 기능 명세서, 규모 산정이 들어간 에셋 리스트, 아트·오디오 스타일 가이드, 가독성·실루엣 기준, 접근성 체크리스트. | 템플릿 5종, 접근성(GAG/XAG/APX) 가이드 |
-| **`playable-prototype`** | 기획 문서를 HTML 파일 하나짜리 브라우저 프로토타입으로 만듭니다. 문서의 수치를 그대로 쓰고, 절차적 아트·사운드, 자체 테스트(`?test=1`), 처음부터 끝까지 플레이하는 봇, 스크린샷까지 갖춥니다. | 템플릿, `check.py` 실행기, 라이브 예시 6개 |
+| **`gdd-art-direction`** | 원페이지 기획서, 살아 있는 GDD, 기능 명세서, 규모 산정이 들어간 에셋 리스트, 아트·오디오 스타일 가이드, 가독성·실루엣 기준, 접근성 체크리스트. | 템플릿 5종, 픽셀 아트·3D 디렉션 가이드, 접근성(GAG/XAG/APX) 가이드 |
+| **`playable-prototype`** | 기획 문서를 HTML 파일 하나짜리 브라우저 프로토타입으로 만듭니다. 문서의 수치를 그대로 쓰고, 절차적 아트·사운드, 자체 테스트(`?test=1`), 처음부터 끝까지 플레이하는 봇, 스크린샷까지 갖춥니다. | 2D·픽셀 아트·three.js 템플릿, `check.py` 실행기, 라이브 예시 8개 |
 | **`design-review`** | 콘셉트·명세·빌드·플레이테스트 노트를 구조적으로 비평합니다. 우선순위가 매겨진 문제와 근거, 구체적인 해결책을 내고, 다크 패턴 **윤리 점검을 반드시** 함께 수행합니다. | 리뷰 렌즈 12종, P0–P3 기준, 다크 패턴 분류표 |
 
 ## 이렇게 동작합니다
@@ -77,20 +77,23 @@
 
 ## 게임 플레이
 
-쇼케이스 기획 문서로 만든 오리지널 브라우저 게임 6개입니다. 세션, 에이전트, 언어마다 하나씩
-만들었습니다. 모두 HTML 파일 하나라서 설치 없이 데스크톱과 휴대폰에서 바로 실행됩니다. 게임 속 숫자는
-전부 기획 문서에서 가져왔고, 게임마다 자체 테스트가 들어 있습니다 (`?test=1`을 붙여 열기).
+쇼케이스 기획 문서로 만든 오리지널 브라우저 게임 8개입니다. 세션, 에이전트, 언어마다 하나씩
+만들었고, 2D 게임 6개에 **three.js 3D 활공 게임**과 **픽셀 아트 퍼즐**이 더해졌습니다. 모두 HTML 파일 하나라서
+설치 없이 실행됩니다(3D 게임만 버전을 고정한 three.js를 불러옵니다). 게임 속 숫자는 전부 기획 문서에서
+가져왔고, 게임마다 자체 테스트가 들어 있습니다 (`?test=1`을 붙여 열기). 3D 게임은 자동 조종이 배달 8건을
+모두 목표 시간 안에 끝내고, 픽셀 게임은 풀이기가 모든 방이 풀린다는 것을 증명합니다.
 
 **▶ [아케이드 열기](https://bunhine0452.github.io/ai-game-designer/games/?lang=ko)**
 
 <table>
+<tr><td align="center" colspan="3"><table><tr><td align="center" width="50%"><a href="https://bunhine0452.github.io/ai-game-designer/games/kite-post/"><img src="games/screenshots/kite-post.png" alt="Kite Post"></a><br><b>종이연 우편부</b> · 3D (three.js)</td><td align="center" width="50%"><a href="https://bunhine0452.github.io/ai-game-designer/games/dot-gardener/"><img src="games/screenshots/dot-gardener.png" alt="Dot Gardener"></a><br><b>도트 정원사</b> · 픽셀 아트</td></tr></table></td></tr>
 <tr><td align="center" width="33%"><a href="https://bunhine0452.github.io/ai-game-designer/games/monster-farm/"><img src="games/screenshots/monster-farm.png" alt="Monster Farm"></a><br><b>몬스터 팜</b></td><td align="center" width="33%"><a href="https://bunhine0452.github.io/ai-game-designer/games/tidecaller/"><img src="games/screenshots/tidecaller.png" alt="Tidecaller"></a><br><b>Tidecaller</b></td><td align="center" width="33%"><a href="https://bunhine0452.github.io/ai-game-designer/games/hoshiyobi-island/"><img src="games/screenshots/hoshiyobi-island.png" alt="Hoshiyobi Island"></a><br><b>호시요비 섬</b></td></tr>
 <tr><td align="center" width="33%"><a href="https://bunhine0452.github.io/ai-game-designer/games/low-tide/"><img src="games/screenshots/low-tide.png" alt="Low Tide"></a><br><b>Low Tide</b></td><td align="center" width="33%"><a href="https://bunhine0452.github.io/ai-game-designer/games/garden-guardians/"><img src="games/screenshots/garden-guardians.png" alt="Garden Guardians"></a><br><b>정원 수호자</b></td><td align="center" width="33%"><a href="https://bunhine0452.github.io/ai-game-designer/games/stardust-mine/"><img src="games/screenshots/stardust-mine.png" alt="Stardust Mine"></a><br><b>스타더스트 마인</b></td></tr>
 </table>
 
-## 쇼케이스: 실제 세션 6개
+## 쇼케이스: 실제 세션 8개
 
-**Claude Code, Codex, Antigravity** 세 에이전트로 디자인 세션 6개를 **병렬로** 돌렸습니다. 한국어,
+**Claude Code, Codex, Antigravity** 세 에이전트로 디자인 세션 6개를 **병렬로** 돌렸고, 이어서 3D와 픽셀 아트 세션 2개를 더 돌렸습니다. 한국어,
 영어, 일본어, 스페인어, 중국어로 진행했고, 세션마다 새 프로젝트 폴더에서 독창적인 콘셉트를 다뤘습니다.
 에이전트가 만든 결과물 전부가 [`showcase/`](showcase/)에 있습니다.
 
@@ -102,6 +105,8 @@
 | Codex | English | 호러 등대 챕터 | 페이싱 문제 12 → 0, 접근성 체크리스트 |
 | Antigravity | Español | 정원 타워 디펜스 | 30레벨 성장 설계, 비용이 어긋난 타워 2개 수정 |
 | Codex | 中文 | 방치형 우주 채굴 | 환생 페이싱, 다크 패턴 점검이 포함된 리뷰 |
+| Claude Code | 한국어 | 3D 종이연 배달 | 배달 테이블 문제 14 → 0, 곡선 건강도 38 → 100, 플레이어 수치·카메라 규칙 |
+| Claude Code | 日本語 | 픽셀 아트 정원 퍼즐 | 곡선 건강도 43 → 100, 27색 팔레트, 방 6개 설계, 범위 점검 |
 
 실사용에서 빈틈도 하나 찾았습니다. 가챠 시뮬레이터에 50/50 보장과 교환(스파크) 천장이 없었는데,
 1.1.0에서 고쳤습니다 ([자세히](showcase/README.md#what-real-use-taught-us-and-what-changed-in-110)).
@@ -245,7 +250,7 @@ Accessibility Guidelines, Xbox Accessibility Guidelines, APX. 모든 내용은 �
   `gemini extensions validate`, Codex 마켓플레이스 설치(`codex plugin marketplace add` → `codex plugin add`).
 - Codex와 Antigravity 모두 프로젝트의 `.agents/skills` 폴더에서 스킬 6개를 전부 인식했습니다.
 - 모든 스크립트를 동봉된 예제로 실행해 확인했습니다 (matplotlib 유무 모두).
-- 게임 6개 모두 로컬과 GitHub Pages에서 자체 테스트를 통과합니다 (`plugins/game-designer/skills/playable-prototype/scripts/check.py games/`).
+- 게임 8개 모두 로컬과 GitHub Pages에서 자체 테스트를 통과합니다 (`plugins/game-designer/skills/playable-prototype/scripts/check.py games/`).
 - `plugins/game-designer/evals/`: 스킬당 3개씩 총 21개의 트리거·언어 테스트 케이스가 있습니다 (영어, 한국어, 그리고 일본어·
   중국어·스페인어 중 하나). `claude plugin eval plugins/game-designer` 로 실행합니다. v1.0.0 실행 결과(Sonnet, 케이스당 1회):
   올바른 스킬 실행 18/18, 사용자 언어로 답변 18/18, 유용한 답변 18/18, 영어 병기 용어 표기 12/12.
@@ -264,7 +269,8 @@ Accessibility Guidelines, Xbox Accessibility Guidelines, APX. 모든 내용은 �
 - **`install.sh` / `tools/install.py`**는 스킬 폴더를 에이전트의 스킬 디렉터리로 복사하고, **`tools/package.py`**는
   `dist/`에 zip을 만듭니다. 모두 로컬에서만 동작합니다.
 - **hook, MCP 서버, 원격 수집(telemetry), 데이터 수집이 없습니다.** [PRIVACY.md](plugins/game-designer/PRIVACY.md)를 참고하세요.
-- `games/`의 데모 페이지는 브라우저에서 열 때 Google Fonts에서 글꼴을 불러옵니다.
+- `games/`의 데모 페이지는 브라우저에서 열 때 Google Fonts에서 글꼴을 불러오고, 종이연 우편부는 jsDelivr에서
+  three.js 0.160.0을 불러옵니다. `check.py`는 SwiftShader 플래그를 넘겨 헤드리스에서도 WebGL이 그려지게 합니다.
 
 ## 기여
 

@@ -45,8 +45,8 @@ team will actually read, and reviews that catch dark patterns before players or 
 | **`fun-curve`** | Designs and critiques interest curves, flow and pacing for an encounter, level, run or whole game. Flags missing hooks, flat zones, peaks without relief, early climaxes and peaks that don't escalate. | `fun_curve.py`, pacing models, game-feel and playtest guides |
 | **`genre-design`** | Genre playbooks: core loop, signature mechanics, pacing shape, progression, balancing levers, failure modes, reference games and *why* they work, and the talks behind them. | 26 playbooks plus a hybrid-genre method |
 | **`balance-economy`** | XP tables, combat math (TTK, DPS, armor), cost curves, faucets and sinks, inflation, drop rates, pity, and the 2026 loot-box legal landscape. | `progression_curve.py`, `economy_sim.py`, `cost_curve.py` |
-| **`gdd-art-direction`** | One-page designs, living GDDs, feature specs, asset lists with scope estimates, art and audio style guides, readability and silhouette rules, accessibility checklists. | 5 templates, accessibility (GAG/XAG/APX) guide |
-| **`playable-prototype`** | Turns design documents into a single-file browser prototype whose numbers come straight from the docs, with procedural art and sound, self-tests (`?test=1`), bots that play it start to finish, and screenshots. | Template, `check.py` runner, 6 live examples |
+| **`gdd-art-direction`** | One-page designs, living GDDs, feature specs, asset lists with scope estimates, art and audio style guides, readability and silhouette rules, accessibility checklists. | 5 templates, pixel-art and 3D direction guides, accessibility (GAG/XAG/APX) guide |
+| **`playable-prototype`** | Turns design documents into a single-file browser prototype whose numbers come straight from the docs, with procedural art and sound, self-tests (`?test=1`), bots that play it start to finish, and screenshots. | 2D, pixel-art and three.js templates, `check.py` runner, 8 live examples |
 | **`design-review`** | Structured critique of concepts, specs, builds or playtest notes, with prioritized issues, evidence and specific fixes, plus a **mandatory ethics pass** for dark patterns. | 12 review lenses, P0–P3 rubric, dark-pattern taxonomy |
 
 ## See it work
@@ -80,20 +80,24 @@ and flags undercosted and overcosted cards.
 
 ## Play the games
 
-Six original browser games built from the showcase design documents, with one game per session,
-agent and language. Each is a single HTML file: no install, and it works on desktop or phone.
-Every number comes from the design docs, and each game ships self-tests (open it with `?test=1`).
+Eight original browser games built from the showcase design documents, with one game per session,
+agent and language: six 2D games, a **three.js 3D glider** and a **pixel-art puzzle**. Each is a
+single HTML file with no install (the 3D one loads a pinned three.js build). Every number comes
+from the design docs, and each game ships self-tests (open it with `?test=1`): the 3D game's
+autopilot flies all eight deliveries inside their target times, and the pixel game's solver proves
+every room.
 
 **▶ [Open the arcade](https://bunhine0452.github.io/ai-game-designer/games/)**
 
 <table>
+<tr><td align="center" colspan="3"><table><tr><td align="center" width="50%"><a href="https://bunhine0452.github.io/ai-game-designer/games/kite-post/"><img src="games/screenshots/kite-post.png" alt="Kite Post"></a><br><b>Kite Post</b> · 3D (three.js)</td><td align="center" width="50%"><a href="https://bunhine0452.github.io/ai-game-designer/games/dot-gardener/"><img src="games/screenshots/dot-gardener.png" alt="Dot Gardener"></a><br><b>Dot Gardener</b> · pixel art</td></tr></table></td></tr>
 <tr><td align="center" width="33%"><a href="https://bunhine0452.github.io/ai-game-designer/games/monster-farm/"><img src="games/screenshots/monster-farm.png" alt="Monster Farm"></a><br><b>Monster Farm</b></td><td align="center" width="33%"><a href="https://bunhine0452.github.io/ai-game-designer/games/tidecaller/"><img src="games/screenshots/tidecaller.png" alt="Tidecaller"></a><br><b>Tidecaller</b></td><td align="center" width="33%"><a href="https://bunhine0452.github.io/ai-game-designer/games/hoshiyobi-island/"><img src="games/screenshots/hoshiyobi-island.png" alt="Hoshiyobi Island"></a><br><b>Hoshiyobi Island</b></td></tr>
 <tr><td align="center" width="33%"><a href="https://bunhine0452.github.io/ai-game-designer/games/low-tide/"><img src="games/screenshots/low-tide.png" alt="Low Tide"></a><br><b>Low Tide</b></td><td align="center" width="33%"><a href="https://bunhine0452.github.io/ai-game-designer/games/garden-guardians/"><img src="games/screenshots/garden-guardians.png" alt="Garden Guardians"></a><br><b>Garden Guardians</b></td><td align="center" width="33%"><a href="https://bunhine0452.github.io/ai-game-designer/games/stardust-mine/"><img src="games/screenshots/stardust-mine.png" alt="Stardust Mine"></a><br><b>Stardust Mine</b></td></tr>
 </table>
 
-## Showcase: six real sessions
+## Showcase: eight real sessions
 
-We ran six design sessions **in parallel** across **Claude Code, Codex and Antigravity**, in
+We ran eight design sessions (six **in parallel**, then two for 3D and pixel art) across **Claude Code, Codex and Antigravity**, in
 Korean, English, Japanese, Spanish and Chinese, each in a fresh project folder with an original
 concept. Every output file the agents wrote is in [`showcase/`](showcase/):
 
@@ -105,6 +109,8 @@ concept. Every output file the agents wrote is in [`showcase/`](showcase/):
 | Codex | English | Horror lighthouse chapter | Pacing findings 12 → 0, plus accessibility checklist |
 | Antigravity | Español | Garden tower defense | 30-level progression, 2 mis-costed towers fixed |
 | Codex | 中文 | Idle space mining | Prestige pacing, review with dark-pattern check |
+| Claude Code | 한국어 | 3D paper-kite delivery | Delivery table 14 issues → 0, curve health 38 → 100, metrics and camera rules |
+| Claude Code | 日本語 | Pixel-art garden puzzle | Curve health 43 → 100, 27-colour palette, six-room plan, scope check |
 
 Real use also found a gap: the gacha simulator lacked 50/50 guarantees and spark exchanges. That's
 fixed in 1.1.0 ([details](showcase/README.md#what-real-use-taught-us-and-what-changed-in-110)).
@@ -252,7 +258,7 @@ with engine or production plugins. See the competitive scan in
   (`codex plugin marketplace add` then `codex plugin add`).
 - Codex and Antigravity both discovered all six skills from a project's `.agents/skills` folder.
 - Every script runs against the bundled examples (with and without matplotlib).
-- All six games pass their self-tests locally and on GitHub Pages (`plugins/game-designer/skills/playable-prototype/scripts/check.py games/`).
+- All eight games pass their self-tests locally and on GitHub Pages (`plugins/game-designer/skills/playable-prototype/scripts/check.py games/`).
 - `plugins/game-designer/evals/`: 21 trigger-and-language cases (3 per skill: English, Korean, and Japanese, Chinese or
   Spanish), run with `claude plugin eval plugins/game-designer`. In the v1.0.0 run (Sonnet, 1 run per case), the right
   skill fired 18/18, the answer was in the user's language 18/18, answers were judged useful 18/18,
@@ -276,7 +282,8 @@ with engine or production plugins. See the competitive scan in
 - **`install.sh` / `tools/install.py`** copy skill folders into an agent's skills directory.
   **`tools/package.py`** builds zip files in `dist/`. Both are local-only.
 - **No hooks, no MCP servers, no telemetry, no data collection.** See [PRIVACY.md](plugins/game-designer/PRIVACY.md).
-- The demo pages in `games/` load fonts from Google Fonts when opened in a browser.
+- The demo pages in `games/` load fonts from Google Fonts when opened in a browser, and Kite Post
+  loads three.js 0.160.0 from jsDelivr. `check.py` passes SwiftShader flags so WebGL renders headless.
 
 ## Contributing
 

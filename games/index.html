@@ -60,6 +60,16 @@
 <script>
 "use strict";
 const GAMES = [
+  { slug: "kite-post", title: "Kite Post", orig: "종이연 우편부", genre: { en: "3D gliding delivery", ko: "3D 활공 배달" }, checks: 19, session: "07-claude-ko-3d-kite-post",
+    agent: "Claude Code · 한국어",
+    en: "Ride a paper kite between sky islands with no fuel: height is your breath. Circle in updrafts, read the islands by their landmarks, and carry eight letters through a storm wall to a post office in its eye. three.js, 한국어/English.",
+    ko: "연료 없이 종이연을 타고 하늘섬 사이를 활공합니다. 고도가 숨이에요. 상승기류에서 원을 그려 올라가고, 랜드마크로 길을 읽고, 편지 여덟 통을 폭풍 벽 너머 하늘 우체국까지 전하세요. three.js, 한국어/영어.",
+    from: { en: "player metrics + 8 checked deliveries + beat sheet", ko: "플레이어 수치 + 검사 통과한 배달 8건 + 비트 시트" } },
+  { slug: "dot-gardener", title: "Dot Gardener", orig: "ドット庭師", genre: { en: "Pixel-art puzzle", ko: "픽셀 아트 퍼즐" }, checks: 13, session: "08-claude-ja-pixel-garden",
+    agent: "Claude Code · 日本語",
+    en: "Grow your way through a ruined garden: vines become bridges, mushrooms springs, sunflowers lamps. Six rooms at 320×180 in the session's 27-colour palette; a solver proves each one. 日本語/English.",
+    ko: "폐허가 된 정원을 식물로 열어 갑니다. 덩굴은 다리, 버섯은 발판, 해바라기는 등불이 돼요. 기획서의 27색 팔레트와 320×180 해상도로 만든 방 6개를 풀이기가 모두 검증했습니다. 일본어/영어.",
+    from: { en: "pixel art direction + six-room plan + curve v3", ko: "픽셀 아트 디렉션 + 방 6개 설계 + 관심 곡선 v3" } },
   { slug: "monster-farm", title: "Monster Farm", orig: "몬스터 팜", genre: { en: "Cozy farming", ko: "힐링 농장" }, checks: 15, session: "01-claude-ko-monster-farm",
     agent: "Claude Code · 한국어",
     en: "Place monsters so their areas overlap: Mossling and Glowbug together grow glimmer turnips worth triple. No failure, only detours.",
@@ -92,16 +102,16 @@ const GAMES = [
     from: { en: "economy model + five-chapter prestige plan", ko: "경제 모델 + 5장 환생 설계" } },
 ];
 const I18N = {
-  en: { title: "Games <em>designed</em><br>with ai-game-designer", lede: "Six original prototypes built from the design documents our six showcase sessions wrote, across three agents and five languages. Every number in them comes from those documents.",
+  en: { title: "Games <em>designed</em><br>with ai-game-designer", lede: "Eight original prototypes built from the design documents our eight showcase sessions wrote, across three agents and five languages: 2D, a three.js 3D game and a pixel-art puzzle. Every number in them comes from those documents.",
         play: "Play", design: "Design docs", checks: "self-tests passing", by: "Designed with", built: "Built from",
         h1: "Design first", p1: "Each game starts from a showcase session's documents: briefs, beat lists, card pools, cost tables and economy models made with the skills.",
-        h2: "One file, no install", p2: "Every game is a single HTML file with procedural art and sound. It runs in any modern browser, on desktop or phone.",
+        h2: "One file, no install", p2: "Every game is a single HTML file with procedural art and sound. It runs in any modern browser; the 3D game loads one pinned three.js build.",
         h3: "Tested like software", p3: "Open any game with ?test=1 to run its self-tests: formulas against the design numbers, plus bots that play it start to finish.",
         foot: "Original concepts and code, MIT licensed. Plugin and design docs:" },
-  ko: { title: "ai-game-designer로<br><em>기획한</em> 게임들", lede: "쇼케이스 세션 6개가 쓴 기획 문서로 만든 오리지널 프로토타입 6개입니다. 에이전트 세 종류, 다섯 개 언어로 기획했고, 게임 속 숫자는 모두 그 문서에서 왔습니다.",
+  ko: { title: "ai-game-designer로<br><em>기획한</em> 게임들", lede: "쇼케이스 세션 8개가 쓴 기획 문서로 만든 오리지널 프로토타입 8개입니다. 에이전트 세 종류, 다섯 개 언어로 기획했고, 2D부터 three.js 3D 게임과 픽셀 아트 퍼즐까지 있습니다. 게임 속 숫자는 모두 그 문서에서 왔습니다.",
         play: "플레이", design: "기획 문서", checks: "개 자체 테스트 통과", by: "기획", built: "바탕 문서",
         h1: "기획이 먼저", p1: "각 게임은 스킬로 만든 쇼케이스 문서에서 출발합니다. 브리프, 비트 리스트, 카드 풀, 비용표, 경제 모델이 그 바탕입니다.",
-        h2: "파일 하나, 설치 없음", p2: "모든 게임이 절차적 아트와 사운드를 담은 HTML 파일 하나입니다. 데스크톱이든 휴대폰이든 최신 브라우저면 바로 실행돼요.",
+        h2: "파일 하나, 설치 없음", p2: "모든 게임이 절차적 아트와 사운드를 담은 HTML 파일 하나입니다. 최신 브라우저면 바로 실행되고, 3D 게임만 버전을 고정한 three.js를 하나 불러옵니다.",
         h3: "소프트웨어처럼 검증", p3: "아무 게임에나 ?test=1을 붙이면 자체 테스트가 돌아갑니다. 기획 수치와 공식을 대조하고, 봇이 처음부터 끝까지 플레이합니다.",
         foot: "오리지널 콘셉트와 코드, MIT 라이선스. 플러그인과 기획 문서:" },
 };

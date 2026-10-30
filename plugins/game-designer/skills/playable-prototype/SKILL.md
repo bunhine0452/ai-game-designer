@@ -6,7 +6,7 @@ license: MIT
 compatibility: Any agent that reads SKILL.md folders. Scripts need Python 3; check.py also needs a local Chrome, Chromium or Edge.
 metadata:
   author: bunhine0452
-  version: "1.6.0"
+  version: "1.7.0"
   repository: https://github.com/bunhine0452/ai-game-designer
 ---
 
@@ -109,4 +109,4 @@ riskiest assumption**, built so the numbers can be trusted and the result can be
   simulation separate from rendering, draw-call budget test).
 - `references/3d-and-pixel-prototypes.md`: pixel rendering pipeline and feel; three.js setup, physics, camera and headless WebGL tests.
 - `scripts/check.py`: headless self-test runner and screenshotter.
-- `examples/README.md`: six live prototypes built with this workflow, and what each demonstrates.
+- `examples/README.md`: eight live prototypes built with this workflow (including a three.js game and a pixel-art puzzle), and what each demonstrates.

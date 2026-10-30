@@ -1,6 +1,6 @@
-# Showcase: six real sessions, three agents, five languages
+# Showcase: eight real sessions, three agents, five languages
 
-We installed the skills the way a user would and ran **six design sessions in parallel**,
+We installed the skills the way a user would and ran **six design sessions in parallel**, then two more for 3D and pixel art,
 each in a fresh project folder with an original game concept and a prompt in the user's
 language. Every output file was written by the agent during its session. We only rewrote
 local file paths as relative links, left out session plumbing (installed skills, raw logs,
@@ -19,6 +19,8 @@ caches) and session 05's `scratch/` folder (which the agent itself tried to dele
 | [04](04-codex-en-horror-lighthouse/) | Codex CLI (gpt-6.1-sol) | English | *Low Tide*: 40-min horror chapter in a flooded lighthouse | fun-curve, gdd-art-direction | 5.3 min · 49k tokens | Pacing findings 12 → 0; climax moved from minute 12 to 38; accessibility checklist |
 | [05](05-agy-es-garden-td/) | Antigravity (Gemini 3.8 Flash) | Español | *Jardín de Guardianes*: garden tower defense | genre-design, balance-economy | 11.4 min | 30-level tower progression (24.9 h, slowest level 92 min); 2 mis-costed towers rebalanced (R² 0.999) |
 | [06](06-codex-zh-idle-mining/) | Codex CLI (gpt-6.1-sol) | 中文 | *星尘矿场*: idle space mining | balance-economy, design-review | 5.4 min · 32k tokens | Exponential upgrade costs and 5 prestige chapters (41–68 min each); 7-issue review with a dark-pattern check |
+| [07](07-claude-ko-3d-kite-post/) | Claude Code (Opus 5.5) | 한국어 | *종이연 우편부*: 3D gliding delivery (three.js) | game-design, gdd-art-direction, balance-economy, fun-curve | 6.8 min · $1.58 | Its own delivery checker: 14 issues → 0 (session 16 → 14.4 min); beat curve health 38 → 100; 3D metrics, budgets and camera rules |
+| [08](08-claude-ja-pixel-garden/) | Claude Code (Opus 5.5) | 日本語 | *ドット庭師*: pixel-art garden puzzle | genre-design, gdd-art-direction, fun-curve | 5.4 min · $1.21 | 27-colour palette with reserved colours; six-room plan; curve health 43 → 100; one-pager with a 270-hour scope check |
 
 Each folder has `PROMPT.md` (the exact request), the agent's `README.md` (its own summary),
 and `session.md` (agent, model, duration, cost).
@@ -58,6 +60,18 @@ then ran a design review in the skill's format: verdict, P0–P3 severity with t
 formula, and a dark-pattern table, with English terms in parentheses.
 
 <img src="06-codex-zh-idle-mining/results/progression.svg" width="70%" alt="Idle mining progression">
+
+**07 · 종이연 우편부 (Korean, 3D).** The session wrote a 3D art direction (folded-paper low poly,
+web budgets, player metrics, camera rules, landmark wayfinding), then a delivery checker script of
+its own. Its first table had targets nobody could hit and a 16-minute session; lowering the launch
+height to 40 m and re-deriving targets from optimal times gave 0 issues. The game
+[Kite Post](../games/kite-post/) uses every number, and its autopilot proves the targets.
+
+**08 · ドット庭師 (Japanese, pixel art).** The session locked a 320×180 canvas, 16 px tiles and a
+27-colour palette with reserved colours, planned six rooms (teach → combine → twist), and moved the
+peak of its interest curve to 94% with a cold open. [Dot Gardener](../games/dot-gardener/) follows the
+plan; its solver showed that one room was unsolvable as drawn, which led to a clearer rule (empty soil
+is a bed you face, not a tile you walk on).
 
 ## What real use taught us (and what changed in 1.1.0)
 
