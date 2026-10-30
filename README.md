@@ -166,6 +166,18 @@ and two specialist subagents:
 
 Other agents load the same skills. The commands are Claude Code only.
 
+## Interactive charts (optional MCP App)
+
+The marketplace also offers **`game-design-charts`**, a small Python MCP server with two tools,
+`interest_curve` and `gacha_odds`. They return exact numbers as text everywhere. In hosts that
+support MCP Apps, such as the Claude desktop app, they also draw an interactive chart in the
+conversation: drag beats to re-diagnose pacing, or move pity and spark sliders to compare banners.
+
+![Interactive interest curve and gacha odds charts](docs/images/mcp-charts.png)
+
+Install with `/plugin install game-design-charts@ai-game-designer`, or see
+[its README](plugins/game-design-charts/README.md) for the Claude desktop config.
+
 ## Usage examples
 
 Ask in any language. These are just starting points.

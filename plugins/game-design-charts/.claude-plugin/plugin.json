@@ -1,0 +1,14 @@
+{
+  "name": "game-design-charts",
+  "displayName": "Game Design Charts",
+  "version": "1.0.0",
+  "description": "Interactive game design charts as an MCP server: an editable interest curve with live pacing diagnosis, and exact gacha odds with pity, 50/50 and spark sliders. Renders inline in hosts that support MCP Apps; text everywhere else.",
+  "author": {
+    "name": "bunhine0452",
+    "url": "https://github.com/bunhine0452"
+  },
+  "homepage": "https://github.com/bunhine0452/ai-game-designer",
+  "repository": "https://github.com/bunhine0452/ai-game-designer",
+  "license": "MIT",
+  "keywords": ["game-design", "mcp-apps", "pacing", "gacha", "charts"]
+}

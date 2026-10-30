@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gacha odds</title>
+<style>
+  :root { --bg:#ffffff; --ink:#1d2433; --ink2:#5b6475; --grid:#e7eaf0; --line:#7c3aed; --fill:rgba(124,58,237,.12); --gold:#b7791f; --warn:#c2410c; --chip:#f3f5f9; }
+  :root[data-theme="dark"] { --bg:#1b1e24; --ink:#eef1f6; --ink2:#a3abba; --grid:#2c313b; --line:#a78bfa; --fill:rgba(167,139,250,.16); --gold:#f6c453; --warn:#fb923c; --chip:#252a33; }
+  * { box-sizing:border-box; }
+  body { margin:0; padding:14px 16px 16px; background:var(--bg); color:var(--ink); font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif; }
+  h1 { margin:0 0 2px; font-size:16px; } .sub { color:var(--ink2); font-size:12.5px; }
+  .ctl { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:6px 16px; margin:10px 0; }
+  label { display:flex; flex-direction:column; font-size:12px; color:var(--ink2); }
+  label b { color:var(--ink); font-weight:600; } input[type=range] { width:100%; accent-color:var(--line); }
+  .chk { flex-direction:row; align-items:center; gap:8px; }
+  svg { width:100%; height:auto; display:block; margin:4px 0; }
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(110px,1fr)); gap:8px; margin-top:6px; }
+  .stat { padding:8px 10px; border-radius:10px; background:var(--chip); } .stat b { display:block; font-size:18px; } .stat span { font-size:11.5px; color:var(--ink2); }
+  .warn { margin-top:8px; padding:8px 10px; border-radius:10px; background:var(--chip); color:var(--warn); font-weight:600; display:none; }
+</style>
+</head>
+<body>
+<h1>Featured unit odds</h1>
+<div class="sub">Exact probabilities, not a simulation. Move the sliders to compare banner rules.</div>
+<div class="ctl">
+  <label>Top-rarity rate <b id="vRate"></b><input id="rate" type="range" min="1" max="100" step="1"></label>
+  <label>Featured share (50/50) <b id="vShare"></b><input id="share" type="range" min="10" max="100" step="5"></label>
+  <label>Hard pity (0 = none) <b id="vPity"></b><input id="pity" type="range" min="0" max="300" step="5"></label>
+  <label>Spark / exchange (0 = none) <b id="vSpark"></b><input id="spark" type="range" min="0" max="400" step="10"></label>
+  <label>Your budget in pulls <b id="vBudget"></b><input id="budget" type="range" min="0" max="400" step="5"></label>
+  <label class="chk"><input id="guar" type="checkbox"> Next top rarity is guaranteed featured after a lost 50/50</label>
+</div>
+<svg id="chart" viewBox="0 0 640 230" role="img" aria-label="Cumulative chance of getting the featured unit"></svg>
+<div class="stats" id="stats"></div>
+<div class="warn" id="warn">NO_CEILING: without a hard pity or a spark, some players never get the featured unit.</div>
+<script>
+"use strict";
+// ---- exact distribution (same algorithm as server.py gacha_cdf) ----
+function gachaCdf(rate, share, guarantee, pity, spark, maxPulls = 2000) {
+  let states = new Map([["0|0", 1]]), got = 0; const cdf = [];
+  for (let k = 1; k <= maxPulls; k++) {
+    if (spark && k >= spark) { for (const v of states.values()) got += v; cdf.push(Math.min(1, got)); break; }
+    const nxt = new Map(), add = (key, v) => nxt.set(key, (nxt.get(key) || 0) + v);
+    for (const [key, pr] of states) {
+      const [s, g] = key.split("|").map(Number), pTop = pity && s + 1 >= pity ? 1 : rate, pFeat = g ? 1 : share;
+      got += pr * pTop * pFeat;
+      if (pFeat < 1) add(`0|${guarantee ? 1 : 0}`, pr * pTop * (1 - pFeat));
+      if (pTop < 1) add(`${s + 1}|${g}`, pr * (1 - pTop));
+    }
+    states = new Map([...nxt].filter(([, v]) => v > 1e-15)); cdf.push(Math.min(1, got));
+    if (!states.size) break;
+  }
+  return cdf;
+}
+function summary(cdf, budget) {
+  const mean = cdf.reduce((a, c, i) => a + (c - (i ? cdf[i - 1] : 0)) * (i + 1), 0), q = (p) => { const i = cdf.findIndex((c) => c >= p); return i < 0 ? null : i + 1; };
+  const tail = 1 - cdf[cdf.length - 1];
+  return { mean, median: q(.5), p90: q(.9), p99: q(.99), worst: tail < 1e-9 ? cdf.length : null, within: budget ? cdf[Math.min(budget, cdf.length) - 1] : 0 };
+}
+const $ = (id) => document.getElementById(id), W = 640, H = 230, PL = 40, PR = 12, PT = 10, PB = 28;
+function params() { return { rate: +$("rate").value / 1000, share: +$("share").value / 100, pity: +$("pity").value || null, spark: +$("spark").value || null, budget: +$("budget").value, guar: $("guar").checked }; }
+function render() {
+  const p = params(), cdf = gachaCdf(p.rate, p.share, p.guar, p.pity, p.spark), s = summary(cdf, p.budget);
+  $("vRate").textContent = `${(p.rate * 100).toFixed(1)}%`; $("vShare").textContent = `${Math.round(p.share * 100)}%`;
+  $("vPity").textContent = p.pity || "none"; $("vSpark").textContent = p.spark || "none"; $("vBudget").textContent = p.budget;
+  const maxX = Math.max(60, Math.min(cdf.length, s.worst || s.p99 || cdf.length, 600)), X = (k) => PL + k / maxX * (W - PL - PR), Y = (v) => PT + (1 - v) * (H - PT - PB);
+  let g = "";
+  for (let v = 0; v <= 1.0001; v += .25) g += `<line x1="${PL}" x2="${W - PR}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--grid)"/><text x="${PL - 6}" y="${Y(v) + 4}" font-size="10" text-anchor="end" fill="var(--ink2)">${Math.round(v * 100)}%</text>`;
+  for (let k = 0; k <= maxX; k += Math.ceil(maxX / 6 / 10) * 10) g += `<text x="${X(k)}" y="${H - 8}" font-size="10" text-anchor="middle" fill="var(--ink2)">${k}</text>`;
+  const pts = cdf.slice(0, maxX).map((c, i) => `${X(i + 1).toFixed(1)} ${Y(c).toFixed(1)}`);
+  g += `<path d="M${X(0)} ${Y(0)}L${pts.join("L")}L${X(Math.min(maxX, cdf.length))} ${Y(0)}Z" fill="var(--fill)"/><path d="M${X(0)} ${Y(0)}L${pts.join("L")}" fill="none" stroke="var(--line)" stroke-width="2.5"/>`;
+  if (p.budget) { const bx = X(Math.min(p.budget, maxX)); g += `<line x1="${bx}" x2="${bx}" y1="${PT}" y2="${H - PB}" stroke="var(--gold)" stroke-width="2" stroke-dasharray="5 4"/><circle cx="${bx}" cy="${Y(s.within)}" r="5" fill="var(--gold)"/><text x="${Math.min(bx + 6, W - 120)}" y="${Y(s.within) - 8}" font-size="11" fill="var(--gold)">${(s.within * 100).toFixed(1)}% by pull ${p.budget}</text>`; }
+  $("chart").innerHTML = g;
+  const stat = (v, l) => `<div class="stat"><b>${v}</b><span>${l}</span></div>`;
+  $("stats").innerHTML = stat(s.mean.toFixed(1), "mean pulls") + stat(`${(100 / s.mean).toFixed(2)}%`, "consolidated rate") + stat(s.median ?? "–", "median") + stat(s.p90 ?? "–", "90th percentile") + stat(s.p99 ?? "–", "99th percentile") + stat(s.worst ?? "∞", "worst case") + (p.budget ? stat(`${(s.within * 100).toFixed(1)}%`, `within ${p.budget} pulls`) : "");
+  $("warn").style.display = s.worst ? "none" : "block";
+  document.body.dataset.rendered = s.mean.toFixed(2);
+  sizeChanged();
+}
+function show(sc) {
+  const a = (sc && sc.params) || {};
+  $("rate").value = Math.round((a.rate ?? .03) * 1000); $("share").value = Math.round((a.featured_share ?? .5) * 100);
+  $("pity").value = a.hard_pity || 0; $("spark").value = a.spark || 0; $("budget").value = a.budget_pulls || 0; $("guar").checked = a.guarantee_after_loss ?? true;
+  render();
+}
+document.querySelectorAll("input").forEach((el) => el.addEventListener("input", render));
+// ---- MCP Apps host protocol (JSON-RPC over postMessage) ----
+let nextId = 1; const pending = new Map();
+const send = (m) => window.parent.postMessage(m, "*");
+function request(method, params) { return new Promise((resolve, reject) => { const id = nextId++; pending.set(id, { resolve, reject }); send({ jsonrpc: "2.0", id, method, params }); }); }
+const notify = (method, params) => send(params === undefined ? { jsonrpc: "2.0", method } : { jsonrpc: "2.0", method, params });
+function sizeChanged() { notify("ui/notifications/size-changed", { width: document.documentElement.scrollWidth, height: document.documentElement.scrollHeight }); }
+function theme(ctx) { if (ctx && ctx.theme) document.documentElement.dataset.theme = ctx.theme; }
+window.addEventListener("message", (ev) => {
+  if (ev.source !== window.parent) return; const m = ev.data; if (!m || m.jsonrpc !== "2.0") return;
+  if (m.id !== undefined && m.method === undefined) { const p = pending.get(m.id); if (p) { pending.delete(m.id); "error" in m ? p.reject(m.error) : p.resolve(m.result); } return; }
+  if (m.method === "ui/notifications/tool-result") show(m.params && m.params.structuredContent);
+  else if (m.method === "ui/notifications/host-context-changed") theme(m.params);
+  else if (m.method === "ui/resource-teardown" && m.id !== undefined) send({ jsonrpc: "2.0", id: m.id, result: {} });
+});
+(async () => {
+  if (window.parent === window) { show({ params: { rate: .03, featured_share: .5, guarantee_after_loss: true, spark: 120, budget_pulls: 60 } }); return; }
+  try { const r = await request("ui/initialize", { appInfo: { name: "Gacha odds", version: "1.0.0" }, appCapabilities: {}, protocolVersion: "2026-01-26" }); theme(r && r.hostContext); } catch (e) { /* host without MCP Apps */ }
+  notify("ui/notifications/initialized"); sizeChanged();
+})();
+</script>
+</body>
+</html>

@@ -163,6 +163,17 @@ Claude Code에서는 질문 내용에 맞춰 스킬이 자동으로 실행되고
 
 다른 에이전트도 같은 스킬을 씁니다. 명령은 Claude Code 전용입니다.
 
+## 대화형 차트 (선택 설치 MCP App)
+
+마켓플레이스에는 **`game-design-charts`**도 있습니다. 파이썬으로 만든 작은 MCP 서버로, `interest_curve`와 `gacha_odds` 두 도구를
+제공합니다. 어디서든 정확한 수치를 텍스트로 돌려줍니다. MCP Apps를 지원하는 호스트(예: Claude 데스크톱 앱)에서는 대화 안에
+대화형 차트도 그려 줍니다. 비트를 드래그해 페이싱을 다시 진단하거나, 천장과 교환 슬라이더를 움직여 배너 조건을 비교할 수 있습니다.
+
+![대화형 관심 곡선과 가챠 확률 차트](docs/images/mcp-charts.png)
+
+설치는 `/plugin install game-design-charts@ai-game-designer`이고, Claude 데스크톱 설정은
+[해당 README](plugins/game-design-charts/README.md)를 참고하세요.
+
 ## 사용 예시
 
 어떤 언어로 물어도 됩니다. 아래는 시작점일 뿐입니다.

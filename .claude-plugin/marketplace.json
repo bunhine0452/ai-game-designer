@@ -29,6 +29,25 @@
         "pacing",
         "gdd"
       ]
+    },
+    {
+      "name": "game-design-charts",
+      "source": "./plugins/game-design-charts",
+      "description": "Optional companion MCP server: an editable interest curve with live pacing diagnosis and exact gacha odds with sliders, rendered as interactive charts in hosts that support MCP Apps.",
+      "version": "1.0.0",
+      "author": {
+        "name": "bunhine0452",
+        "url": "https://github.com/bunhine0452"
+      },
+      "homepage": "https://github.com/bunhine0452/ai-game-designer",
+      "repository": "https://github.com/bunhine0452/ai-game-designer",
+      "license": "MIT",
+      "category": "design",
+      "keywords": [
+        "game-design",
+        "mcp-apps",
+        "charts"
+      ]
     }
   ]
 }
