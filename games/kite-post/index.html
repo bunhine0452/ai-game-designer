@@ -1,0 +1,1529 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kite Post · 종이연 우편부</title>
+<meta name="description" content="A 3D gliding delivery game: ride a paper kite between sky islands, read the wind, deliver eight letters. Original prototype designed with ai-game-designer.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+  :root { --paper:#fbf6ec; --paper2:#f3ead8; --ink:#27303d; --ink2:#5b6474; --ink3:#8c94a2; --red:#d9483b; --blue:#2f5d9e; --gold:#e3a73b;
+    --line:rgba(39,48,61,.14); --env:#ff7a59; --serif:"Gowun Batang",Georgia,serif; --sans:"Gowun Dodum",system-ui,-apple-system,sans-serif; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; height:100%; overflow:hidden; background:#0d1220; color:var(--ink); font:15px/1.5 var(--sans); -webkit-user-select:none; user-select:none; }
+  #stage { position:absolute; left:0; top:0; width:1280px; height:720px; transform-origin:0 0; overflow:hidden; background:#9cc8e6; }
+  #gl { position:absolute; inset:0; width:1280px; height:720px; display:block; }
+  #vig { position:absolute; inset:0; pointer-events:none; background:radial-gradient(ellipse at 50% 55%, rgba(0,0,0,0) 62%, rgba(20,14,30,.28) 100%); }
+  .hud { position:absolute; z-index:5; transition:opacity .4s; }
+  .hidehud .hud, .hidehud #reach, .hidehud #prompt { opacity:0; pointer-events:none; }
+  .paper { background:linear-gradient(180deg,var(--paper),var(--paper2)); border-radius:7px; box-shadow:0 10px 30px rgba(20,24,40,.22), 0 1px 0 rgba(255,255,255,.7) inset; }
+  #card { left:22px; top:20px; width:334px; padding:0 0 14px; overflow:hidden; }
+  #card .band { height:9px; background:repeating-linear-gradient(-45deg, var(--env) 0 12px, #fff 12px 18px, var(--blue) 18px 30px, #fff 30px 36px); }
+  #card .in { padding:12px 18px 0; }
+  .kicker { font:700 11px var(--sans); letter-spacing:.22em; text-transform:uppercase; color:var(--ink3); display:flex; justify-content:space-between; }
+  #card h3 { margin:5px 0 2px; font:700 21px/1.25 var(--serif); }
+  #card .to { font:400 14px var(--sans); color:var(--ink2); }
+  #card .addr { display:flex; align-items:center; gap:10px; margin-top:9px; padding:7px 10px; border-radius:6px; background:rgba(39,48,61,.06); font:400 13.5px var(--sans); }
+  #card .addr svg { width:26px; height:26px; flex:none; color:var(--env); }
+  #card .addr b { font:700 14px var(--serif); display:block; color:var(--ink); }
+  #card .time { display:flex; align-items:baseline; gap:10px; margin-top:10px; }
+  #card .time .t { font:700 32px/1 var(--serif); font-variant-numeric:tabular-nums; }
+  #card .time .of { font:400 14px var(--sans); color:var(--ink3); }
+  #card .time .meds { margin-left:auto; display:flex; gap:8px; font:400 12px var(--sans); color:var(--ink3); }
+  #card .time .meds i { display:inline-block; width:9px; height:9px; border-radius:2px; margin-right:4px; vertical-align:0; }
+  #card.late .time .t { color:#b5523a; }
+  #alt { right:24px; top:96px; width:86px; padding:12px 10px 12px; text-align:center; }
+  #alt .lab { font:700 10px var(--sans); letter-spacing:.2em; color:var(--ink3); }
+  #gauge { position:relative; height:250px; margin:8px auto 8px; width:30px; }
+  #gauge .rail { position:absolute; left:14px; top:0; bottom:0; width:2px; background:rgba(39,48,61,.2); }
+  #gauge .tick { position:absolute; left:9px; width:12px; height:1px; background:rgba(39,48,61,.3); }
+  #gauge .mk { position:absolute; left:0; width:30px; height:2px; transform:translateY(-1px); }
+  #gauge #gT { background:var(--env); height:4px; border-radius:2px; transform:translateY(-2px); }
+  #gauge #gT::after { content:""; position:absolute; right:-8px; top:-4px; border:6px solid transparent; border-left-color:var(--env); }
+  #gauge #gK { height:0; }
+  #gauge #gK svg { position:absolute; left:2px; top:-11px; width:26px; height:22px; }
+  #gauge #gU { background:rgba(80,160,230,.35); left:12px; width:6px; border-radius:3px; }
+  #alt .big { font:700 22px/1 var(--serif); font-variant-numeric:tabular-nums; }
+  #alt .sm { font:400 12px var(--sans); color:var(--ink2); margin-top:3px; font-variant-numeric:tabular-nums; }
+  #alt.stall .sm { color:#c0392b; font-weight:700; }
+  #stampbox { right:24px; top:20px; display:flex; gap:8px; align-items:center; }
+  #stampbox .st { display:flex; align-items:center; gap:8px; padding:7px 12px 7px 8px; font:700 17px var(--serif); }
+  #stampbox .st svg { width:26px; height:26px; }
+  .ib { width:40px; height:40px; border-radius:9px; border:0; display:grid; place-items:center; cursor:pointer; color:var(--ink); }
+  .ib svg { width:20px; height:20px; }
+  #reach { position:absolute; z-index:5; left:50%; bottom:22px; transform:translateX(-50%); padding:8px 16px; border-radius:999px; font:400 14.5px var(--sans); white-space:nowrap; display:flex; gap:10px; align-items:center; transition:opacity .3s; }
+  #reach b { font:700 16px var(--serif); font-variant-numeric:tabular-nums; }
+  #reach.ok b { color:#2e7d4f; } #reach.no b { color:#b5523a; }
+  #reach .dot { width:9px; height:9px; border-radius:50%; } #reach.ok .dot { background:#3aa76d; } #reach.no .dot { background:#e0803a; }
+  #prompt { position:absolute; z-index:6; left:50%; bottom:74px; transform:translateX(-50%); padding:9px 18px; border-radius:10px; background:rgba(25,30,44,.82); color:#fff; font:400 16px var(--sans); white-space:nowrap; display:none; }
+  #prompt kbd { display:inline-block; min-width:22px; padding:1px 7px; margin:0 3px; border-radius:5px; background:#fff; color:var(--ink); font:700 13px var(--sans); text-align:center; }
+  #toast { position:absolute; z-index:6; left:50%; top:22px; transform:translateX(-50%); display:flex; flex-direction:column; gap:8px; align-items:center; pointer-events:none; }
+  #toast div { max-width:560px; padding:10px 18px; border-radius:10px; background:rgba(251,246,236,.95); box-shadow:0 8px 24px rgba(20,24,40,.2); font:400 15px/1.45 var(--sans); text-align:center; animation:tin .35s ease-out; }
+  #toast div b { font-family:var(--serif); }
+  @keyframes tin { from { opacity:0; transform:translateY(-8px); } }
+  #result { position:absolute; z-index:7; left:50%; top:96px; transform:translateX(-50%); width:430px; padding:14px 22px 14px; display:none; text-align:center; }
+  #result.show { display:block; animation:pop .45s cubic-bezier(.2,1.4,.4,1); }
+  @keyframes pop { from { opacity:0; transform:translate(-50%,10px) scale(.94); } }
+  #result .stamp { width:66px; height:66px; margin:0 auto 4px; }
+  #result h4 { margin:2px 0 4px; font:700 22px var(--serif); }
+  #result p { margin:6px 0 0; font:400 15px/1.5 var(--serif); color:var(--ink2); }
+  #result .row { display:flex; justify-content:center; gap:18px; margin-top:10px; font:400 13.5px var(--sans); color:var(--ink3); }
+  #result .row b { color:var(--ink); font:700 15px var(--serif); }
+  #nav { position:absolute; z-index:4; width:44px; height:44px; margin:-22px 0 0 -22px; display:none; pointer-events:none; }
+  #reticle { position:absolute; z-index:4; left:0; top:0; width:1280px; height:720px; pointer-events:none; display:none; }
+  #flash { position:absolute; inset:0; z-index:8; background:#eef0ff; opacity:0; pointer-events:none; }
+  #fade { position:absolute; inset:0; z-index:9; display:flex; align-items:center; justify-content:center; background:#f6efe2; opacity:0; pointer-events:none; transition:opacity .6s; color:var(--ink); font:700 26px var(--serif); text-align:center; }
+  #fade small { display:block; font:400 16px var(--sans); color:var(--ink2); margin-top:8px; }
+  #fade.on { opacity:1; }
+  #touch { position:absolute; inset:0; z-index:6; display:none; pointer-events:none; }
+  #touch.on { display:block; }
+  #stick { position:absolute; left:40px; bottom:40px; width:170px; height:170px; border-radius:50%; background:rgba(255,255,255,.16); border:2px solid rgba(255,255,255,.4); pointer-events:auto; }
+  #stick i { position:absolute; left:55px; top:55px; width:60px; height:60px; border-radius:50%; background:rgba(255,255,255,.7); }
+  #tAct { position:absolute; right:40px; bottom:60px; width:110px; height:110px; border-radius:50%; border:0; background:rgba(217,72,59,.85); color:#fff; font:700 18px var(--sans); pointer-events:auto; }
+  #screen, #modal { position:absolute; inset:0; display:none; z-index:10; }
+  #screen.show, #modal.show { display:block; animation:fade .5s; } @keyframes fade { from { opacity:0; } }
+  #modal { z-index:11; background:rgba(16,20,32,.45); }
+  .title { position:absolute; left:0; top:0; bottom:0; width:640px; padding:84px 0 0 86px; background:linear-gradient(90deg, rgba(251,246,236,.94) 0%, rgba(251,246,236,.82) 62%, rgba(251,246,236,0) 100%); }
+  .title .k { font:700 13px var(--sans); letter-spacing:.42em; color:var(--red); }
+  .title h1 { margin:14px 0 0; font:700 92px/1.02 var(--serif); letter-spacing:-.01em; color:var(--ink); }
+  .title h1 span { color:var(--red); }
+  .title p { margin:20px 0 26px; max-width:430px; font:400 17.5px/1.6 var(--serif); color:var(--ink2); }
+  .btn { display:inline-flex; align-items:center; gap:10px; padding:13px 26px; border-radius:10px; border:0; cursor:pointer; font:700 17px var(--sans); color:#fff; background:var(--red); box-shadow:0 8px 20px rgba(217,72,59,.3); text-decoration:none; }
+  .btn.alt { background:rgba(39,48,61,.08); color:var(--ink); box-shadow:none; }
+  .btns { display:flex; gap:12px; flex-wrap:wrap; }
+  .keys { margin-top:28px; display:grid; grid-template-columns:auto 1fr; gap:7px 14px; max-width:430px; font:400 14px var(--sans); color:var(--ink2); }
+  .keys kbd { display:inline-block; min-width:24px; padding:1px 7px; margin-right:3px; border-radius:5px; background:#fff; border:1px solid var(--line); color:var(--ink); font:700 12.5px var(--sans); text-align:center; }
+  .lang { position:absolute; right:26px; top:22px; display:flex; gap:4px; padding:4px; border-radius:10px; background:rgba(251,246,236,.9); }
+  .lang button { border:0; padding:6px 12px; border-radius:7px; background:none; cursor:pointer; font:700 13px var(--sans); color:var(--ink2); }
+  .lang button.on { background:var(--ink); color:#fff; }
+  .foot { position:absolute; left:86px; bottom:22px; font:400 12.5px var(--sans); color:var(--ink3); } .foot a { color:var(--ink2); }
+  .sheet { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:560px; padding:28px 32px; }
+  .sheet h2 { margin:6px 0 14px; font:700 30px var(--serif); }
+  .opts { display:grid; gap:8px; }
+  .opts label { display:flex; gap:12px; align-items:center; padding:9px 12px; border-radius:8px; background:rgba(39,48,61,.05); cursor:pointer; font:400 15px var(--sans); }
+  .opts input[type=checkbox] { width:18px; height:18px; accent-color:var(--red); } .opts input[type=range] { flex:1; accent-color:var(--red); }
+  .opts small { color:var(--ink3); margin-left:auto; font-size:12.5px; }
+  .end { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:760px; padding:30px 38px 26px; }
+  .end h2 { margin:6px 0 4px; font:700 38px var(--serif); }
+  .end .sub { font:400 16px/1.6 var(--serif); color:var(--ink2); }
+  .tbl { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin:18px 0; }
+  .tbl div { padding:9px 10px; border-radius:8px; background:rgba(39,48,61,.05); font:400 12.5px var(--sans); color:var(--ink2); display:flex; gap:8px; align-items:center; }
+  .tbl svg { width:30px; height:30px; flex:none; }
+  .tbl b { display:block; color:var(--ink); font:700 13.5px var(--serif); }
+  .stats { display:flex; gap:12px; margin-bottom:20px; } .stats div { flex:1; padding:12px; border-radius:10px; background:rgba(39,48,61,.05); text-align:center; }
+  .stats b { display:block; font:700 26px var(--serif); } .stats span { font:700 10.5px var(--sans); letter-spacing:.16em; color:var(--ink3); text-transform:uppercase; }
+  #rotate { position:fixed; left:12px; right:12px; top:12px; z-index:30; padding:12px 14px; border-radius:12px; background:var(--paper); font:400 14px var(--sans); display:none; } #rotate.show { display:block; }
+  #rotate button { float:right; background:none; border:0; font-size:18px; cursor:pointer; }
+  .shot #toast div, .shot #result.show, .shot #screen.show { animation:none; }
+</style>
+<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }</script>
+</head>
+<body>
+<div id="stage">
+  <canvas id="gl" aria-label="Third-person view of a paper kite gliding between floating islands"></canvas>
+  <div id="vig"></div>
+  <svg id="reticle" viewBox="0 0 1280 720"><line id="retL" x1="640" y1="400" x2="640" y2="400" stroke="rgba(255,255,255,.55)" stroke-width="2" stroke-dasharray="4 6"/><circle id="retC" cx="640" cy="400" r="9" fill="none" stroke="#fff" stroke-width="2.5"/></svg>
+  <svg id="nav" viewBox="0 0 44 44"><circle cx="22" cy="22" r="19" fill="rgba(251,246,236,.9)"/><path id="navP" d="M22 9l9 16h-18z" fill="var(--env)"/></svg>
+  <div class="hud paper" id="card"><div class="band"></div><div class="in">
+    <div class="kicker"><span id="cK"></span><span id="cAir">AIR MAIL</span></div>
+    <h3 id="cT"></h3><div class="to" id="cTo"></div>
+    <div class="addr"><svg viewBox="0 0 26 26" id="cIcon"></svg><div><b id="cA"></b><span id="cD"></span></div></div>
+    <div class="time"><span class="t" id="cTime">0:00</span><span class="of" id="cOf"></span><span class="meds" id="cMeds"></span></div>
+  </div></div>
+  <div class="hud paper" id="alt"><div class="lab" id="altLab">ALT</div>
+    <div id="gauge"><div class="rail"></div><div class="mk" id="gU"></div><div class="mk" id="gT"></div><div class="mk" id="gK"><svg viewBox="0 0 26 22"><path d="M13 2l10 9-10 9-10-9z" fill="#d9483b" stroke="#fff" stroke-width="1.6"/></svg></div></div>
+    <div class="big" id="altV">0</div><div class="sm" id="spdV"></div></div>
+  <div class="hud" id="stampbox"><div class="st paper" id="stamps"><svg viewBox="0 0 26 26"><path d="M3 3h20v20H3z" fill="#fff" stroke="#d9483b" stroke-width="2" stroke-dasharray="2.2 1.6"/><path d="M8 17l5-9 5 9z" fill="#d9483b"/></svg><span id="stampN">0</span></div>
+    <button class="ib paper" id="bSet" title="Settings"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 1.5v3M10 15.5v3M1.5 10h3M15.5 10h3M4 4l2 2M14 14l2 2M4 16l2-2M14 6l2-2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></div>
+  <div id="reach" class="paper"><span class="dot"></span><span id="reachL"></span><b id="reachV"></b></div>
+  <div id="prompt"></div>
+  <div id="toast" aria-live="polite"></div>
+  <div id="result" class="paper"></div>
+  <div id="flash"></div>
+  <div id="fade"></div>
+  <div id="touch"><div id="stick"><i></i></div><button id="tAct">↑</button></div>
+  <div id="screen"></div>
+  <div id="modal"><div class="sheet paper"><div class="kicker" id="setK"></div><h2 id="setH"></h2>
+    <div class="opts">
+      <label><input type="checkbox" id="oMouse" checked><span id="lMouse"></span></label>
+      <label><input type="checkbox" id="oInvert"><span id="lInvert"></span></label>
+      <label><input type="checkbox" id="oRoll" checked><span id="lRoll"></span></label>
+      <label><input type="checkbox" id="oMotion"><span id="lMotion"></span></label>
+      <label><input type="checkbox" id="oNav"><span id="lNav"></span></label>
+      <label><input type="checkbox" id="oRelax"><span id="lRelax"></span></label>
+      <label><span id="lVol"></span><input type="range" id="oVol" min="0" max="1" step="0.05" value="0.7"></label>
+    </div>
+    <div class="btns" style="margin-top:18px"><button class="btn" id="setOk"></button><button class="btn alt" id="setTitle"></button></div></div></div>
+</div>
+<div id="rotate"><button id="rotX" aria-label="Dismiss">×</button><span id="rotT"></span></div>
+<pre id="selftest" hidden></pre>
+<script type="module">
+import * as THREE from "three";
+import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
+// ==SIM== (pure logic: no DOM, no WebGL; the self-test, the bot and node tests use only this part)
+// Numbers from the design session (showcase 07): 02_art_direction.md §3 and data/deliveries_v2.csv.
+const PHY = { CRUISE: 14, STALL: 8, VMAX: 24, DRAG: 0.35, A_DIVE: 3.5, A_CLIMB: 3.0, TURN: 1.22, G: 9.8,
+  LAUNCH_UP: 40, LAUNCH_VY: 10, RESPAWN: 3, SEA: 2 };
+// Updraft strengths: weak / mid / strong = 4 / 6 / 9 m/s, diameters 24 / 20 / 16 m.
+const UPS = { 1: { s: 4, r: 12 }, 2: { s: 6, r: 10 }, 3: { s: 9, r: 8 } };
+const ISLANDS = [
+  { id: "H", kind: "hub", x: 0, z: 0, top: 60, r: 26 },
+  { id: "L", kind: "lighthouse", x: 300, z: -20, top: 62, r: 17 },
+  { id: "B", kind: "bakery", x: 330, z: 340, top: 55, r: 18 },
+  { id: "T", kind: "bell", x: -70, z: 210, top: 66, r: 16 },
+  { id: "W", kind: "windmill", x: -520, z: -50, top: 58, r: 20 },
+  { id: "F", kind: "waterfall", x: -160, z: 380, top: 70, r: 20 },
+  { id: "C", kind: "observatory", x: 540, z: -535, top: 64, r: 16 },
+  { id: "c2", kind: "islet", x: 572, z: -560, top: 61, r: 9 },   // the observatory's twin, joined by the plank bridge
+  { id: "S", kind: "shelter", x: 0, z: -1100, top: 60, r: 15 },
+  { id: "P", kind: "skypo", x: -300, z: -2050, top: 66, r: 28 },
+  // the windmill archipelago: #4 passes three stepping islets
+  { id: "i1", kind: "islet", x: -205, z: 158, top: 50, r: 9 },
+  { id: "i2", kind: "islet", x: -322, z: 72, top: 53, r: 10 },
+  { id: "i3", kind: "islet", x: -430, z: 8, top: 49, r: 8 },
+  // scenery islets (landable: every landing refills the +40 m launch)
+  { id: "s1", kind: "islet", x: 150, z: 160, top: 42, r: 9 },
+  { id: "s2", kind: "islet", x: -150, z: -170, top: 52, r: 11 },
+  { id: "s3", kind: "islet", x: 470, z: 180, top: 46, r: 9 },
+  { id: "s4", kind: "islet", x: 110, z: 470, top: 40, r: 10 },
+  { id: "s5", kind: "islet", x: -640, z: 230, top: 50, r: 12 },
+  { id: "s6", kind: "islet", x: 760, z: -260, top: 54, r: 11 },
+  { id: "s7", kind: "islet", x: -330, z: -480, top: 48, r: 12 },
+  { id: "s8", kind: "islet", x: 330, z: -1040, top: 46, r: 10 },
+  { id: "s9", kind: "islet", x: -420, z: -1300, top: 44, r: 12 },
+];
+ISLANDS.forEach((I) => (I.depth = I.r * 1.7));
+const ISL = Object.fromEntries(ISLANDS.map((I) => [I.id, I]));
+// Tall landmarks you can bump into: [x, z, radius, bottom, top]
+const TOWERS = [[0, 0, 3.6, 60, 84], [300, -20, 2.6, 62, 92], [-520, -50, 4.2, 58, 80], [-70, 210, 3.2, 66, 86]];
+const PAD = { x: 0, z: 0, top: 84.6, r: 3.6 };   // the post tower's roof: the opening dive starts here
+// Updrafts: [x, z, top, strength(1..3), pulse?]. They rise out of the cloud sea and fade over the last 10 m.
+const UPDRAFTS = [
+  [125, 5, 104, 1], [185, -72, 104, 1],                                  // #1 tutorial: two weak, can't fail
+  [252, 168, 102, 2], [398, 152, 102, 2],                                // #2 pick one of two
+  [178, 296, 120, 2], [52, 236, 106, 1],                                 // #3 one good climb beats the bell
+  [-188, 132, 100, 2], [-338, 50, 100, 2], [-445, -22, 98, 1, 1],        // #4 (the last one is cut by the windmill)
+  [-410, 118, 106, 2], [-290, 258, 114, 3],                              // #5 no spare
+  [140, -120, 102, 2], [292, -262, 104, 3], [428, -410, 106, 2], [232, -392, 100, 1],   // #6 first strong (gold)
+  [432, -690, 104, 2], [272, -850, 106, 3], [112, -992, 102, 2],         // #7 between the lightning
+  [-52, -1272, 104, 2], [-108, -1440, 108, 3], [-166, -1612, 106, 2], [-250, -1840, 108, 2], [-62, -1560, 100, 1],  // #8
+].map(([x, z, top, k, pulse]) => ({ x, z, top, k, r: UPS[k].r, s: UPS[k].s, pulse: !!pulse }));
+const DOWNDRAFTS = [[330, -742, 16], [196, -948, 16], [470, -880, 18], [40, -880, 16]].map(([x, z, r]) => ({ x, z, r, s: 4 }));
+const LANE = { ax: -20, az: -1180, bx: -282, bz: -1990, r: 18, s: 6 };            // #8 tailwind lane
+const HEADWIND = { z0: -960, z1: -760, w: 3.5 };                                    // #7 storm front headwind band
+const WALL = { x: -300, z: -2050, r0: 270, r1: 430, sink: 3.5, push: 4 };           // storm wall around the Sky Post Office
+const DELIVERIES = [
+  { id: 1, from: "H", to: "L", dist: 300, ups: 2, target: 46, reward: 10, env: "#ff7a59", pal: "dawn" },
+  { id: 2, from: "L", to: "B", dist: 360, ups: 2, target: 52, reward: 11, env: "#f2c14e", pal: "morning" },
+  { id: 3, from: "B", to: "T", dist: 420, ups: 2, target: 48, reward: 14, env: "#2ec4b6", pal: "morning" },
+  { id: 4, from: "T", to: "W", dist: 520, ups: 3, target: 70, reward: 22, env: "#b388eb", pal: "noon" },
+  { id: 5, from: "W", to: "F", dist: 560, ups: 2, target: 72, reward: 26, env: "#ff6f91", pal: "noon" },
+  { id: 6, from: "H", to: "C", dist: 760, ups: 4, target: 101, reward: 32, env: "#4cc9f0", pal: "afternoon" },
+  { id: 7, from: "C", to: "S", dist: 780, ups: 3, target: 103, reward: 36, env: "#a3d955", pal: "storm" },
+  { id: 8, from: "S", to: "P", dist: 1000, ups: 5, target: 134, reward: 50, env: "#ffd166", pal: "storm" },
+];
+const GOLD = 0.8;   // gold stamp at 80% of the target time (03_deliveries.md)
+
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const wrapA = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+function sinkRate(v) {   // 6:1 at cruise, 4:1 at full dive, extra sink below the stall speed
+  let s = v >= PHY.CRUISE ? 2.333 + 0.3667 * (v - PHY.CRUISE) : 2.333 - 0.06 * (PHY.CRUISE - v);
+  if (v < PHY.STALL) s += (PHY.STALL - v) * 1.6;
+  return s;
+}
+function upActive(u, t) { return !u.pulse || (t % 7) < 4.5; }
+function liftOf(u, d, y) {
+  if (y > u.top || y < 6) return 0;
+  const radial = d < 0.8 * u.r ? 1 : Math.max(0, 1 - (d - 0.8 * u.r) / (0.7 * u.r));
+  return radial * clamp((u.top - y) / 10, 0, 1);
+}
+function laneInfo(x, z) {   // distance to the lane segment and progress along it
+  const dx = LANE.bx - LANE.ax, dz = LANE.bz - LANE.az, L2 = dx * dx + dz * dz;
+  const t = clamp(((x - LANE.ax) * dx + (z - LANE.az) * dz) / L2, 0, 1);
+  return { d: Math.hypot(x - (LANE.ax + dx * t), z - (LANE.az + dz * t)), t, ux: dx / Math.sqrt(L2), uz: dz / Math.sqrt(L2) };
+}
+function airAt(x, y, z, t, assist) {
+  const A = { lift: 0, wx: 0, wz: 0, up: null, upF: 0, down: false, lane: false, storm: 0, wall: false };
+  for (const u of UPDRAFTS) {
+    const d = Math.hypot(x - u.x, z - u.z);
+    if (d > 1.5 * u.r || !upActive(u, t)) continue;
+    const f = liftOf(u, d, y);
+    if (f > 0) { A.lift += u.s * f * (assist ? 1.3 : 1); if (f > A.upF) { A.upF = f; A.up = u; }
+      if (d > 2) { const k = 1.1 * f / d; A.wx += (u.x - x) * k; A.wz += (u.z - z) * k; } }   // gentle inflow keeps circling pilots inside
+  }
+  for (const w of DOWNDRAFTS) {
+    const d = Math.hypot(x - w.x, z - w.z);
+    if (d < w.r * 1.3 && y > 6) { A.lift -= w.s * Math.max(0, 1 - Math.max(0, d - 0.7 * w.r) / (0.6 * w.r)); A.down = true; }
+  }
+  if (z < HEADWIND.z1 && z > HEADWIND.z0) { A.wz += HEADWIND.w; A.storm = 1; }
+  const L = laneInfo(x, z);
+  if (L.d < LANE.r && L.t > 0 && L.t < 1) { const f = 1 - L.d / LANE.r * 0.4; A.wx += L.ux * LANE.s * f; A.wz += L.uz * LANE.s * f; A.lane = true; }
+  const dw = Math.hypot(x - WALL.x, z - WALL.z);
+  if (dw > WALL.r0 && dw < WALL.r1 && !A.lane) { A.lift -= WALL.sink; A.wx += (x - WALL.x) / dw * WALL.push; A.wz += (z - WALL.z) / dw * WALL.push; A.wall = true; }
+  if (dw < WALL.r1) A.storm = Math.max(A.storm, dw > WALL.r0 ? 1 : 0);
+  return A;
+}
+
+function newPilot(x, y, z, yaw) {
+  return { x, y, z, yaw, v: 0, vy: 0, pd: 0, steer: 0, mode: "perch", perch: null, launchTop: 0, fallT: 0, bonkT: 0, noLand: 0, air: null, gx: 0, gz: 0 };
+}
+const fwd = (yaw) => [-Math.sin(yaw), -Math.cos(yaw)];
+const yawTo = (x, z, tx, tz) => Math.atan2(-(tx - x), -(tz - z));
+
+function land(P, I, ev) {
+  P.mode = "perch"; P.perch = I.id; P.v = 0; P.vy = 0; P.pd = 0;
+  const d = Math.hypot(P.x - I.x, P.z - I.z), lim = Math.max(1, I.r - 2.5);
+  if (d > lim) { P.x = I.x + (P.x - I.x) / d * lim; P.z = I.z + (P.z - I.z) / d * lim; }
+  P.y = I.top + 0.35; ev.push({ type: "land", island: I.id });
+}
+function collide(P, prevY, ev) {
+  if (P.mode !== "fly" && P.mode !== "launch") return;
+  const canLand = P.noLand <= 0;   // no re-landing in the first moments after a launch
+  if (canLand && Math.hypot(P.x - PAD.x, P.z - PAD.z) < PAD.r && P.y < PAD.top + 0.3 && prevY >= PAD.top - 0.2 && P.vy <= 0) {
+    land(P, { id: "H", x: PAD.x, z: PAD.z, top: PAD.top - 0.35 + 0.35, r: PAD.r + 2.5 }, ev); P.y = PAD.top + 0.35; return;
+  }
+  for (const [x, z, r, y0, y1] of TOWERS) {
+    const dx = P.x - x, dz = P.z - z, d = Math.hypot(dx, dz);
+    if (d < r + 0.6 && P.y > y0 && P.y < y1) { P.x = x + dx / (d || 1) * (r + 0.7); P.z = z + dz / (d || 1) * (r + 0.7); bonk(P, dx, dz, ev); return; }
+  }
+  for (const I of ISLANDS) {
+    const dx = P.x - I.x, dz = P.z - I.z, d = Math.hypot(dx, dz);
+    if (d > I.r + 0.6 || P.y > I.top + 0.3) continue;
+    const under = I.top - 4 - (I.depth - 4) * (1 - Math.min(1, d / I.r));
+    if (P.y < under) continue;
+    if (prevY >= I.top - 0.25 && P.vy <= 0.5) { if (canLand) land(P, I, ev); else P.y = I.top + 0.3; return; }
+    const outH = I.r + 0.8 - d, outV = P.y - under + 0.8;   // nearest way out: sideways or down
+    if (outH < outV) { P.x = I.x + dx / (d || 1) * (I.r + 0.8); P.z = I.z + dz / (d || 1) * (I.r + 0.8); }
+    else P.y = under - 0.8;
+    bonk(P, dx, dz, ev); return;
+  }
+}
+function bonk(P, dx, dz, ev) {
+  if (P.bonkT > 0) return;
+  const out = Math.atan2(-dx, -dz), turn = wrapA(out - P.yaw);
+  P.yaw = wrapA(P.yaw + turn * 0.6); P.v = Math.max(PHY.STALL + 1, P.v * 0.6); P.bonkT = 0.6;
+  ev.push({ type: "bonk" });
+}
+// inp: steer -1..1 (+ = right), pitch -1..1 (+ = nose down / dive)
+function stepPilot(P, inp, dt, t, ev, opts = {}) {
+  P.bonkT = Math.max(0, P.bonkT - dt); P.noLand = Math.max(0, P.noLand - dt);
+  if (P.mode === "perch" || P.mode === "fall") return;
+  const prevY = P.y;
+  if (P.mode === "launch") {   // the kite catches the wind: rise 40 m above the island, then glide
+    P.v += (9 - P.v) * Math.min(1, dt * 3); P.vy = PHY.LAUNCH_VY;
+    P.steer += (inp.steer - P.steer) * Math.min(1, dt * 5); P.yaw -= P.steer * PHY.TURN * 0.6 * dt;
+    const [fx, fz] = fwd(P.yaw); P.x += fx * P.v * dt; P.z += fz * P.v * dt; P.y += P.vy * dt;
+    if (P.y >= P.launchTop) { P.y = P.launchTop; P.mode = "fly"; P.v = PHY.CRUISE; P.vy = 0; ev.push({ type: "cruise" }); }
+    return;
+  }
+  let pitch = clamp(inp.pitch, -1, 1);
+  if (P.v < PHY.STALL) pitch = Math.max(pitch, 0.8 * (PHY.STALL - P.v) / 2);   // stall: the nose drops by itself
+  P.pd += (pitch - P.pd) * Math.min(1, dt * 4);
+  const a = (P.pd > 0 ? PHY.A_DIVE * P.pd : PHY.A_CLIMB * P.pd) - PHY.DRAG * (P.v - PHY.CRUISE);
+  const v0 = P.v; P.v = clamp(P.v + a * dt, 5.5, PHY.VMAX + 1.5);
+  const dv = (P.v - v0) / dt;
+  const A = airAt(P.x, P.y, P.z, t, opts.assist); P.air = A;
+  P.vy = -sinkRate(P.v) - P.v * dv / PHY.G + A.lift;   // energy: speed lost becomes height, speed gained costs height
+  P.steer += (clamp(inp.steer, -1, 1) - P.steer) * Math.min(1, dt * 5);
+  P.yaw = wrapA(P.yaw - P.steer * Math.min(1.75, PHY.TURN * PHY.CRUISE / P.v) * dt);   // slower = tighter turns
+  const vyAir = P.vy - A.lift, vh = Math.sqrt(Math.max(1, P.v * P.v - Math.min(vyAir * vyAir, 0.7 * P.v * P.v)));
+  const [fx, fz] = fwd(P.yaw);
+  P.gx = fx * vh + A.wx; P.gz = fz * vh + A.wz;
+  P.x += P.gx * dt; P.z += P.gz * dt; P.y += P.vy * dt;
+  collide(P, prevY, ev);
+  if (P.mode === "fly" && P.y < PHY.SEA) { P.mode = "fall"; P.fallT = 0; ev.push({ type: "fall" }); }
+}
+function launch(P, ev) {
+  if (P.mode !== "perch") return false;
+  P.noLand = 0.6;
+  if (P.perch === "H" && P.y > 80) { P.mode = "fly"; P.v = 15; P.pd = 0.5; ev.push({ type: "launch", dive: true }); return true; }
+  P.mode = "launch"; P.v = 4; P.launchTop = P.y + PHY.LAUNCH_UP; ev.push({ type: "launch" }); return true;
+}
+
+// ---- the journey: intro letter → 8 deliveries (rest after #5) → ending → free flight ----
+function newGame(opts = {}) {
+  const G = { t: 0, phase: "intro", di: -1, el: 0, timing: false, results: [], stamps: 0, drops: 0, bonks: 0,
+    lastPerch: "H", ev: [], opts, best: Infinity, away: 0, helper: 0, restT: 0, caught: false,
+    P: newPilot(PAD.x + 2.3, PAD.top + 0.35, PAD.z - 0.15, yawTo(0, 0, 300, -20)) };   // beside the weathervane, facing the lighthouse
+  G.P.perch = "H";
+  G.letter = { x: 38, y: PAD.top + 1, z: -4 };
+  return G;
+}
+const curD = (G) => DELIVERIES[G.di];
+const target = (G) => (G.phase === "deliver" ? ISL[curD(G).to] : G.phase === "intro" && G.caught ? ISL.H : null);
+function medalOf(t, D) { return t <= D.target * GOLD ? 3 : t <= D.target ? 2 : 1; }
+function giveLetter(G, i) {
+  G.di = i; G.el = 0; G.best = Infinity; G.away = 0; G.helper = 0;
+  G.timing = G.P.mode !== "perch";
+  G.ev.push({ type: "letter", di: i });
+}
+function deliver(G, air) {
+  const D = curD(G), m = medalOf(G.el, D), stamps = Math.round(D.reward * [0, 0.5, 0.75, 1][m]) + (air ? 2 : 0);
+  G.results.push({ id: D.id, t: G.el, medal: m, air, stamps }); G.stamps += stamps; G.lastPerch = D.to;
+  G.ev.push({ type: "delivered", di: G.di, medal: m, air, stamps, t: G.el });
+  if (G.di === 4) { G.phase = "rest"; G.restT = 0; }
+  else if (G.di === DELIVERIES.length - 1) { G.phase = "ending"; G.restT = 0; }
+  else giveLetter(G, G.di + 1);
+}
+function inRange(G) {
+  const T = target(G), P = G.P;
+  if (!T || G.phase !== "deliver" || P.mode !== "fly") return false;
+  return Math.hypot(P.x - T.x, P.z - T.z) < T.r + 7 && P.y - T.top < 45 && P.y > T.top - 1;
+}
+function gameStep(G, inp, dt) {
+  const P = G.P, ev = G.ev; G.t += dt;
+  if (inp.launch && P.mode === "perch" && (G.phase === "intro" || G.phase === "deliver" || G.phase === "free")) {
+    if (launch(P, ev) && G.phase === "deliver") G.timing = true;
+  }
+  if (inp.drop && inRange(G)) { ev.push({ type: "drop", to: curD(G).to }); deliver(G, true); }
+  const n0 = ev.length;
+  stepPilot(P, inp, dt, G.t, ev, G.opts);
+  for (let i = n0; i < ev.length; i++) {
+    const e = ev[i];
+    if (e.type === "land") {
+      G.lastPerch = e.island;
+      if (G.phase === "deliver" && e.island === curD(G).to) deliver(G, false);
+      else if (G.phase === "intro" && G.caught && e.island === "H") { G.phase = "deliver"; giveLetter(G, 0); }
+    }
+    if (e.type === "fall") G.drops++;
+    if (e.type === "bonk") G.bonks++;
+  }
+  if (P.mode === "fall") {
+    P.fallT += dt;
+    if (P.fallT >= PHY.RESPAWN) respawn(G);
+  }
+  if (G.phase === "intro" && !G.caught) {   // the wind-blown letter flutters just east of the tower, then towards a nearby kite
+    const L = G.letter, d = Math.hypot(P.x - L.x, P.y - L.y, P.z - L.z);
+    if (P.mode === "fly" && d < 18) { const k = Math.min(1, 6 * dt / d); L.x += (P.x - L.x) * k; L.y += (P.y - L.y) * k; L.z += (P.z - L.z) * k; }
+    else { L.x += (38 + Math.sin(G.t * 0.3) * 14 - L.x) * dt; L.z += (-4 + Math.sin(G.t * 0.21) * 22 - L.z) * dt; L.y += (Math.max(68, PAD.top + 1 - G.t * 0.6) - L.y) * dt; }
+    if (P.mode === "fly" && d < 7) { G.caught = true; ev.push({ type: "caught" }); }
+  }
+  if (G.phase === "deliver" && G.timing) G.el += dt;
+  const T = target(G);
+  if (T && G.phase === "deliver" && P.mode === "fly") {   // the paper bird helps after 60 s of flying away
+    const d = Math.hypot(P.x - T.x, P.z - T.z);
+    if (d < G.best) G.best = d; else if (d > G.best + 25) G.away += dt;
+    if (G.away > 60) { G.away = 0; G.best = d; G.helper = 10; ev.push({ type: "helper" }); }
+  }
+  G.helper = Math.max(0, G.helper - dt);
+  if (G.phase === "rest" || G.phase === "ending") G.restT += dt;
+  if (G.phase === "rest" && G.restT > 3.2) {   // back to the post tower, a new tail, the afternoon letters
+    const H = ISL.H; Object.assign(P, newPilot(H.x + 8, H.top + 0.35, H.z - 8, yawTo(H.x, H.z, ISL.C.x, ISL.C.z)));
+    P.perch = "H"; G.lastPerch = "H"; G.phase = "deliver"; ev.push({ type: "rested" }); giveLetter(G, 5);
+  }
+  if (G.phase === "ending" && G.restT > 9) { G.phase = "free"; ev.push({ type: "free" }); }
+}
+function respawn(G) {
+  const I = G.phase === "intro" && !G.caught ? null : ISL[G.lastPerch] || ISL.H, P = G.P, T = target(G);
+  if (!I) { Object.assign(P, newPilot(PAD.x + 2.3, PAD.top + 0.35, PAD.z - 0.15, yawTo(0, 0, 300, -20))); P.perch = "H"; }
+  else {
+    const yaw = T ? yawTo(I.x, I.z, T.x, T.z) : P.yaw, [fx, fz] = fwd(yaw);
+    Object.assign(P, newPilot(I.x + fx * (I.r - 4), I.top + 0.35, I.z + fz * (I.r - 4), yaw)); P.perch = I.id;
+  }
+  G.ev.push({ type: "respawn" });
+  if (G.phase === "intro" && G.caught) { G.phase = "deliver"; giveLetter(G, 0); }   // the letter made it home either way
+}
+
+// ---- autopilot: plans the fastest chain of updrafts / relaunch islands with the real rules, then flies it ----
+// Used by the self-test (every delivery must be finishable inside its target time) and the title-screen attract mode.
+function legGlide(ax, az, bx, bz) {   // effective glide ratio over the ground along a leg (wind, lane, wall, sinking air)
+  let gr = 0, n = 6;
+  for (let i = 0; i < n; i++) {
+    const t = (i + 0.5) / n, x = ax + (bx - ax) * t, z = az + (bz - az) * t;
+    let g = 5.4; const L = laneInfo(x, z), dw = Math.hypot(x - WALL.x, z - WALL.z);
+    if (z < HEADWIND.z1 && z > HEADWIND.z0) g = 4.3;
+    if (L.d < LANE.r && L.t > 0 && L.t < 1) g = 7.2;
+    else if (dw > WALL.r0 && dw < WALL.r1) g = 1.5;
+    for (const w of DOWNDRAFTS) if (Math.hypot(x - w.x, z - w.z) < w.r * 1.3) g = Math.min(g, 2.5);
+    gr += 1 / g;
+  }
+  return n / gr;
+}
+function plan(G, T) {
+  const P = G.P, N = [{ x: P.x, z: P.z, out: P.y, k: "start" }];
+  for (const u of UPDRAFTS) N.push({ x: u.x, z: u.z, k: "up", u, out: u.top - 3, rate: u.s * (u.pulse ? 0.64 : 1) - 2.1, min: 22 });
+  for (const I of ISLANDS) if (I !== T) N.push({ x: I.x, z: I.z, k: "isl", I, out: I.top + PHY.LAUNCH_UP, min: I.top + 2.5 });
+  N.push({ x: T.x, z: T.z, k: "goal", min: T.top + 1 });
+  const goal = N.length - 1, cost = N.map(() => Infinity), prev = N.map(() => -1), done = N.map(() => false), arr = N.map(() => 0);
+  cost[0] = 0;
+  for (;;) {
+    let a = -1; for (let i = 0; i < N.length; i++) if (!done[i] && cost[i] < Infinity && (a < 0 || cost[i] < cost[a])) a = i;
+    if (a < 0 || a === goal) break;
+    done[a] = true; const A = N[a];
+    for (let b = 1; b < N.length; b++) {
+      if (done[b] || b === a) continue;
+      const B = N[b]; let d = Math.hypot(B.x - A.x, B.z - A.z);
+      if (B.k === "goal") d = Math.max(0, d - T.r - 5);
+      if (d > 700) continue;
+      const arrive = A.out - d / legGlide(A.x, A.z, B.x, B.z);
+      if (arrive < B.min || arrive < PHY.SEA + 6) continue;
+      const c = cost[a] + d / 13 + (B.k === "up" ? Math.max(0, B.out - arrive) / B.rate : B.k === "isl" ? 10 : 0);
+      if (c < cost[b]) { cost[b] = c; prev[b] = a; arr[b] = arrive; }
+    }
+  }
+  if (cost[goal] === Infinity) return null;
+  const path = []; for (let i = goal; i > 0; i = prev[i]) path.unshift(N[i]);
+  for (let i = 0; i < path.length - 1; i++) {   // climb fully, except before the last glide (only what it needs)
+    const A = path[i], B = path[i + 1];
+    if (A.k !== "up") continue;
+    A.exit = A.out;
+    if (B.k === "goal" || B.k === "isl") { let d = Math.hypot(B.x - A.x, B.z - A.z); if (B.k === "goal") d = Math.max(0, d - T.r - 5);
+      A.exit = Math.min(A.out, B.min + d / legGlide(A.x, A.z, B.x, B.z) + 5); }
+  }
+  return { path, eta: cost[goal] };
+}
+function botInput(G, B) {
+  const P = G.P, inp = { steer: 0, pitch: 0, drop: false, launch: false };
+  if (P.mode === "perch") { inp.launch = G.phase !== "ending"; B.plan = null; return inp; }
+  const T = target(G);
+  if (P.mode === "launch") { const n = B.plan && B.plan.path[B.k] || T; return n ? steerTo(P, n.x, n.z, inp, 0) : inp; }
+  if (P.mode !== "fly") { B.plan = null; return inp; }
+  if (G.phase === "intro" && !G.caught) return steerTo(P, G.letter.x, G.letter.z, inp, P.y > G.letter.y + 2 ? 0.6 : P.y < G.letter.y - 2 ? -0.4 : 0);
+  if (!T) return inp;
+  if (G.phase === "intro") return landOn(P, T, inp, 13);
+  const hasTower = (I) => TOWERS.some(([x, z]) => x === I.x && z === I.z);
+  if (inRange(G) && (P.y - T.top > 16 || G.di === DELIVERIES.length - 1)) { inp.drop = true; return inp; }
+  if (Math.hypot(P.x - T.x, P.z - T.z) < T.r + 30 && P.y - T.top <= 16 && P.y > T.top + 0.5)   // low: land, so the next launch gives +40 m
+    return landOn(P, T, inp, hasTower(T) ? T.r * 0.5 : T.r * 0.25);
+  if (inRange(G)) { inp.drop = true; return inp; }
+  B.t = (B.t || 0) + 1;
+  if (!B.plan || B.t % 240 === 0 && !(B.plan.path[B.k] && B.plan.path[B.k].k === "up" && B.in)) {
+    B.plan = plan(G, T); B.k = 0; B.in = false; B.inT = 0;
+  }
+  const n = B.plan && B.plan.path[B.k];
+  if (!n) {   // no route at all: glide straight at the target and hope
+    return steerTo(P, T.x, T.z, inp, 0);
+  }
+  if (n.k === "goal") { const surplus = P.y - (T.top + 2 + Math.max(0, Math.hypot(T.x - P.x, T.z - P.z) - T.r - 5) / 5.4);
+    return steerTo(P, T.x, T.z, inp, surplus > 20 ? 0.6 : surplus > 8 ? 0.3 : 0); }
+  if (n.k === "isl") return landOn(P, n.I, inp, hasTower(n.I) ? n.I.r * 0.5 : n.I.r * 0.3);
+  const u = n.u, d = Math.hypot(P.x - u.x, P.z - u.z);   // updraft: reach it, circle up to the planned exit height
+  if (d < u.r) { B.in = true; B.inT += 1 / 120; }
+  if (B.in && (P.y >= n.exit || (B.inT > 5 && d < u.r && P.vy < 0.3 && upActive(u, G.t)))) { B.k++; B.in = false; B.inT = 0; B.t = 1; return steerTo(P, T.x, T.z, inp, 0); }
+  if (d < 1.4 * u.r || B.in) {
+    const ang = Math.atan2(P.z - u.z, P.x - u.x) + 1.2;
+    steerTo(P, u.x + Math.cos(ang) * 4, u.z + Math.sin(ang) * 4, inp, upActive(u, G.t) ? -0.6 : -0.2);
+    inp.steer = clamp(inp.steer * 1.4, -1, 1); return inp;
+  }
+  return steerTo(P, u.x, u.z, inp, -0.1);
+}
+function landOn(P, I, inp, off) {   // approach the near side and dive onto the top
+  const d0 = Math.hypot(P.x - I.x, P.z - I.z) || 1, ax = I.x + (P.x - I.x) / d0 * off, az = I.z + (P.z - I.z) / d0 * off;
+  const da = Math.hypot(P.x - ax, P.z - az), dc = Math.hypot(P.x - I.x, P.z - I.z), want = I.top + 1.5 + da / 5.5;
+  if (da < Math.max(4, I.r * 0.55) && P.y > I.top) return steerTo(P, ax, az, inp, 1);   // over the top: put it down
+  if (dc < I.r * 2.2 && P.y > want + 4) {   // too high: spiral down around the island
+    const ang = Math.atan2(P.z - I.z, P.x - I.x) + 0.9;
+    return steerTo(P, I.x + Math.cos(ang) * I.r * 0.6, I.z + Math.sin(ang) * I.r * 0.6, inp, 0.7);
+  }
+  return steerTo(P, ax, az, inp, P.y > want + 1.5 ? 0.6 : P.y < want - 4 && da > 60 ? -0.3 : 0);
+}
+function steerTo(P, x, z, inp, pitch) {
+  for (const w of DOWNDRAFTS) {   // swing wide of sinking air that lies on the way
+    const dx = w.x - P.x, dz = w.z - P.z, along = (dx * (x - P.x) + dz * (z - P.z)) / (Math.hypot(x - P.x, z - P.z) || 1);
+    const dist = Math.hypot(dx, dz), side = Math.sqrt(Math.max(0, dist * dist - along * along));
+    if (along > 0 && along < 140 && side < w.r * 2 && Math.hypot(x - P.x, z - P.z) > along) {
+      const nx = -(z - P.z), nz = x - P.x, n = Math.hypot(nx, nz) || 1, sg = nx * dx + nz * dz > 0 ? -1 : 1;
+      x = w.x + sg * nx / n * w.r * 2.4; z = w.z + sg * nz / n * w.r * 2.4; break;
+    }
+  }
+  const rel = wrapA(yawTo(P.x, P.z, x, z) - P.yaw);
+  inp.steer = clamp(-rel * 2.2, -1, 1); inp.pitch = pitch; return inp;
+}
+// ==/SIM==
+
+// ==TEXT== (Korean is the design language; English for everyone else)
+const D_TX = {
+  ko: [
+    ["등대지기의 안부", "등대지기 할아버지", "흰 등대", "동쪽", "아들 녀석 편지구나! 바람이 좋았나 보군."],
+    ["빵집 섬 주문서", "빵집 주인", "빵집 섬", "남동쪽 · 굴뚝 연기", "밀가루 스무 포대라니, 오늘 밤은 바쁘겠어. 빵 하나 가져가요!"],
+    ["종탑의 악보", "종지기", "종탑 섬", "남쪽", "종이 울리기 전에 왔네! 정오는 새 노래로 알려야지."],
+    ["풍차 군도 초대장", "풍차 할머니", "큰 풍차", "서쪽 · 작은 섬 셋 너머", "손주 결혼식 초대장이라니… 날개를 새로 칠해야겠다."],
+    ["폭포섬 연애편지", "폭포섬 청년", "폭포섬", "남서쪽", "…답장은 제가 직접 전할게요. 아니, 부탁해도 될까요?"],
+    ["구름 다리 택배", "구름 다리 천문학자", "구름 다리 천문대", "북동쪽", "망원경 렌즈다! 이제 폭풍 너머가 보일지도 몰라."],
+    ["폭풍 전선 너머", "피난처 지기", "피난처 섬", "북쪽 · 폭풍 속", "이 날씨에 여기까지? 잠시 쉬어 가요. 북쪽 바람길이 열렸어요."],
+    ["하늘 우체국의 마지막 편지", "하늘 우체국장", "하늘 우체국", "폭풍의 눈", "받는 사람: 바람을 읽는 우편부. 보낸 사람: 오늘 편지를 받은 모두."],
+  ],
+  en: [
+    ["Regards for the Lighthouse", "the old lighthouse keeper", "White Lighthouse", "east", "A letter from my son! The wind was kind to you."],
+    ["The Bakery's Order Form", "the baker", "Bakery Isle", "southeast · chimney smoke", "Twenty sacks of flour? Busy night ahead. Take a roll for the road!"],
+    ["Sheet Music for the Bells", "the bell ringer", "Bell Tower Isle", "south", "Before the bell! Noon gets a new song today."],
+    ["An Invitation to the Mill", "grandma at the windmill", "The Great Windmill", "west · past three islets", "My grandson's wedding! I must repaint the sails."],
+    ["A Love Letter to the Falls", "the youth on Waterfall Isle", "Waterfall Isle", "southwest", "…I'll deliver my reply myself. Actually — could you?"],
+    ["A Parcel for the Cloud Bridge", "the astronomer", "Cloud Bridge Observatory", "northeast", "My telescope lens! Maybe now I can see past the storm."],
+    ["Beyond the Storm Front", "the shelter keeper", "Shelter Isle", "north · inside the storm", "All this way in this weather? Rest a while — the north wind lane is open."],
+    ["The Sky Post Office's Last Letter", "the Sky Postmaster", "Sky Post Office", "the eye of the storm", "To: the courier who reads the wind. From: everyone who got a letter today."],
+  ],
+};
+const TX = {
+  ko: { kicker: "KITE POST · 종이연 우편부", t1: "종이연", t2: "우편부", tag: "바람을 읽는 작은 우편부가 되어, 하늘섬 사이로 편지 여덟 통을 전하세요. 연료는 없어요. 고도가 숨이고, 바람은 눈에 보여요.",
+    start: "비행 시작", cont: "이어서", settings: "설정", arcade: "← 아케이드", kSteer: "선회", kPitch: "기수 올리기 / 내리기", kAct: "이륙 · 편지 투하", kMouse: "마우스로도 조종 · 클릭", kPause: "일시정지 · 설정",
+    letter: "편지", of: "/", to: "받는 사람 · ", gold: "금", silver: "은", alt: "고도", stall: "실속!", perch: "착지", reach: "도착 예상", need: "기류 필요", over: "섬 위",
+    pLaunch: "<kbd>Space</kbd> · 클릭 — 이륙 (+40 m)", pDive: "<kbd>Space</kbd> · 클릭 — 탑에서 뛰어내리기", pDrop: "<kbd>E</kbd> · <kbd>Space</kbd> · 클릭 — 편지 투하",
+    tChase: "바람에 날린 편지를 쫓아가세요 · <b>A/D</b> 선회, <b>W/S</b> 기수", tCaught: "잡았다! 이제 <b>우편탑 섬</b>에 내려앉으세요", tPostmaster: "우체국장: “편지를 잡아 줬구나! 오늘부터 네가 우편부다.”",
+    tLetter: "새 편지", tFirst: "착지하면 <b>Space</b>로 이륙 · 연이 40 m 솟아올라요", tLow: "고도가 모자라요 · 흰 종이 조각이 오르는 <b>상승기류</b>에서 원을 그리며 도세요",
+    tUp: "상승기류! <b>한쪽으로 계속 돌며</b> 기수를 살짝 들면 오래 머물러요", tNear: "가까워요 · <b>E</b>로 편지를 떨어뜨리거나 섬에 내려앉으세요", tStall: "실속 · 기수를 내려 속도를 붙이세요",
+    fall: "구름바다에 빠졌어요", fallS: "편지는 무사해요 · 3초 뒤 다시", rest: "우편탑으로 돌아왔어요", restS: "오후 편지를 챙기고, 새 꼬리 리본을 달았어요",
+    tGold: "<b>금색 기류</b>는 좁지만 아주 강해요 · 천천히, 작게 도세요", tStorm: "폭풍 전선 · 보라색 소용돌이는 <b>하강기류</b>, 맞바람이 불어요", tLane: "<b>바람길</b>을 타세요 · 흰 바람줄기가 폭풍 벽을 뚫는 길이에요",
+    tBell: "종이 울렸어요 · 늦어도 배달은 돼요", tHelper: "종이새가 길을 알려 줄게요", tEye: "폭풍의 눈 · 하늘 우체국이 보여요", tUnlock: "새 꼬리 리본", tFree: "자유 비행 · 하늘섬을 마음껏 날아 보세요",
+    medal: ["", "동우표", "은우표", "금우표"], airmail: "항공 투하", time: "시간", stamps: "우표", endK: "THE LAST LETTER", endH: "모든 편지를 전했어요", endS: "마지막 편지의 받는 사람은 당신이었어요. 오늘 편지를 받은 모두가 한 줄씩 적어 보냈어요.",
+    total: "총 시간", golds: "금우표", drops: "추락", freeFly: "자유 비행", again: "처음부터", setK: "SETTINGS", setH: "설정", ok: "계속", toTitle: "타이틀로",
+    oMouse: "마우스로 조종 (화면 가운데 기준)", oInvert: "기수 조작 반전 (↑ = 다이브)", oRoll: "카메라 기울임 (뱅크의 30%)", oMotion: "움직임 줄이기 (FOV·번개·흔들림)", oNav: "방향 화살표 항상 표시", oRelax: "여유 모드 (기류 +30%, 시간 숨김)", oVol: "음량",
+    rot: "가로 화면으로 돌리면 더 잘 보여요.", foot: "오리지널 게임 · <a href=\"https://github.com/bunhine0452/ai-game-designer\">ai-game-designer</a>로 기획 (<a href=\"../../showcase/07-claude-ko-3d-kite-post/\">쇼케이스 세션 07</a>) · 수치는 기획서 그대로 · <a href=\"../\">← 아케이드</a>",
+    free: "자유 비행", relaxed: "여유 모드", unlocks: ["구름 리본", "노을 리본", "번개 리본"] },
+  en: { kicker: "KITE POST · 종이연 우편부", t1: "Kite", t2: "Post", tag: "Become a small courier who reads the wind and carry eight letters across the sky islands. No fuel: height is your breath, and the wind is always visible.",
+    start: "Take off", cont: "Continue", settings: "Settings", arcade: "← Arcade", kSteer: "turn", kPitch: "nose up / down", kAct: "launch · drop letter", kMouse: "steer with the mouse · click", kPause: "pause · settings",
+    letter: "Letter", of: "/", to: "To · ", gold: "gold", silver: "silver", alt: "ALT", stall: "STALL!", perch: "landed", reach: "Arrive at", need: "needs an updraft", over: "over the isle",
+    pLaunch: "<kbd>Space</kbd> · click — launch (+40 m)", pDive: "<kbd>Space</kbd> · click — dive off the tower", pDrop: "<kbd>E</kbd> · <kbd>Space</kbd> · click — drop the letter",
+    tChase: "Chase the runaway letter · <b>A/D</b> turn, <b>W/S</b> nose", tCaught: "Got it! Now land on the <b>Post Tower isle</b>", tPostmaster: "Postmaster: “You caught it! From today, you're our courier.”",
+    tLetter: "New letter", tFirst: "When landed, <b>Space</b> launches you 40 m up", tLow: "Too low · circle inside an <b>updraft</b> where white paper bits rise",
+    tUp: "Updraft! Keep <b>turning one way</b> with the nose slightly up to stay inside", tNear: "Close · press <b>E</b> to drop the letter, or land on the isle", tStall: "Stall · lower the nose to gain speed",
+    fall: "Into the cloud sea", fallS: "The letter is safe · back in 3 s", rest: "Back at the Post Tower", restS: "You picked up the afternoon letters and a new tail ribbon",
+    tGold: "<b>Gold updrafts</b> are narrow but strong · fly slow, turn tight", tStorm: "Storm front · purple swirls are <b>sinking air</b>, and there's a headwind", tLane: "Ride the <b>wind lane</b> · the white streaks cut through the storm wall",
+    tBell: "The bell rang · you can still deliver", tHelper: "A paper bird will show you the way", tEye: "The eye of the storm · the Sky Post Office", tUnlock: "New tail ribbon", tFree: "Free flight · roam the islands",
+    medal: ["", "Bronze stamp", "Silver stamp", "Gold stamp"], airmail: "air drop", time: "time", stamps: "stamps", endK: "THE LAST LETTER", endH: "Every letter delivered", endS: "The last letter was addressed to you. Everyone who got a letter today wrote one line.",
+    total: "Total time", golds: "Gold stamps", drops: "Falls", freeFly: "Free flight", again: "Start over", setK: "SETTINGS", setH: "Settings", ok: "Continue", toTitle: "Title screen",
+    oMouse: "Steer with the mouse (from screen centre)", oInvert: "Invert pitch (↑ = dive)", oRoll: "Camera roll (30% of bank)", oMotion: "Reduce motion (FOV, lightning, shake)", oNav: "Always show the direction arrow", oRelax: "Relaxed mode (updrafts +30%, no timer)", oVol: "Volume",
+    rot: "Turn your phone sideways for the best view.", foot: "Original game · designed with <a href=\"https://github.com/bunhine0452/ai-game-designer\">ai-game-designer</a> (<a href=\"../../showcase/07-claude-ko-3d-kite-post/\">showcase session 07</a>) · numbers straight from the design · <a href=\"../\">← Arcade</a>",
+    free: "Free flight", relaxed: "Relaxed", unlocks: ["Cloud ribbon", "Sunset ribbon", "Lightning ribbon"] },
+};
+let LANG = (navigator.language || "").startsWith("ko") ? "ko" : "en";
+try { const s = localStorage.getItem("kp_lang"); if (s === "ko" || s === "en") LANG = s; } catch (e) { /* private mode: default language */ }
+const tr = (k) => TX[LANG][k] ?? TX.en[k] ?? k;
+const dtx = (i, f) => D_TX[LANG][i][f];
+const ICON = {
+  L: '<path d="M10 24h6l-1.2-14h-3.6z" fill="currentColor"/><path d="M9.5 10h7l-1-3.5h-5z" fill="currentColor" opacity=".55"/><path d="M13 2.5v2.5M3.5 6.5l4 1.3M22.5 6.5l-4 1.3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
+  B: '<path d="M4 13l9-7 9 7v10H4z" fill="currentColor"/><rect x="16" y="4" width="3" height="6" fill="currentColor"/><path d="M17 2.5c1.5-1 3 0 4.5-.8" stroke="currentColor" stroke-width="1.4" fill="none" opacity=".6"/><rect x="11" y="16" width="4" height="7" fill="#fff" opacity=".7"/>',
+  T: '<path d="M9 24V9h8v15z" fill="currentColor" opacity=".55"/><path d="M8 9l5-6 5 6z" fill="currentColor"/><path d="M10.5 18c0-3 1-5 2.5-5s2.5 2 2.5 5z" fill="currentColor"/><circle cx="13" cy="19.3" r="1.1" fill="currentColor"/>',
+  W: '<path d="M10 24l1.5-11h3L16 24z" fill="currentColor" opacity=".6"/><g stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M13 11L6 4M13 11l7-7M13 11l-7 7M13 11l7 7"/></g><circle cx="13" cy="11" r="1.8" fill="currentColor"/>',
+  F: '<path d="M3 8h10l-2 4H3z" fill="currentColor"/><path d="M8 12v11M10.5 12v9M5.5 12v8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" opacity=".6"/><path d="M15 6c3-3 7-1 8 2" stroke="currentColor" stroke-width="1.7" fill="none"/>',
+  C: '<path d="M5 20a8 8 0 0 1 16 0z" fill="currentColor"/><path d="M14 13l6-6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M3 22h20" stroke="currentColor" stroke-width="1.7"/><circle cx="21.5" cy="4.5" r="1.2" fill="currentColor"/>',
+  S: '<path d="M4 15l9-8 9 8v8H4z" fill="currentColor" opacity=".6"/><circle cx="19" cy="13" r="2.4" fill="currentColor"/><path d="M2 6c4 2 6-2 10 0M14 4c3 1.5 6-1.5 10 0" stroke="currentColor" stroke-width="1.5" fill="none"/>',
+  P: '<rect x="3" y="7" width="20" height="14" rx="1.5" fill="currentColor"/><path d="M3.5 8l9.5 7 9.5-7" stroke="#fff" stroke-width="1.6" fill="none"/><path d="M19 2l.9 1.9 2.1.3-1.5 1.4.4 2.1-1.9-1-1.9 1 .4-2.1-1.5-1.4 2.1-.3z" fill="currentColor"/>',
+  H: '<path d="M9 24V9a4 4 0 0 1 8 0v15z" fill="currentColor"/><rect x="10.5" y="12" width="5" height="1.6" fill="#fff"/><path d="M13 1.5v3M11 3h4" stroke="currentColor" stroke-width="1.5"/>',
+};
+const STAMP = (m, env) => {   // perforated stamp; medal colour + envelope colour
+  const c = ["#999", "#b07a4a", "#8e9aa8", "#d9a62e"][m];
+  return `<svg viewBox="0 0 92 92"><defs><clipPath id="sc"><path d="M8 8h76v76H8z"/></clipPath></defs><path d="M6 6h80v80H6z" fill="#fff" stroke="${c}" stroke-width="5" stroke-dasharray="5 3.4"/><rect x="14" y="14" width="64" height="64" fill="${env}" opacity=".2"/><path d="M22 62l24-34 24 34z" fill="${c}"/><path d="M34 62l12-17 12 17z" fill="${env}"/><text x="46" y="76" text-anchor="middle" font-family="Gowun Batang,serif" font-weight="700" font-size="11" fill="${c}">${["", "III", "II", "I"][m]}</text></svg>`;
+};
+
+// ==PALETTES== colour script: dawn (#1) → morning (#2–3) → noon (#4–5) → afternoon (#6) → storm (#7–8) → the eye → twilight
+const PAL = {
+  dawn: { top: 0x79acd9, mid: 0xfde0cc, bot: 0xf6dacd, sun: 0xffc98f, el: 11, az: 2.2, hs: 0xd5e2ee, hg: 0xae9a98, hi: 1.25, si: 2.0, sea: 0xfff6f2 },
+  morning: { top: 0x5aa5df, mid: 0xd8eef2, bot: 0xe7f1f1, sun: 0xfff0d2, el: 32, az: 2.6, hs: 0xd8ecff, hg: 0x9db08a, hi: 1.3, si: 2.3, sea: 0xffffff },
+  noon: { top: 0x3f93da, mid: 0xcde7f4, bot: 0xe2edf3, sun: 0xffffff, el: 60, az: 3.1, hs: 0xdeefff, hg: 0xa6b98f, hi: 1.35, si: 2.4, sea: 0xf6fbff },
+  afternoon: { top: 0x4d8ed6, mid: 0xf7dccd, bot: 0xf5e3dc, sun: 0xffdca5, el: 22, az: 3.7, hs: 0xe4e4fb, hg: 0xa79a9a, hi: 1.25, si: 2.2, sea: 0xfbf6ff },
+  storm: { top: 0x2a2850, mid: 0x6d6696, bot: 0x4a456e, sun: 0xc4bdf0, el: 34, az: 3.4, hs: 0x938fbe, hg: 0x40384f, hi: 1.05, si: 1.0, sea: 0x9a94bb },
+  eye: { top: 0x3a3473, mid: 0xff9e70, bot: 0xf5b28d, sun: 0xffb36a, el: 7, az: 3.5, hs: 0xffd4bb, hg: 0x7c5b7b, hi: 1.25, si: 2.3, sea: 0xffdcc8 },
+  twilight: { top: 0x20265a, mid: 0xee8a7d, bot: 0xc77d8e, sun: 0xff9d7c, el: 3, az: 3.6, hs: 0xa3a6dc, hg: 0x4b3b5c, hi: 1.05, si: 1.4, sea: 0xdcb7cb },
+};
+const PCUR = {}; for (const k of Object.keys(PAL.dawn)) PCUR[k] = typeof PAL.dawn[k] === "number" && PAL.dawn[k] > 255 ? new THREE.Color(PAL.dawn[k]) : PAL.dawn[k];
+function palTarget(G) {
+  if (!G || G.phase === "intro") return "dawn";
+  const P = G.P, dEye = Math.hypot(P.x - WALL.x, P.z - WALL.z);
+  if (G.phase === "free" || G.phase === "ending") return dEye < WALL.r1 + 200 ? "eye" : "twilight";
+  if (G.phase === "rest") return "afternoon";
+  if (G.di >= 7 && dEye < WALL.r0 + 60) return "eye";
+  return DELIVERIES[G.di].pal;
+}
+function palStep(name, k) {
+  const T = PAL[name];
+  for (const key of Object.keys(T)) {
+    if (PCUR[key] instanceof THREE.Color) PCUR[key].lerp(new THREE.Color(T[key]), k);
+    else PCUR[key] += (T[key] - PCUR[key]) * k;
+  }
+}
+
+// ==AUDIO== (WebAudio, starts on the first click or key)
+const AU = { ctx: null, vol: 0.7 };
+function audioInit() {
+  if (AU.ctx) { if (AU.ctx.state === "suspended") AU.ctx.resume(); return; }
+  try { AU.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return; }
+  const c = AU.ctx; AU.master = c.createGain(); AU.master.gain.value = AU.vol; AU.master.connect(c.destination);
+  const len = c.sampleRate * 2, buf = c.createBuffer(1, len, c.sampleRate), d = buf.getChannelData(0);
+  let b = 0; for (let i = 0; i < len; i++) { b = 0.97 * b + 0.03 * (Math.random() * 2 - 1); d[i] = b * 6; }
+  AU.noise = buf;
+  const src = c.createBufferSource(); src.buffer = buf; src.loop = true;
+  AU.windF = c.createBiquadFilter(); AU.windF.type = "bandpass"; AU.windF.frequency.value = 500; AU.windF.Q.value = 0.7;
+  AU.wind = c.createGain(); AU.wind.gain.value = 0; src.connect(AU.windF); AU.windF.connect(AU.wind); AU.wind.connect(AU.master); src.start();
+  AU.music = c.createGain(); AU.music.gain.value = 0.55; AU.music.connect(AU.master);
+  AU.next = c.currentTime + 0.3; AU.step = 0;
+}
+function tone(f, dur, type = "sine", g = 0.15, when = 0, dest) {
+  if (!AU.ctx) return; const c = AU.ctx, t = c.currentTime + when, o = c.createOscillator(), v = c.createGain();
+  o.type = type; o.frequency.setValueAtTime(f, t); v.gain.setValueAtTime(0, t); v.gain.linearRampToValueAtTime(g, t + 0.012);
+  v.gain.exponentialRampToValueAtTime(0.0008, t + dur); o.connect(v); v.connect(dest || AU.master); o.start(t); o.stop(t + dur + 0.05);
+}
+function noise(dur, f0, f1, g = 0.2, when = 0, type = "lowpass") {
+  if (!AU.ctx) return; const c = AU.ctx, t = c.currentTime + when, s = c.createBufferSource(), fl = c.createBiquadFilter(), v = c.createGain();
+  s.buffer = AU.noise; fl.type = type; fl.frequency.setValueAtTime(f0, t); fl.frequency.exponentialRampToValueAtTime(Math.max(40, f1), t + dur);
+  v.gain.setValueAtTime(g, t); v.gain.exponentialRampToValueAtTime(0.0008, t + dur); s.connect(fl); fl.connect(v); v.connect(AU.master); s.start(t, Math.random()); s.stop(t + dur + 0.05);
+}
+const SFX = {
+  launch: () => { noise(0.9, 300, 2400, 0.25, 0, "bandpass"); tone(392, 0.25, "triangle", 0.08); tone(523, 0.3, "triangle", 0.08, 0.08); },
+  dive: () => noise(1.2, 2000, 300, 0.22, 0, "bandpass"),
+  land: () => { noise(0.18, 900, 200, 0.25); tone(196, 0.2, "triangle", 0.1); },
+  bonk: () => { tone(90, 0.3, "sine", 0.35); noise(0.25, 3000, 600, 0.3, 0, "highpass"); },
+  fall: () => noise(1.6, 1200, 120, 0.3),
+  catch: () => [784, 988, 1175].forEach((f, i) => tone(f, 0.4, "sine", 0.12, i * 0.07)),
+  drop: () => noise(0.6, 4000, 900, 0.12, 0, "highpass"),
+  deliver: (m) => { [523, 659, 784, 1047, 1319].slice(0, 2 + m).forEach((f, i) => tone(f, 0.7, "triangle", 0.12, i * 0.09)); tone(110, 0.25, "sine", 0.3, 0.55); noise(0.12, 600, 200, 0.4, 0.55); },
+  up: (k) => tone([660, 784, 880, 988, 1175][k % 5], 0.5, "sine", 0.05),
+  stall: () => noise(0.4, 1800, 900, 0.12, 0, "bandpass"),
+  bell: () => [0, 0.6, 1.2].forEach((w) => { tone(392, 2.2, "sine", 0.18, w); tone(784, 1.6, "sine", 0.06, w); tone(1176, 1.2, "sine", 0.03, w); }),
+  thunder: (delay) => { noise(2.6, 400, 50, 0.5, delay); noise(1.2, 900, 120, 0.25, delay + 0.1); },
+  unlock: () => [1047, 1319, 1568, 2093].forEach((f, i) => tone(f, 0.5, "sine", 0.07, i * 0.06)),
+  ui: () => tone(880, 0.08, "sine", 0.05),
+};
+const SCALES = { dawn: [0, 2, 4, 7, 9], morning: [0, 2, 4, 7, 9], noon: [0, 2, 4, 7, 9], afternoon: [0, 2, 5, 7, 9], storm: [0, 3, 5, 7, 10], eye: [0, 2, 4, 7, 11], twilight: [0, 2, 4, 7, 9] };
+function musicTick(palName, intensity) {   // gentle generative plucks + a slow pad
+  if (!AU.ctx) return; const c = AU.ctx;
+  while (AU.next < c.currentTime + 0.25) {
+    const sc = SCALES[palName] || SCALES.dawn, root = palName === "storm" ? 196 : 220, s = AU.step++;
+    if (s % 32 === 0) [0, 4, 7].forEach((n, i) => tone(root / 2 * Math.pow(2, (sc[[0, 2, 3][i]] || n) / 12), 5.5, "sine", 0.035, AU.next - c.currentTime, AU.music));
+    if (Math.random() < (palName === "storm" ? 0.22 : 0.42) * (0.6 + intensity * 0.4)) {
+      const n = sc[Math.floor(Math.random() * sc.length)] + 12 * (Math.random() < 0.3 ? 1 : 0);
+      tone(root * Math.pow(2, n / 12), 1.4, "triangle", 0.05, AU.next - c.currentTime, AU.music);
+    }
+    AU.next += 0.42;
+  }
+}
+
+// ==WORLD== three.js scene: everything here mirrors the simulation, nothing here changes it
+const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById("gl"), antialias: true, powerPreference: "high-performance" });
+renderer.setSize(1280, 720, false);
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(60, 1280 / 720, 0.4, 3400);
+scene.fog = new THREE.Fog(0xfbe2c6, 240, 1150);
+const hemi = new THREE.HemisphereLight(0xd5e2ee, 0xb7968a, 1.25); scene.add(hemi);
+const sun = new THREE.DirectionalLight(0xffc98f, 2.1); scene.add(sun); scene.add(sun.target);
+const VC = new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true });
+const rngOf = (seed) => () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+const R = rngOf(20261030);
+function part(g, c, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0, sx = 1, sy = 1, sz = 1) {
+  const m = new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, ry, rz)), new THREE.Vector3(sx, sy, sz));
+  return { g, c, m };
+}
+function paint(g, c) {
+  const n = g.attributes.position.count, col = new THREE.Color(c), a = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) { a[i * 3] = col.r; a[i * 3 + 1] = col.g; a[i * 3 + 2] = col.b; }
+  g.setAttribute("color", new THREE.BufferAttribute(a, 3)); return g;
+}
+function flat(g) { const q = g.index ? g.toNonIndexed() : g.clone(); q.deleteAttribute("uv"); q.deleteAttribute("normal"); return q; }
+function merged(parts) {
+  const gs = parts.map(({ g, c, m }) => { const q = flat(g); q.applyMatrix4(m); if (c !== null) paint(q, c); return q; });
+  const out = mergeGeometries(gs); out.computeVertexNormals(); return out;
+}
+const vmesh = (parts) => new THREE.Mesh(merged(parts), VC);
+
+// sky dome
+const skyU = { top: { value: new THREE.Color() }, mid: { value: new THREE.Color() }, bot: { value: new THREE.Color() }, sunCol: { value: new THREE.Color() }, sunDir: { value: new THREE.Vector3(0, 1, 0) } };
+const sky = new THREE.Mesh(new THREE.SphereGeometry(3000, 32, 16), new THREE.ShaderMaterial({ uniforms: skyU, side: THREE.BackSide, depthWrite: false, fog: false,
+  vertexShader: "varying vec3 vD; void main(){ vD = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }",
+  fragmentShader: `uniform vec3 top, mid, bot, sunCol; uniform vec3 sunDir; varying vec3 vD;
+    void main(){ float h = vD.y; vec3 c = h > 0. ? mix(mid, top, pow(clamp(h * 1.6, 0., 1.), 0.65)) : mix(mid, bot, pow(clamp(-h * 3., 0., 1.), 0.5));
+      float s = max(dot(normalize(vD), sunDir), 0.); c += sunCol * (pow(s, 900.) * 1.6 + pow(s, 14.) * 0.22 + pow(s, 3.) * 0.06);
+      gl_FragColor = vec4(c, 1.);\n#include <colorspace_fragment>\n
+    }` }));
+sky.renderOrder = -1; sky.frustumCulled = false; scene.add(sky);
+scene.background = new THREE.Color(0xfbe2c6);
+
+// cloud sea: a soft, faceted floor that follows the camera
+const seaGeo = (() => { const g = new THREE.PlaneGeometry(5200, 5200, 96, 96); g.rotateX(-Math.PI / 2); const p = g.attributes.position;
+  for (let i = 0; i < p.count; i++) { const x = p.getX(i), z = p.getZ(i); p.setY(i, Math.sin(x * 0.021) * 2.2 + Math.cos(z * 0.017 + x * 0.006) * 2.6 + Math.sin((x + z) * 0.05) * 1.1 - 2); }
+  const q = flat(g); const n = q.attributes.position.count, a = new Float32Array(n * 3);
+  for (let i = 0; i < n; i += 3) { const y = (q.attributes.position.getY(i) + q.attributes.position.getY(i + 1) + q.attributes.position.getY(i + 2)) / 3, v = 0.86 + (y + 6) * 0.025 + R() * 0.03;
+    for (let k = 0; k < 3; k++) { a[(i + k) * 3] = v; a[(i + k) * 3 + 1] = v; a[(i + k) * 3 + 2] = Math.min(1, v + 0.03); } }
+  q.setAttribute("color", new THREE.BufferAttribute(a, 3)); q.computeVertexNormals(); return q; })();
+const seaMat = new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true, color: 0xffffff, emissive: 0x000000 });
+const sea = new THREE.Mesh(seaGeo, seaMat); scene.add(sea);
+
+// puffy clouds: low banks on the sea + drifting mid-level clouds + the storm (a separate dark set)
+const puffGeo = new THREE.IcosahedronGeometry(1, 1);
+function puffSet(list, color, mat) {
+  const m = new THREE.InstancedMesh(puffGeo, mat || new THREE.MeshLambertMaterial({ color, flatShading: true }), list.length), o = new THREE.Object3D();
+  list.forEach(([x, y, z, s, sy], i) => { o.position.set(x, y, z); o.scale.set(s, s * (sy || 0.62), s); o.rotation.set(0, R() * 6, 0); o.updateMatrix(); m.setMatrixAt(i, o.matrix); });
+  m.frustumCulled = false; return m;
+}
+const cloudList = [];
+for (let i = 0; i < 70; i++) {   // mid-level cloud clusters between the islands
+  const cx = -900 + R() * 1900, cz = -1900 + R() * 2500, cy = 25 + R() * 120;
+  if (ISLANDS.some((I) => Math.hypot(I.x - cx, I.z - cz) < I.r + 40) || Math.hypot(cx - WALL.x, cz - WALL.z) < WALL.r1 + 80) continue;
+  for (let k = 0; k < 4 + (R() * 5 | 0); k++) cloudList.push([cx + (R() - 0.5) * 34, cy + (R() - 0.5) * 5, cz + (R() - 0.5) * 22, 5 + R() * 9]);
+}
+for (let i = 0; i < 420; i++) { const x = -1300 + R() * 2700, z = -2700 + R() * 3600; cloudList.push([x, R() * 5 - 1, z, 9 + R() * 26, 0.42 + R() * 0.2]); }
+const cloudMat = new THREE.MeshLambertMaterial({ color: 0xffffff, flatShading: true, emissive: 0x000000 });
+const clouds = puffSet(cloudList, 0, cloudMat); scene.add(clouds);
+const stormList = [];
+for (let i = 0; i < 230; i++) {   // the storm front band (#7): an anvil above, rolling clouds below, an open corridor between
+  const x = -800 + R() * 2000, z = HEADWIND.z0 - 20 + R() * (HEADWIND.z1 - HEADWIND.z0 + 40), hi = R() < 0.6;
+  stormList.push([x, hi ? 135 + R() * 120 : 2 + R() * 22, z, hi ? 24 + R() * 30 : 18 + R() * 20, 0.7]);
+}
+const laneAng = Math.atan2(LANE.az - WALL.z, LANE.ax - WALL.x);
+for (let i = 0; i < 300; i++) {   // the storm wall ring around the Sky Post Office, with a gap where the lane runs through
+  const a = R() * Math.PI * 2, gap = Math.abs(Math.atan2(Math.sin(a - laneAng), Math.cos(a - laneAng)));
+  if (gap < 0.13) continue;
+  const d = WALL.r0 + 20 + R() * (WALL.r1 - WALL.r0 - 10);
+  stormList.push([WALL.x + Math.cos(a) * d, R() * 300, WALL.z + Math.sin(a) * d, 22 + R() * 28, 0.8]);
+}
+const stormMat = new THREE.MeshLambertMaterial({ color: 0x7a72a6, flatShading: true, emissive: 0x000000 });
+const storm = puffSet(stormList, 0, stormMat); scene.add(storm);
+
+// islands: one merged mesh, faceted like folded paper (per-face colours)
+const islandMesh = (() => {
+  const all = [];
+  const GRASS = [0x95c96c, 0x86bd5f, 0x9fd177], EDGE = 0x5f9a4a, CLIFF = [0xd09a66, 0xbd8657, 0xa9744d], DEEP = [0x8b7378, 0x6b5d74, 0x4a4360];
+  for (const I of ISLANDS) {
+    const rr = rngOf(I.x * 7 + I.z * 13 + 99), seg = clamp(Math.round(I.r * 0.6), 9, 17), J = new Map();
+    const jit = (x, y, z) => { const k = `${x.toFixed(2)},${y.toFixed(2)},${z.toFixed(2)}`; if (!J.has(k)) J.set(k, [rr() - 0.5, rr() - 0.5, rr() - 0.5]); return J.get(k); };
+    const coneH = I.depth - 5.6;
+    const parts = [new THREE.CylinderGeometry(I.r, I.r * 0.985, 1.4, seg, 1).translate(0, -0.7, 0),
+      new THREE.CylinderGeometry(I.r * 0.985, I.r * 0.9, 4.2, seg, 2).translate(0, -3.5, 0),
+      new THREE.ConeGeometry(I.r * 0.9, coneH, seg, 4).rotateX(Math.PI).translate(0, -5.6 - coneH / 2, 0)];
+    for (let n = 0; n < 3 + (rr() * 4 | 0); n++) {   // hanging rocks
+      const a = rr() * 6.28, d = I.r * (0.45 + rr() * 0.35), h = 3 + rr() * I.r * 0.5;
+      parts.push(new THREE.ConeGeometry(0.8 + rr() * 1.6, h, 5).rotateX(Math.PI).translate(Math.cos(a) * d, -5 - h / 2 - rr() * 3, Math.sin(a) * d));
+    }
+    parts.forEach((g, gi) => {
+      const p = g.attributes.position;
+      for (let i = 0; i < p.count; i++) {
+        const x = p.getX(i), y = p.getY(i), z = p.getZ(i), j = jit(x, y, z);
+        if (gi > 2) continue;
+        if (y > -0.01) { if (Math.hypot(x, z) > 0.5) { const k = 1 + j[0] * 0.07; p.setX(i, x * k); p.setZ(i, z * k); } }
+        else { const k = 1 + j[0] * 0.14; p.setXYZ(i, x * k + j[1] * 0.7, y + (y < -6 ? j[2] * 2.4 : 0), z * k + j[2] * 0.7); }
+      }
+      const q = flat(g), pp = q.attributes.position, n = pp.count, a = new Float32Array(n * 3), col = new THREE.Color();
+      for (let i = 0; i < n; i += 3) {
+        const y0 = pp.getY(i), y1 = pp.getY(i + 1), y2 = pp.getY(i + 2), cy = (y0 + y1 + y2) / 3, sh = 0.94 + rr() * 0.1;
+        if (gi === 0 && Math.min(y0, y1, y2) > -0.01) col.setHex(GRASS[(rr() * 3) | 0]);
+        else if (gi === 0) col.setHex(EDGE);
+        else if (gi === 1) col.setHex(CLIFF[(cy > -3.4 ? 0 : 1) + (rr() < 0.3 ? 1 : 0)]);
+        else { const t = clamp((-cy - 5.6) / Math.max(4, coneH), 0, 1); col.setHex(DEEP[Math.min(2, (t * 3) | 0)]).lerp(new THREE.Color(CLIFF[2]), Math.max(0, 0.35 - t)); }
+        col.multiplyScalar(sh);
+        for (let k = 0; k < 3; k++) { a[(i + k) * 3] = col.r; a[(i + k) * 3 + 1] = col.g; a[(i + k) * 3 + 2] = col.b; }
+      }
+      q.setAttribute("color", new THREE.BufferAttribute(a, 3)); q.translate(I.x, I.top, I.z); all.push(q);
+    });
+  }
+  const g = mergeGeometries(all); g.computeVertexNormals(); return new THREE.Mesh(g, VC);
+})();
+scene.add(islandMesh);
+
+// props: trees, houses, rocks, flowers (instanced); each named island gets its recipient's house with the envelope-coloured roof
+const PROPS = { trunk: [], round: [], pine: [], wall: [], roof: [], chim: [], rock: [], flower: [] };
+const ROOFS = [0xc8553d, 0x3f6fb0, 0x2f8f83, 0xb5683a, 0x7a5aa6];
+function addTree(x, y, z, s, pine, rr) {
+  PROPS.trunk.push([x, y + 0.8 * s, z, s, s, s, 0x7a5236]);
+  if (pine) { PROPS.pine.push([x, y + 2.6 * s, z, s * 1.3, s * 1.5, s * 1.3, [0x3f7d4f, 0x4c8c58, 0x356b45][(rr() * 3) | 0]]); PROPS.pine.push([x, y + 3.7 * s, z, s * 0.95, s * 1.2, s * 0.95, 0x4c8c58]); }
+  else PROPS.round.push([x, y + 2.4 * s, z, s * 1.5, s * 1.35, s * 1.5, [0x6fae55, 0x7fbf5f, 0x5d9e4b, 0x8cc76a][(rr() * 4) | 0]]);
+}
+function addHouse(x, y, z, w, d, h, roof, ry, wall = 0xf4ecdc) {
+  PROPS.wall.push([x, y + h / 2, z, w, h, d, wall, ry]);
+  PROPS.roof.push([x, y + h + h * 0.42, z, w, h * 0.85, d, roof, ry + Math.PI / 4]);
+  const c = Math.cos(ry), s = Math.sin(ry), cx = x + c * w * 0.25 + s * d * 0.1, cz = z - s * w * 0.25 + c * d * 0.1;
+  PROPS.chim.push([cx, y + h * 1.45, cz, w * 0.16, h * 0.7, w * 0.16, 0x9b6b52, ry]);
+  return { x: cx, y: y + h * 1.85, z: cz };
+}
+const NPC = [];   // [island, x, y, z, coat, hat]
+const NPCC = { H: [0x2f4a7a, 0xd9483b], L: [0xf2c14e, 0x2a3a5a], B: [0xffffff, 0xffffff], T: [0x3f7d5a, 0x6b4a2f], W: [0xb388eb, 0xe7d7f5], F: [0xff6f91, 0x2a2f3a], C: [0x4cc9f0, 0x27303d], S: [0xa3d955, 0x5a4a2a], P: [0xffd166, 0x2f4a7a] };
+for (const I of ISLANDS) {
+  const rr = rngOf(I.x * 3 + I.z * 5 + 7), D = DELIVERIES.findIndex((q) => q.to === I.id), env = D >= 0 ? DELIVERIES[D].env : ROOFS[(rr() * 5) | 0];
+  const hasTower = TOWERS.some(([x, z]) => x === I.x && z === I.z), clear = hasTower ? 6 : 0, y = I.top;
+  const spot = (minD, maxD) => { for (let t = 0; t < 30; t++) { const a = rr() * 6.28, d = minD + rr() * (maxD - minD), x = I.x + Math.cos(a) * d, z = I.z + Math.sin(a) * d;
+    if (Math.hypot(x - I.x, z - I.z) > clear + 2) return [x, z, a]; } return [I.x + minD, I.z, 0]; };
+  if (I.kind !== "islet" || I.r > 9) {
+    if (D >= 0 || I.id === "H") {
+      const [hx, hz, ha] = I.kind === "observatory" ? [I.x - 7, I.z + 6, 0.6] : spot(I.r * 0.35 + clear * 0.5, I.r * 0.55 + clear * 0.4);
+      const big = I.kind === "skypo" ? 0 : I.kind === "bakery" ? 1.25 : 1;
+      if (big) I.house = addHouse(hx, y, hz, 5.2 * big, 4.4 * big, 3.6 * big, I.id === "H" ? 0xc8553d : env, -ha + Math.PI / 2);
+      const na = ha + 0.6; NPC.push([I, hx + Math.cos(na) * 4.2, y, hz + Math.sin(na) * 4.2]);
+    }
+    const nh = I.kind === "islet" ? (rr() < 0.5 ? 1 : 0) : I.id === "H" ? 2 : rr() < 0.6 ? 1 : 0;
+    for (let k = 0; k < nh; k++) { const [x, z, a] = spot(I.r * 0.5, I.r * 0.75); addHouse(x, y, z, 3.4 + rr(), 3 + rr(), 2.6 + rr(), ROOFS[(rr() * 5) | 0], -a); }
+  }
+  const nt = Math.round(I.r * (I.kind === "islet" ? 0.45 : 0.32));
+  for (let k = 0; k < nt; k++) { const [x, z] = spot(I.r * 0.55, I.r * 0.88); addTree(x, y, z, 0.8 + rr() * 0.7, rr() < 0.4, rr); }
+  for (let k = 0; k < 2 + (rr() * 3 | 0); k++) { const [x, z] = spot(I.r * 0.6, I.r * 0.92); const s = 0.6 + rr() * 1.2; PROPS.rock.push([x, y + s * 0.3, z, s, s * 0.7, s, 0xa39a95, rr() * 6]); }
+  for (let k = 0; k < Math.round(I.r * 0.6); k++) { const [x, z] = spot(I.r * 0.3, I.r * 0.9); PROPS.flower.push([x, y + 0.2, z, 0.28, 0.28, 0.28, [0xffffff, 0xffd166, 0xff8fa3, 0xb9a1ff][(rr() * 4) | 0]]); }
+}
+const PROPGEO = { trunk: new THREE.CylinderGeometry(0.22, 0.32, 1.6, 5), round: new THREE.IcosahedronGeometry(1, 0), pine: new THREE.ConeGeometry(1, 1.9, 6),
+  wall: new THREE.BoxGeometry(1, 1, 1), roof: new THREE.ConeGeometry(0.86, 1, 4), chim: new THREE.BoxGeometry(1, 1, 1), rock: new THREE.DodecahedronGeometry(1, 0), flower: new THREE.IcosahedronGeometry(1, 0) };
+const ROOFMESH = {};
+for (const [k, list] of Object.entries(PROPS)) {
+  const m = new THREE.InstancedMesh(PROPGEO[k], new THREE.MeshLambertMaterial({ flatShading: true }), list.length), o = new THREE.Object3D(), c = new THREE.Color();
+  list.forEach(([x, y, z, sx, sy, sz, col, ry = 0], i) => { o.position.set(x, y, z); o.rotation.set(0, ry, 0); o.scale.set(sx, sy, sz); o.updateMatrix(); m.setMatrixAt(i, o.matrix); m.setColorAt(i, c.setHex(col)); });
+  scene.add(m); ROOFMESH[k] = m;
+}
+
+// landmarks (one vertex-coloured mesh each, plus the parts that move)
+const LM = {};
+const cyl = (rt, rb, h, s = 12) => new THREE.CylinderGeometry(rt, rb, h, s);
+{ // the Post Tower: a red postbox you can stand on, with a weathervane
+  const y = 60;
+  scene.add(vmesh([part(cyl(4.6, 5, 1.2, 14), 0xb9ad9c, 0, y + 0.6, 0), part(cyl(3.4, 3.6, 20, 16), 0xd9483b, 0, y + 11, 0), part(new THREE.SphereGeometry(3.4, 16, 8, 0, 6.29, 0, 1.58), 0xd9483b, 0, y + 21, 0),
+    part(cyl(3.62, 3.62, 1.1, 16), 0xf5efe2, 0, y + 15.2, 0), part(new THREE.BoxGeometry(2.6, 0.5, 0.6), 0x2b2b33, 0, y + 17.6, -3.35), part(cyl(3.5, 3.5, 0.5, 16), 0xa8352b, 0, y + 1.8, 0),
+    part(cyl(0.12, 0.12, 2.6, 5), 0x3a3a44, 0, y + 25.4, 0), part(new THREE.BoxGeometry(5, 0.3, 5), 0x8b5e3c, 10, y + 0.4, -12), part(new THREE.BoxGeometry(0.9, 1.3, 0.9), 0xd9483b, 6, y + 0.65, -6)]));
+  LM.vane = vmesh([part(new THREE.ConeGeometry(0.35, 1.1, 5), 0xffd166, 0, 0, -1.6, -Math.PI / 2), part(new THREE.BoxGeometry(0.12, 0.12, 3), 0x3a3a44), part(new THREE.BoxGeometry(0.06, 0.9, 1.1), 0xd9483b, 0, 0.1, 1.3)]);
+  LM.vane.position.set(0, y + 26.4, 0); scene.add(LM.vane);
+}
+{ // White Lighthouse
+  const I = ISL.L, y = I.top, P0 = [];
+  P0.push(part(cyl(2.0, 2.7, 26, 14), 0xf6f3ec, I.x, y + 13, I.z));
+  for (const h of [5, 12, 19]) P0.push(part(cyl(2.42 - h * 0.023, 2.5 - h * 0.023, 2.4, 14), 0xd9483b, I.x, y + h, I.z));
+  P0.push(part(cyl(2.9, 2.9, 0.5, 14), 0x3a3f4a, I.x, y + 26.2, I.z), part(cyl(1.7, 1.7, 2.6, 10), 0xffe28a, I.x, y + 27.7, I.z), part(new THREE.ConeGeometry(2.2, 2.4, 10), 0xd9483b, I.x, y + 30.2, I.z));
+  scene.add(vmesh(P0));
+  LM.beam = new THREE.Mesh(new THREE.ConeGeometry(6, 70, 16, 1, true), new THREE.MeshBasicMaterial({ color: 0xfff1b0, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false }));
+  LM.beam.geometry.translate(0, -35, 0); LM.beam.geometry.rotateZ(Math.PI / 2); LM.beamPivot = new THREE.Object3D(); LM.beamPivot.position.set(I.x, y + 27.7, I.z); LM.beamPivot.add(LM.beam); scene.add(LM.beamPivot);
+}
+{ // Bell Tower
+  const I = ISL.T, y = I.top;
+  scene.add(vmesh([part(new THREE.BoxGeometry(5.4, 13, 5.4), 0xcfc4b2, I.x, y + 6.5, I.z), part(new THREE.BoxGeometry(6, 0.8, 6), 0x9c8f7c, I.x, y + 13.2, I.z),
+    ...[[-2.4, -2.4], [2.4, -2.4], [-2.4, 2.4], [2.4, 2.4]].map(([a, b]) => part(new THREE.BoxGeometry(0.8, 4.6, 0.8), 0xcfc4b2, I.x + a, y + 15.9, I.z + b)),
+    part(new THREE.BoxGeometry(6.2, 0.7, 6.2), 0x9c8f7c, I.x, y + 18.5, I.z), part(new THREE.ConeGeometry(4.6, 4.5, 4), 0x2f8f83, I.x, y + 21.1, I.z, 0, Math.PI / 4)]));
+  LM.bell = vmesh([part(new THREE.CylinderGeometry(0.7, 1.5, 2.2, 10), 0xe3b341), part(new THREE.SphereGeometry(0.72, 10, 6, 0, 6.29, 0, 1.6), 0xe3b341, 0, 1.1, 0), part(new THREE.SphereGeometry(0.35, 8, 6), 0x8a6a2a, 0, -1.2, 0)]);
+  LM.bell.position.set(I.x, y + 15.6, I.z); scene.add(LM.bell);
+}
+{ // The Great Windmill: its sails cut the nearby updraft on and off
+  const I = ISL.W, y = I.top;
+  scene.add(vmesh([part(cyl(3.2, 4.4, 15, 8), 0xf0e2c8, I.x, y + 7.5, I.z), part(new THREE.ConeGeometry(4, 5, 8), 0x7a5aa6, I.x, y + 17.5, I.z), part(new THREE.BoxGeometry(1.8, 2.6, 0.4), 0x7a5236, I.x, y + 1.3, I.z - 4.1),
+    ...[[8, 6], [-8, 7], [7, -8]].map(([a, b]) => part(new THREE.BoxGeometry(9, 0.3, 6), 0xe9c95a, I.x + a, y + 0.15, I.z + b)), part(new THREE.BoxGeometry(9, 0.32, 2), 0x7fb35a, I.x + 8, y + 0.16, I.z + 6)]));
+  LM.sails = vmesh([...[0, 1, 2, 3].map((k) => part(new THREE.BoxGeometry(1.9, 10, 0.25), k % 2 ? 0xf7f0e3 : 0xd9483b, Math.sin(k * Math.PI / 2) * 5.4, Math.cos(k * Math.PI / 2) * 5.4, 0, 0, 0, -k * Math.PI / 2)), part(cyl(0.7, 0.7, 1.2, 8), 0x4a3a2a, 0, 0, 0, Math.PI / 2)]);
+  LM.sails.position.set(I.x, y + 13, I.z - 4.2); scene.add(LM.sails);
+}
+{ // Waterfall Isle: a pond, a stream and a long fall into the cloud sea
+  const I = ISL.F, y = I.top;
+  scene.add(vmesh([part(cyl(5, 5, 0.3, 14), 0x5fb3d9, I.x + 3, y + 0.16, I.z - 2), part(new THREE.BoxGeometry(2.4, 0.3, 12), 0x5fb3d9, I.x + 3, y + 0.16, I.z + 7)]));
+  const fall = new THREE.Mesh(new THREE.PlaneGeometry(4, y - 2, 1, 24), new THREE.ShaderMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide, uniforms: { t: { value: 0 } },
+    vertexShader: "varying vec2 vU; void main(){ vU = uv; vec3 p = position; p.z += (1.0 - uv.y) * (1.0 - uv.y) * 6.0; gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.); }",
+    fragmentShader: "uniform float t; varying vec2 vU; void main(){ float s = 0.55 + 0.45 * sin(vU.x * 18.0 + sin(vU.y * 30.0 + t) * 1.5) * sin(vU.y * 60.0 + t * 9.0); float a = (0.55 + 0.4 * s) * smoothstep(0.0, 0.08, vU.y) * smoothstep(0.0, 0.25, min(vU.x, 1.0 - vU.x) * 4.0); gl_FragColor = vec4(mix(vec3(0.62, 0.84, 0.96), vec3(1.0), s), a);\n#include <colorspace_fragment>\n}" }));
+  fall.position.set(I.x + 3, y / 2, I.z + I.r + 0.6); scene.add(fall); LM.fall = fall;
+  scene.add(puffSet([[I.x + 3, 1, I.z + I.r + 6, 7], [I.x, 0, I.z + I.r + 9, 9], [I.x + 7, 0.5, I.z + I.r + 8, 6]], 0xffffff));
+}
+{ // Cloud Bridge Observatory: a dome, a telescope and a plank bridge to a twin islet
+  const I = ISL.C, y = I.top, tx = ISL.c2.x, tz = ISL.c2.z, parts = [part(new THREE.SphereGeometry(5, 16, 8, 0, 6.29, 0, 1.6), 0xf3f0ea, I.x + 2, y, I.z - 2), part(cyl(5.1, 5.1, 2, 16), 0xd8d2c6, I.x + 2, y + 0.5, I.z - 2),
+    part(cyl(0.7, 0.9, 7, 8), 0x4cc9f0, I.x + 4, y + 5.5, I.z - 4, 0.7, 0.6, 0)];
+  for (let k = 1; k < 14; k++) { const t = k / 14, x = I.x + (tx - I.x) * t, z = I.z + (tz - I.z) * t; parts.push(part(new THREE.BoxGeometry(2.6, 0.3, 1.3), 0x9b6b3f, x, y - 1.2 - Math.sin(t * Math.PI) * 3, z, 0, Math.atan2(tx - I.x, tz - I.z))); }
+  scene.add(vmesh(parts));
+}
+{ // Shelter Isle: a hut with warm lanterns inside the storm
+  const I = ISL.S, y = I.top;
+  scene.add(vmesh([part(new THREE.BoxGeometry(1, 7, 7), 0x7a5236, I.x - 6, y + 3.5, I.z + 2)]));
+  LM.lanterns = vmesh([[3, 3], [-3, 4], [5, -3], [-1, -5]].map(([a, b]) => part(new THREE.SphereGeometry(0.55, 8, 6), 0xffb347, I.x + a, y + 3.2, I.z + b)));
+  LM.lanterns.material = new THREE.MeshBasicMaterial({ vertexColors: true }); scene.add(LM.lanterns);
+}
+{ // Sky Post Office in the eye of the storm
+  const I = ISL.P, y = I.top, parts = [part(new THREE.BoxGeometry(18, 9, 12), 0xf6efe0, I.x, y + 4.5, I.z), part(new THREE.ConeGeometry(14, 7, 4), 0xe3a73b, I.x, y + 12.5, I.z, 0, Math.PI / 4, 0, 1, 1, 0.75),
+    part(new THREE.BoxGeometry(7, 4.6, 0.4), 0xffffff, I.x, y + 6, I.z + 6.2), part(new THREE.BoxGeometry(2.4, 5, 0.6), 0x8b5e3c, I.x, y + 2.5, I.z + 6.1),
+    part(cyl(1.8, 1.9, 6, 12), 0xd9483b, I.x + 13, y + 3, I.z + 4), part(new THREE.SphereGeometry(1.85, 12, 6, 0, 6.29, 0, 1.6), 0xd9483b, I.x + 13, y + 6, I.z + 4)];
+  for (const s of [-1, 1]) parts.push(part(cyl(0.6, 0.6, 8.6, 8), 0xffffff, I.x + s * 3.6, y + 4.3, I.z + 6.6));
+  parts.push(part(new THREE.BoxGeometry(6.6, 0.25, 0.2), 0xd9483b, I.x, y + 7.2, I.z + 6.45, 0, 0, 0.35), part(new THREE.BoxGeometry(6.6, 0.25, 0.2), 0x2f5d9e, I.x, y + 7.2, I.z + 6.45, 0, 0, -0.35));
+  scene.add(vmesh(parts));
+  I.house = { x: I.x, y: y + 16, z: I.z };
+  const lan = []; for (let k = 0; k < 18; k++) { const a = k / 18 * Math.PI * 2; lan.push(part(new THREE.OctahedronGeometry(0.9), 0xffd27a, I.x + Math.cos(a) * 34, y + 10 + Math.sin(k * 1.7) * 4, I.z + Math.sin(a) * 34)); }
+  LM.skyLanterns = new THREE.Mesh(merged(lan), new THREE.MeshBasicMaterial({ vertexColors: true })); scene.add(LM.skyLanterns);
+}
+// residents: a coat, a head and a hat; they hop when their letter arrives
+const npcMeshes = NPC.map(([I, x, y, z]) => {
+  const [coat, hat] = NPCC[I.id] || [0x6f8fb0, 0x3a3a44];
+  const m = vmesh([part(cyl(0.3, 0.42, 0.95, 8), coat, 0, 0.48, 0), part(new THREE.SphereGeometry(0.3, 10, 8), 0xf1c9a5, 0, 1.2, 0), part(cyl(0.34, 0.34, 0.12, 10), hat, 0, 1.42, 0), part(cyl(0.2, 0.26, 0.3, 10), hat, 0, 1.6, 0)]);
+  m.position.set(x, y, z); m.userData = { I, hop: 0, base: y }; m.scale.setScalar(1.2); scene.add(m); return m;
+});
+
+// updraft columns + particles (shape and colour both say the strength: dot/white, diamond/blue, star/gold)
+const UPCOL = { 1: new THREE.Color(0xffffff), 2: new THREE.Color(0x63bdf5), 3: new THREE.Color(0xffbf2e) };
+const colShader = { transparent: true, depthWrite: false, side: THREE.DoubleSide,
+  vertexShader: "varying vec2 vU; varying float vD; void main(){ vU = uv; vec4 mv = modelViewMatrix * vec4(position, 1.); vD = -mv.z; gl_Position = projectionMatrix * mv; }",
+  fragmentShader: `uniform vec3 col; uniform float t, a, down; varying vec2 vU; varying float vD;
+    void main(){ float y = vU.y; float f = smoothstep(0.0, 0.18, y) * (1.0 - smoothstep(0.82, 1.0, y));
+      float s = 0.5 + 0.5 * sin(vU.x * 6.2832 * 3.0 + y * 16.0 * (1.0 - 2.0 * down) - t * 2.6);
+      float alpha = f * (0.1 + 0.42 * s * s) * a * (1.0 - smoothstep(420.0, 950.0, vD)) * mix(0.18, 1.0, smoothstep(10.0, 70.0, vD));
+      gl_FragColor = vec4(col, alpha);\n#include <colorspace_fragment>\n
+    }` };
+const upCols = UPDRAFTS.map((u) => {
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(u.r * 0.95, u.r * 1.15, u.top - 4, 20, 1, true), new THREE.ShaderMaterial({ ...colShader, uniforms: { col: { value: UPCOL[u.k] }, t: { value: 0 }, a: { value: u.k === 1 ? 0.55 : 0.7 }, down: { value: 0 } } }));
+  m.position.set(u.x, (u.top - 4) / 2 + 2, u.z); scene.add(m); return m;
+});
+const downCols = DOWNDRAFTS.map((w) => {
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(w.r, w.r * 0.8, 150, 16, 1, true), new THREE.ShaderMaterial({ ...colShader, blending: THREE.NormalBlending, uniforms: { col: { value: new THREE.Color(0x3b2f63) }, t: { value: 0 }, a: { value: 1.2 }, down: { value: 1 } } }));
+  m.position.set(w.x, 75, w.z); scene.add(m); return m;
+});
+const PART = (() => {
+  const list = [];
+  UPDRAFTS.forEach((u, i) => { for (let k = 0; k < 64; k++) list.push({ src: u, kind: u.k - 1, a: R() * 6.28, r: Math.sqrt(R()) * u.r * 0.85, y: R() * u.top, sp: 0.7 + R() * 0.6 }); });
+  DOWNDRAFTS.forEach((w) => { for (let k = 0; k < 50; k++) list.push({ src: w, kind: 3, a: R() * 6.28, r: Math.sqrt(R()) * w.r * 0.9, y: R() * 150, sp: 0.7 + R() * 0.6 }); });
+  const n = list.length, pos = new Float32Array(n * 3), shape = new Float32Array(n), col = new Float32Array(n * 3);
+  const C = [UPCOL[1], UPCOL[2], UPCOL[3], new THREE.Color(0x4a3a7a)];
+  list.forEach((p, i) => { shape[i] = p.kind; col.set([C[p.kind].r, C[p.kind].g, C[p.kind].b], i * 3); });
+  const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(pos, 3)); g.setAttribute("shape", new THREE.BufferAttribute(shape, 1)); g.setAttribute("color", new THREE.BufferAttribute(col, 3));
+  const m = new THREE.Points(g, new THREE.ShaderMaterial({ transparent: true, depthWrite: false, uniforms: { px: { value: 1 } },
+    vertexShader: "attribute float shape; attribute vec3 color; varying float vS; varying vec3 vC; varying float vF; uniform float px; void main(){ vS = shape; vC = color; vec4 mv = modelViewMatrix * vec4(position, 1.); vF = 1.0 - smoothstep(300.0, 700.0, -mv.z); gl_PointSize = min(px * 22.0, px * (shape > 2.5 ? 520.0 : 380.0) / -mv.z); gl_Position = projectionMatrix * mv; }",
+    fragmentShader: `varying float vS; varying vec3 vC; varying float vF;
+      void main(){ vec2 p = gl_PointCoord - 0.5; float d;
+        if (vS < 0.5) d = length(p) - 0.32;
+        else if (vS < 1.5) d = abs(p.x) + abs(p.y) - 0.42;
+        else if (vS < 2.5) { float an = atan(p.y, p.x), r = length(p); d = r - 0.22 - 0.2 * pow(abs(cos(an * 2.5)), 3.0); }
+        else d = min(abs(p.x - p.y), abs(p.x + p.y)) - 0.09 + max(0.0, length(p) - 0.42);
+        if (d > 0.0) discard; gl_FragColor = vec4(vC, 0.92 * vF);\n#include <colorspace_fragment>\n
+      }` }));
+  m.frustumCulled = false; scene.add(m); return { list, g, m };
+})();
+// wind streaks: the tailwind lane (#8) and the headwind band (#7)
+const STREAK = (() => {
+  const g = new THREE.PlaneGeometry(0.35, 14); g.rotateX(-Math.PI / 2);
+  const n = 150, m = new THREE.InstancedMesh(g, new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }), n);
+  const list = []; for (let i = 0; i < n; i++) list.push({ lane: i < 70, t: R(), off: [(R() - 0.5) * 2, (R() - 0.5) * 2], y: 40 + R() * 90, x: -700 + R() * 1700 });
+  m.frustumCulled = false; scene.add(m); return { m, list, o: new THREE.Object3D() };
+})();
+
+// the kite: a folded paper diamond, two spars, the courier with a satchel, and a ribbon tail
+const KITE = (() => {
+  const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
+  const N = [0, 0, -1.0], Lp = [-0.75, 0, 0.04], Rp = [0.75, 0, 0.04], Tp = [0, 0, 0.8], C = [0, 0.13, -0.02];
+  const pos = new Float32Array([...N, ...Lp, ...C, ...N, ...C, ...Rp, ...Lp, ...Tp, ...C, ...C, ...Tp, ...Rp]);
+  const kg = new THREE.BufferGeometry(); kg.setAttribute("position", new THREE.BufferAttribute(pos, 3)); kg.setAttribute("color", new THREE.BufferAttribute(new Float32Array(36), 3)); kg.computeVertexNormals();
+  const paper = new THREE.Mesh(kg, new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true, side: THREE.DoubleSide })); body.add(paper);
+  body.add(vmesh([part(new THREE.BoxGeometry(0.05, 0.05, 1.8), 0x6b4a2f, 0, 0.02, -0.1), part(new THREE.BoxGeometry(1.5, 0.05, 0.05), 0x6b4a2f, 0, 0.02, 0.04),
+    part(cyl(0.13, 0.17, 0.36, 8), 0x2f4a7a, 0, 0.32, 0.05), part(new THREE.SphereGeometry(0.13, 10, 8), 0xf1c9a5, 0, 0.6, 0.05), part(cyl(0.15, 0.15, 0.07, 10), 0x2f4a7a, 0, 0.71, 0.05),
+    part(cyl(0.1, 0.13, 0.08, 10), 0xd9483b, 0, 0.77, 0.05), part(new THREE.BoxGeometry(0.16, 0.18, 0.08), 0x8b5e3c, 0.17, 0.28, 0.08, 0, 0, 0.3), part(new THREE.BoxGeometry(0.3, 0.06, 0.2), 0xd9483b, 0, 0.52, 0.16, 0.3)]));
+  body.scale.setScalar(1.6); body.rotation.x = 0.32;   // a kite flies nose-up into the wind: the face reads from the chase camera
+  const TAILN = 15, tg = new THREE.BufferGeometry(), tpos = new Float32Array(TAILN * 2 * 3), tcol = new Float32Array(TAILN * 2 * 3), idx = [];
+  for (let i = 0; i < TAILN - 1; i++) { const a = i * 2; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
+  tg.setIndex(idx); tg.setAttribute("position", new THREE.BufferAttribute(tpos, 3)); tg.setAttribute("color", new THREE.BufferAttribute(tcol, 3));
+  const tail = new THREE.Mesh(tg, new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide })); tail.frustumCulled = false; scene.add(tail); scene.add(g);
+  const pts = []; for (let i = 0; i < TAILN; i++) pts.push({ p: new THREE.Vector3(), q: new THREE.Vector3() });
+  const PATTERNS = [[0xd9483b, 0xfbf3e3], [0x8fd3ff, 0xffffff], [0xff8a5c, 0xffd1dc], [0xffcf5a, 0x3a3473]];
+  function setPattern(k) {
+    const [a, b] = PATTERNS[k].map((h) => new THREE.Color(h)), cc = kg.attributes.color;
+    [a, b, b, a].forEach((c, t) => { for (let v = 0; v < 3; v++) cc.setXYZ(t * 3 + v, c.r, c.g, c.b); }); cc.needsUpdate = true;
+    for (let i = 0; i < TAILN; i++) { const c = Math.floor(i / 2) % 2 ? b : a; for (let s = 0; s < 2; s++) tcol.set([c.r, c.g, c.b], (i * 2 + s) * 3); }
+    tg.attributes.color.needsUpdate = true;
+  }
+  setPattern(0);
+  return { g, body, tail, tg, pts, TAILN, setPattern, inited: false };
+})();
+function updateTail(dt, sag) {
+  const K = KITE, w = new THREE.Vector3(0, -0.35, 1.25).applyMatrix4(K.g.matrixWorld);
+  if (!K.inited) { K.pts.forEach((p) => { p.p.copy(w); p.q.copy(w); }); K.inited = true; }
+  K.pts[0].p.copy(w); const seg = 0.33;
+  for (let i = 1; i < K.TAILN; i++) {
+    const p = K.pts[i], v = p.p.clone().sub(p.q).multiplyScalar(0.9); p.q.copy(p.p); p.p.add(v); p.p.y -= (2.5 + sag * 9) * dt * dt * 30;
+  }
+  for (let it = 0; it < 3; it++) for (let i = 1; i < K.TAILN; i++) {
+    const a = K.pts[i - 1].p, b = K.pts[i].p, d = b.clone().sub(a), L = d.length() || 1; b.copy(a).add(d.multiplyScalar(seg / L));
+  }
+  const pos = K.tg.attributes.position;
+  for (let i = 0; i < K.TAILN; i++) {
+    const a = K.pts[Math.max(0, i - 1)].p, b = K.pts[Math.min(K.TAILN - 1, i + 1)].p, dir = b.clone().sub(a).normalize(), side = new THREE.Vector3().crossVectors(dir, new THREE.Vector3(0, 1, 0));
+    if (side.lengthSq() < 1e-4) side.set(1, 0, 0); side.normalize().multiplyScalar((i % 4 === 2 ? 0.2 : 0.09) * (1 - i / K.TAILN * 0.5));
+    const p = K.pts[i].p; pos.setXYZ(i * 2, p.x + side.x, p.y + side.y, p.z + side.z); pos.setXYZ(i * 2 + 1, p.x - side.x, p.y - side.y, p.z - side.z);
+  }
+  pos.needsUpdate = true;
+}
+
+// effects: blob shadow, glide predictor, target smoke, envelopes, the paper bird, lightning
+const shadowTex = (() => { const c = document.createElement("canvas"); c.width = c.height = 64; const x = c.getContext("2d"), gr = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+  gr.addColorStop(0, "rgba(20,20,40,.55)"); gr.addColorStop(1, "rgba(20,20,40,0)"); x.fillStyle = gr; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); })();
+const shadow = new THREE.Mesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false })); scene.add(shadow);
+const PRED = new THREE.Points(new THREE.BufferGeometry().setAttribute("position", new THREE.BufferAttribute(new Float32Array(16 * 3), 3)), new THREE.PointsMaterial({ color: 0xffffff, size: 0.55, transparent: true, opacity: 0.85, depthWrite: false }));
+PRED.frustumCulled = false; scene.add(PRED);
+const predRing = new THREE.Mesh(new THREE.RingGeometry(1.6, 2.1, 28).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.8, depthWrite: false, side: THREE.DoubleSide })); scene.add(predRing);
+const SMOKE = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 0), new THREE.MeshLambertMaterial({ flatShading: true, emissive: 0x000000 }), 26); SMOKE.frustumCulled = false; scene.add(SMOKE);
+function envMesh() { return vmesh([part(new THREE.BoxGeometry(0.9, 0.05, 0.62), 0xfbf3e3), part(new THREE.ConeGeometry(0.42, 0.3, 3), 0xd9483b, 0, 0.04, -0.12, -Math.PI / 2, 0, 0, 1, 1, 0.3)]); }
+const introLetter = envMesh(); introLetter.scale.setScalar(2.2); scene.add(introLetter);
+const SPARK = new THREE.Points(new THREE.BufferGeometry().setAttribute("position", new THREE.BufferAttribute(new Float32Array(14 * 3), 3)), new THREE.PointsMaterial({ color: 0xffd36b, size: 0.7, transparent: true, depthWrite: false }));
+SPARK.frustumCulled = false; scene.add(SPARK);
+const dropEnv = envMesh(); dropEnv.visible = false; dropEnv.scale.setScalar(1.6); scene.add(dropEnv);
+const BIRD = vmesh([part(new THREE.ConeGeometry(0.25, 1.2, 4), 0xffffff, 0, 0, 0, -Math.PI / 2), part(new THREE.BoxGeometry(1.4, 0.04, 0.5), 0xf4ecdc, -0.7, 0, 0.1, 0, 0, 0.3), part(new THREE.BoxGeometry(1.4, 0.04, 0.5), 0xf4ecdc, 0.7, 0, 0.1, 0, 0, -0.3)]);
+BIRD.visible = false; BIRD.scale.setScalar(1.4); scene.add(BIRD);
+const BOLT = new THREE.Line(new THREE.BufferGeometry().setAttribute("position", new THREE.BufferAttribute(new Float32Array(12 * 3), 3)), new THREE.LineBasicMaterial({ color: 0xeeeaff, transparent: true, opacity: 0, fog: false }));
+BOLT.frustumCulled = false; scene.add(BOLT);
+
+// ==GAME== state, camera, HUD, events, input and the loop
+const $ = (id) => document.getElementById(id);
+const params = new URLSearchParams(location.search);
+const SHOT = params.has("shot"), TEST = params.has("test");
+const AUTO = params.has("autopilot"), SPEED = clamp(+params.get("speed") || 1, 1, 8);   // playtest helpers: the autopilot flies the real game, optionally fast
+if (params.get("lang") === "en" || params.get("lang") === "ko") LANG = params.get("lang");
+const UI = { mouse: true, invert: false, roll: true, motion: false, nav: false, relax: false, vol: 0.7 };
+try { Object.assign(UI, JSON.parse(localStorage.getItem("kp_ui") || "{}")); } catch (e) { /* defaults */ }
+const saveUI = () => { try { localStorage.setItem("kp_ui", JSON.stringify(UI)); localStorage.setItem("kp_lang", LANG); } catch (e) { /* not persisted */ } };
+let G = null, ATTRACT = null, BOT = {}, ABOT = {}, mode = "title", flags = {}, pattern = 0;
+const STEP = 1 / 120, VIEW = { pos: new THREE.Vector3(), look: new THREE.Vector3(), fov: 60, shake: 0, init: false };
+const world = () => (mode === "title" ? ATTRACT : G);
+
+// ---- input: keys, hold-the-mouse-to-steer, touch stick ----
+const keys = {}, mouse = { x: 640, y: 400, held: false }, stick = { id: null, x: 0, y: 0, sx: 0, sy: 0 };
+let act = false;
+function readInput() {
+  if (AUTO) { if (G.di !== BOT.di) { BOT.plan = null; BOT.di = G.di; } return botInput(G, BOT); }
+  let steer = 0, up = 0;
+  if (keys.KeyA || keys.ArrowLeft) steer -= 1; if (keys.KeyD || keys.ArrowRight) steer += 1;
+  if (keys.KeyW || keys.ArrowUp) up += 1; if (keys.KeyS || keys.ArrowDown) up -= 1;
+  if (!steer && !up && UI.mouse && mouse.held) {
+    const dx = mouse.x - 640, dy = mouse.y - 400;
+    steer = Math.abs(dx) < 26 ? 0 : clamp((dx - Math.sign(dx) * 26) / 250, -1, 1);
+    up = Math.abs(dy) < 22 ? 0 : clamp(-(dy - Math.sign(dy) * 22) / 190, -1, 1);
+  }
+  if (stick.id !== null) { steer = clamp((stick.x - stick.sx) / 55, -1, 1); up = clamp(-(stick.y - stick.sy) / 55, -1, 1); }
+  if (UI.invert) up = -up;
+  const a = act; act = false;
+  return { steer, pitch: -up, launch: a, drop: a };
+}
+
+// ---- camera: damped chase, look-ahead, pulled back inside updrafts, never inside an island ----
+function insideIsland(x, y, z) {
+  for (const [tx, tz, r, y0, y1] of TOWERS) if (Math.hypot(x - tx, z - tz) < r + 2.2 && y > y0 && y < y1 + 9) return true;
+  for (const I of ISLANDS) {
+    const d = Math.hypot(x - I.x, z - I.z);
+    if (d > I.r + 1.5 || y > I.top + 2.2) continue;
+    if (y > I.top - 4 - (I.depth - 4) * (1 - Math.min(1, d / I.r)) - 1.5) return true;
+  }
+  return false;
+}
+const V3 = (x, y, z) => new THREE.Vector3(x, y, z);
+function camUpdate(g, dt, snap) {
+  const P = g.P, [fx, fz] = fwd(P.yaw), rx = -fz, rz = fx, A = P.air || {}, inUp = P.mode === "fly" && A.upF > 0.35;
+  let want, look;
+  if (mode === "title") {
+    want = V3(P.x - fx * 9 - rx * 8, P.y + 3.5, P.z - fz * 9 - rz * 8); look = V3(P.x + fx * 5 - rx * 7, P.y + 1.5, P.z + fz * 5 - rz * 7);
+  } else {
+    const back = P.mode === "perch" ? 9.5 : 8 + (inUp ? 3 : 0), up = P.mode === "perch" ? 3.6 : 3.1 + (inUp ? 3 : 0);
+    want = V3(P.x - fx * back, P.y + up, P.z - fz * back);
+    look = V3(P.x + fx * 7, P.y + 2.3 - (inUp ? 1.2 : 0), P.z + fz * 7);
+    if (g.phase === "ending" || mode === "end") { const a = (g.phase === "ending" ? g.restT : performance.now() / 1000) * 0.22; want = V3(ISL.P.x + Math.cos(a) * 60, ISL.P.top + 26, ISL.P.z + Math.sin(a) * 60); look = V3(ISL.P.x, ISL.P.top + 8, ISL.P.z); }
+  }
+  if (P.mode === "fall") want.y = Math.max(want.y, 8);
+  if (insideIsland(want.x, want.y, want.z)) {   // pull in towards the kite until clear
+    const k = V3(P.x, P.y + 1, P.z);
+    for (let t = 0.9; t > 0.1; t -= 0.1) { const c = k.clone().lerp(want, t); if (!insideIsland(c.x, c.y, c.z)) { want = c; break; } }
+  }
+  const kp = snap ? 1 : 1 - Math.exp(-dt / 0.25), kl = snap ? 1 : 1 - Math.exp(-dt / 0.15);
+  if (!VIEW.init || snap) { VIEW.pos.copy(want); VIEW.look.copy(look); VIEW.init = true; }
+  VIEW.pos.lerp(want, kp); VIEW.look.lerp(look, kl);
+  camera.position.copy(VIEW.pos);
+  if (VIEW.shake > 0 && !UI.motion) { camera.position.x += (Math.random() - 0.5) * VIEW.shake; camera.position.y += (Math.random() - 0.5) * VIEW.shake; }
+  VIEW.shake = Math.max(0, VIEW.shake - dt);
+  camera.lookAt(VIEW.look);
+  if (UI.roll && P.mode === "fly" && mode !== "title") camera.rotateZ(-P.steer * 0.61 * 0.3);
+  const fovT = P.mode === "perch" ? 56 : 60 + (UI.motion ? 0 : clamp((P.v - 14) / 10, 0, 1) * 12) - (inUp ? 2 : 0);
+  VIEW.fov += (fovT - VIEW.fov) * (snap ? 1 : Math.min(1, dt * 2)); camera.fov = VIEW.fov; camera.updateProjectionMatrix();
+}
+
+// ---- visuals mirroring the simulation ----
+const tmpO = new THREE.Object3D(), tmpC = new THREE.Color();
+let boltT = 0, boltNext = 3, flashA = 0;
+function syncWorld(g, dt) {
+  const P = g.P, t = g.t;
+  // palette
+  const pn = palTarget(g); palStep(pn, SHOT ? 1 : Math.min(1, dt * 0.45));
+  skyU.top.value.copy(PCUR.top); skyU.mid.value.copy(PCUR.mid); skyU.bot.value.copy(PCUR.bot); skyU.sunCol.value.copy(PCUR.sun);
+  const el = PCUR.el * Math.PI / 180, az = PCUR.az; skyU.sunDir.value.set(Math.cos(el) * Math.sin(az), Math.sin(el), Math.cos(el) * Math.cos(az));
+  scene.fog.color.copy(PCUR.mid); hemi.color.copy(PCUR.hs); hemi.groundColor.copy(PCUR.hg); hemi.intensity = PCUR.hi;
+  sun.color.copy(PCUR.sun); sun.intensity = PCUR.si; sun.position.copy(camera.position).addScaledVector(skyU.sunDir.value, 400); sun.target.position.copy(camera.position);
+  seaMat.color.copy(PCUR.sea); seaMat.emissive.copy(PCUR.sea).multiplyScalar(0.32); scene.background.copy(PCUR.mid);
+  cloudMat.emissive.copy(PCUR.mid).multiplyScalar(0.42); stormMat.emissive.copy(PCUR.top).lerp(PCUR.mid, 0.5).multiplyScalar(0.28);
+  sky.position.copy(camera.position);
+  sea.position.set(Math.round(camera.position.x / 52) * 52, 0, Math.round(camera.position.z / 52) * 52);
+  const dark = 1 - (PCUR.top.r + PCUR.top.g + PCUR.top.b) / 1.6;
+  // the kite
+  const K = KITE; K.g.position.set(P.x, P.y + (P.mode === "perch" ? 0.35 : 0), P.z);
+  const vh = Math.hypot(P.gx || 0, P.gz || 0) || 1;
+  let pitch = P.mode === "fly" ? Math.atan2(P.vy, vh) * 0.8 : P.mode === "launch" ? 0.55 : P.mode === "perch" ? 0.12 : -0.8;
+  K.g.rotation.order = "YXZ"; K.g.rotation.set(pitch, P.yaw, P.mode === "fly" ? -P.steer * 0.61 : 0);
+  if (P.mode === "fall") { K.g.rotation.z = t * 6; K.g.position.y = Math.max(-1, PHY.SEA - P.fallT * 1.5); }
+  K.body.position.y = P.mode === "perch" ? Math.sin(t * 2) * 0.03 : 0;
+  K.g.updateMatrixWorld(); updateTail(dt, P.mode === "perch" ? 1 : P.v < 9 ? (9 - P.v) / 3 : 0);
+  // landmarks in motion
+  LM.vane.rotation.y = Math.sin(t * 0.3) * 0.8 + 1.2; LM.sails.rotation.z = t * (0.9 + 0.6 * (t % 7 < 4.5 ? 1 : 0));
+  LM.beamPivot.rotation.y = t * 0.9; LM.beam.material.opacity = clamp(dark * 0.5, 0, 0.32);
+  LM.fall.material.uniforms.t.value = t; LM.skyLanterns.rotation.y = t * 0.05;
+  LM.bell.rotation.z = flags.bellT > 0 ? Math.sin(flags.bellT * 9) * 0.5 * Math.min(1, flags.bellT) : 0; flags.bellT = Math.max(0, (flags.bellT || 0) - dt);
+  npcMeshes.forEach((m) => { const u = m.userData; u.hop = Math.max(0, u.hop - dt); m.position.y = u.base + Math.abs(Math.sin(u.hop * 9)) * Math.min(1, u.hop) * 1.4; m.rotation.y = Math.atan2(P.x - m.position.x, P.z - m.position.z); });
+  // updrafts: columns, particles
+  upCols.forEach((m, i) => { const u = UPDRAFTS[i], on = upActive(u, t); m.material.uniforms.t.value = t; m.material.uniforms.a.value = (u.k === 1 ? 0.55 : 0.75) * (on ? 1 : 0.25); m.visible = Math.hypot(u.x - camera.position.x, u.z - camera.position.z) < 1100; });
+  downCols.forEach((m) => { m.material.uniforms.t.value = t; });
+  const pos = PART.g.attributes.position;
+  PART.list.forEach((p, i) => {
+    const s = p.src, down = p.kind === 3, on = down || upActive(s, t), top = down ? 150 : s.top;
+    p.a += (0.5 + p.kind * 0.22) * dt * p.sp * (on ? 1 : 0.3); p.y += (down ? -6 : 1.2 + s.s * 1.1) * dt * p.sp * (on ? 1 : 0.15);
+    if (p.y > top) p.y = 2; if (p.y < 2) p.y = top;
+    pos.setXYZ(i, s.x + Math.cos(p.a) * p.r, p.y, s.z + Math.sin(p.a) * p.r);
+  });
+  pos.needsUpdate = true;
+  // wind streaks
+  const lx = LANE.bx - LANE.ax, lz = LANE.bz - LANE.az, ll = Math.hypot(lx, lz), lyaw = Math.atan2(lx, lz);
+  STREAK.list.forEach((s, i) => {
+    if (s.lane) { s.t = (s.t + dt * 9 / ll) % 1; tmpO.position.set(LANE.ax + lx * s.t + s.off[0] * LANE.r * 0.8, 70 + s.off[1] * 22, LANE.az + lz * s.t); tmpO.rotation.set(0, lyaw, 0); }
+    else { s.t = (s.t + dt * 0.03) % 1; tmpO.position.set(s.x, s.y, HEADWIND.z0 + (HEADWIND.z1 - HEADWIND.z0) * s.t); tmpO.rotation.set(0, 0, 0); }
+    tmpO.scale.setScalar(1); tmpO.updateMatrix(); STREAK.m.setMatrixAt(i, tmpO.matrix);
+  });
+  STREAK.m.instanceMatrix.needsUpdate = true;
+  // target smoke: the recipient's chimney smokes in the envelope colour
+  const T = target(g), house = T && (T.house || { x: T.x, y: T.top + 4, z: T.z });
+  SMOKE.visible = !!(T && g.phase === "deliver");
+  if (SMOKE.visible) {
+    const env = new THREE.Color(DELIVERIES[g.di].env); SMOKE.material.color.copy(env); SMOKE.material.emissive.copy(env).multiplyScalar(0.45);
+    for (let i = 0; i < 26; i++) { const ph = (t * 0.12 + i / 26) % 1; tmpO.position.set(house.x + Math.sin(i * 1.7 + t * 0.4) * ph * 3, house.y + ph * 46, house.z + Math.cos(i * 2.3) * ph * 3); tmpO.scale.setScalar(0.7 + ph * 3.4 * (1 - ph * 0.5)); tmpO.updateMatrix(); SMOKE.setMatrixAt(i, tmpO.matrix); }
+    SMOKE.instanceMatrix.needsUpdate = true;
+  }
+  // the runaway letter (intro)
+  introLetter.visible = g.phase === "intro" && !g.caught; SPARK.visible = introLetter.visible;
+  if (introLetter.visible) {
+    const L = g.letter; introLetter.position.set(L.x, L.y, L.z); introLetter.rotation.set(Math.sin(t * 3) * 0.6, t * 1.3, Math.cos(t * 2.2) * 0.5);
+    const sp = SPARK.geometry.attributes.position; for (let i = 0; i < 14; i++) { const a = i / 14 * 6.28 + t * 2; sp.setXYZ(i, L.x + Math.cos(a) * 2.2, L.y + Math.sin(t * 3 + i) * 1.2, L.z + Math.sin(a) * 2.2); } sp.needsUpdate = true;
+  }
+  // dropped envelope flutters down to the house
+  if (flags.drop) { const d = flags.drop; d.t += dt; const k = Math.min(1, d.t / 1.3); dropEnv.visible = k < 1; dropEnv.position.set(d.x + (d.hx - d.x) * k + Math.sin(d.t * 7) * 0.5, d.y + (d.hy - d.y) * k, d.z + (d.hz - d.z) * k); dropEnv.rotation.set(Math.sin(d.t * 6) * 0.7, d.t * 4, 0); if (k >= 1) flags.drop = null; }
+  // paper bird helper
+  BIRD.visible = g.helper > 0 && !!T;
+  if (BIRD.visible) { const dx = T.x - P.x, dz = T.z - P.z, d = Math.hypot(dx, dz) || 1, k = 10 + Math.sin(t * 2) * 2; BIRD.position.set(P.x + dx / d * k, P.y + 2 + Math.sin(t * 3), P.z + dz / d * k); BIRD.rotation.set(0, Math.atan2(-dx, -dz), Math.sin(t * 12) * 0.3); }
+  // blob shadow and the glide predictor
+  let ground = PHY.SEA - 1.5; for (const I of ISLANDS) if (Math.hypot(P.x - I.x, P.z - I.z) < I.r && I.top < P.y + 0.5) ground = Math.max(ground, I.top);
+  shadow.position.set(P.x, ground + 0.15, P.z); const hgt = Math.max(0.1, P.y - ground); shadow.scale.setScalar(1.6 + hgt * 0.05); shadow.material.opacity = clamp(1.2 - hgt / 60, 0.15, 1);
+  const showPred = P.mode === "fly" && mode === "play";
+  PRED.visible = predRing.visible = showPred;
+  if (showPred) {
+    const pp = PRED.geometry.attributes.position; let x = P.x, y = P.y, z = P.z, hit = false, n = 0;
+    const sink = sinkRate(P.v);
+    for (let i = 0; i < 16; i++) {
+      x += (P.gx || 0) * 0.45; z += (P.gz || 0) * 0.45; y -= sink * 0.45;
+      let gy = PHY.SEA - 1; for (const I of ISLANDS) if (Math.hypot(x - I.x, z - I.z) < I.r) gy = Math.max(gy, I.top);
+      if (!hit && y <= gy) { y = gy; hit = true; predRing.position.set(x, gy + 0.2, z); predRing.material.color.setHex(gy > PHY.SEA ? 0x9be7a8 : 0xffb48a); }
+      pp.setXYZ(i, x, y, z); if (!hit) n = i + 1;
+    }
+    PRED.geometry.setDrawRange(0, n); pp.needsUpdate = true; predRing.visible = hit;
+  }
+  // lightning in the storm
+  const inStorm = (P.air && P.air.storm) || (g.di >= 6 && g.phase === "deliver" && P.z < -700 && Math.hypot(P.x - WALL.x, P.z - WALL.z) > WALL.r0);
+  boltT = Math.max(0, boltT - dt); BOLT.material.opacity = boltT > 0 ? 1 : 0;
+  if (inStorm && mode === "play" && (boltNext -= dt) < 0) {
+    boltNext = 2.5 + Math.random() * 4; boltT = 0.18;
+    const a = P.yaw + (Math.random() - 0.5) * 1.6, d = 140 + Math.random() * 220, bx = P.x - Math.sin(a) * d, bz = P.z - Math.cos(a) * d, bp = BOLT.geometry.attributes.position;
+    for (let i = 0; i < 12; i++) bp.setXYZ(i, bx + (Math.random() - 0.5) * 14 * (i > 0), 200 - i * 18, bz + (Math.random() - 0.5) * 14 * (i > 0)); bp.needsUpdate = true;
+    if (!UI.motion) flashA = 0.32; SFX.thunder(d / 340);
+  }
+  flashA = Math.max(0, flashA - dt * 1.4); $("flash").style.opacity = flashA.toFixed(3);
+  return pn;
+}
+
+// ---- HUD ----
+const fmt = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+let hudKey = "";
+function toast(html, ms = 4200) {
+  if (SHOT && !flags.allowToast) return;
+  const d = document.createElement("div"); d.innerHTML = html; $("toast").appendChild(d);
+  while ($("toast").children.length > 2) $("toast").firstChild.remove();
+  setTimeout(() => d.remove(), ms);
+}
+function hud(g) {
+  const P = g.P, st = $("stage");
+  st.classList.toggle("hidehud", mode === "title" || mode === "end");
+  if (mode === "title" || mode === "end") { $("reach").style.opacity = 0; $("prompt").style.display = "none"; $("reticle").style.display = "none"; $("nav").style.display = "none"; return; }
+  const D = g.phase === "deliver" ? DELIVERIES[g.di] : null, T = target(g);
+  const key = `${LANG}|${g.phase}|${g.di}|${g.caught}|${UI.relax}`;
+  if (key !== hudKey) {
+    hudKey = key; const card = $("card");
+    card.style.setProperty("--env", D ? D.env : "#d9483b"); document.documentElement.style.setProperty("--env", D ? D.env : "#d9483b");
+    if (D) {
+      $("cK").textContent = `${tr("letter")} ${D.id} ${tr("of")} ${DELIVERIES.length}`; $("cT").textContent = dtx(g.di, 0); $("cTo").textContent = tr("to") + dtx(g.di, 1);
+      $("cIcon").innerHTML = ICON[D.to]; $("cA").textContent = dtx(g.di, 2); $("cD").textContent = dtx(g.di, 3);
+      $("cMeds").innerHTML = UI.relax ? `<span>${tr("relaxed")}</span>` : `<span><i style="background:#d9a62e"></i>${fmt(D.target * GOLD)}</span><span><i style="background:#8e9aa8"></i>${fmt(D.target)}</span>`;
+    } else if (g.phase === "intro") {
+      $("cK").textContent = "KITE POST"; $("cT").textContent = LANG === "ko" ? "바람에 날린 편지" : "The runaway letter"; $("cTo").textContent = g.caught ? tr("tCaught").replace(/<[^>]+>/g, "") : tr("tChase").replace(/<[^>]+>/g, "").split("·")[0];
+      $("cIcon").innerHTML = ICON.H; $("cA").textContent = LANG === "ko" ? "우편탑 섬" : "Post Tower isle"; $("cD").textContent = LANG === "ko" ? "출발점" : "home"; $("cMeds").innerHTML = "";
+    } else {
+      $("cK").textContent = "KITE POST"; $("cT").textContent = tr("free"); $("cTo").textContent = `${tr("stamps")} ${g.stamps}`; $("cIcon").innerHTML = ICON.P; $("cA").textContent = tr("tFree").replace(/<[^>]+>/g, "").split("·")[0]; $("cD").textContent = ""; $("cMeds").innerHTML = "";
+    }
+    $("altLab").textContent = tr("alt");
+  }
+  const late = D && g.el > D.target;
+  $("card").classList.toggle("late", !!late && !UI.relax);
+  $("cTime").textContent = D ? (UI.relax ? "—" : fmt(g.el)) : fmt(g.t); $("cOf").textContent = D && !UI.relax ? `/ ${fmt(D.target)}` : "";
+  // altimeter
+  const toPx = (y) => 250 - clamp(y / 140, 0, 1) * 250;
+  $("gK").style.top = toPx(P.y) + "px"; $("altV").textContent = `${Math.round(P.y)} m`;
+  $("gT").style.display = T ? "block" : "none"; if (T) $("gT").style.top = toPx(T.top) + "px";
+  const u = P.air && P.air.up; $("gU").style.display = u && P.mode === "fly" ? "block" : "none";
+  if (u) { $("gU").style.top = toPx(u.top) + "px"; $("gU").style.height = Math.max(2, toPx(P.y) - toPx(u.top)) + "px"; }
+  const stall = P.mode === "fly" && P.v < PHY.STALL + 0.3;
+  $("alt").classList.toggle("stall", stall); $("spdV").textContent = P.mode === "perch" ? tr("perch") : stall ? tr("stall") : `${Math.round(P.v)} m/s`;
+  $("stampN").textContent = g.stamps;
+  // arrival estimate at 6:1
+  const r = $("reach");
+  if (T && P.mode === "fly" && (g.phase === "deliver" || g.phase === "intro")) {
+    const dist = Math.hypot(T.x - P.x, T.z - P.z), est = P.y - Math.max(0, dist - T.r - 6) / 6 - T.top, ok = est >= 2;
+    r.style.opacity = 1; r.className = "paper " + (ok ? "ok" : "no");
+    $("reachL").textContent = `${tr("reach")} · ${g.phase === "intro" ? (LANG === "ko" ? "우편탑 섬" : "Post Tower isle") : dtx(g.di, 2)}`; $("reachV").textContent = (dist < T.r + 6 ? tr("over") + " " : "") + `${est >= 0 ? "+" : "−"}${Math.abs(Math.round(est))} m${ok ? "" : " · " + tr("need")}`;
+  } else r.style.opacity = 0;
+  // prompt
+  const pr = $("prompt"); let ptxt = "";
+  if (P.mode === "perch") ptxt = g.phase === "intro" && P.y > 80 ? tr("pDive") : g.phase === "ending" ? "" : tr("pLaunch");
+  else if (inRange(g)) ptxt = tr("pDrop");
+  pr.style.display = ptxt ? "block" : "none"; if (ptxt && pr.innerHTML !== ptxt) pr.innerHTML = ptxt;
+  // mouse reticle
+  const ret = $("reticle"); ret.style.display = UI.mouse && mouse.held && P.mode !== "perch" ? "block" : "none";
+  if (ret.style.display === "block") { $("retC").setAttribute("cx", mouse.x); $("retC").setAttribute("cy", mouse.y); $("retL").setAttribute("x2", mouse.x); $("retL").setAttribute("y2", mouse.y); }
+  // direction arrow (always with the setting, or while the paper bird helps)
+  const nav = $("nav");
+  if (T && (UI.nav || g.helper > 0) && P.mode !== "perch") {
+    const v = V3(house(T).x, house(T).y, house(T).z).project(camera); let x = (v.x * 0.5 + 0.5) * 1280, y = (-v.y * 0.5 + 0.5) * 720;
+    if (v.z > 1) { x = 1280 - x; y = 720 - y; }
+    const off = x < 30 || x > 1250 || y < 30 || y > 690 || v.z > 1;
+    if (off) { const cx = x - 640, cy = y - 360, s = Math.min(600 / Math.abs(cx || 1), 320 / Math.abs(cy || 1)); x = 640 + cx * s; y = 360 + cy * s; }
+    nav.style.display = "block"; nav.style.left = x + "px"; nav.style.top = (off ? y : y - 40) + "px";
+    $("navP").setAttribute("transform", `rotate(${off ? Math.atan2(y - 360, x - 640) * 180 / Math.PI + 90 : 180} 22 22)`);
+  } else nav.style.display = "none";
+}
+const house = (T) => T.house || { x: T.x, y: T.top + 4, z: T.z };
+
+// ---- events → sound, toasts, cards ----
+function showResult(e, g) {
+  const D = DELIVERIES[e.di], el = $("result");
+  el.innerHTML = `<div class="stamp">${STAMP(e.medal, D.env)}</div><div class="kicker" style="justify-content:center">${tr("medal")[e.medal]}${e.air ? " · " + tr("airmail") : ""}</div>
+    <h4>${dtx(e.di, 0)}</h4><p>“${dtx(e.di, 4)}”<br><small>— ${dtx(e.di, 1)}</small></p>
+    <div class="row"><span>${tr("time")} <b>${UI.relax ? "—" : fmt(e.t)}</b>${UI.relax ? "" : " / " + fmt(D.target)}</span><span>${tr("stamps")} <b>+${e.stamps}</b></span></div>`;
+  el.classList.remove("show"); void el.offsetWidth; el.classList.add("show");
+  clearTimeout(flags.resT); if (e.di < DELIVERIES.length - 1) flags.resT = setTimeout(() => el.classList.remove("show"), 4800);
+}
+function fade(html, ms) { const f = $("fade"); f.innerHTML = html; f.classList.add("on"); clearTimeout(flags.fadeT); flags.fadeT = setTimeout(() => f.classList.remove("on"), ms); }
+function handleEvents(g) {
+  for (const e of g.ev.splice(0)) {
+    if (g !== G) continue;
+    switch (e.type) {
+      case "launch": e.dive ? SFX.dive() : SFX.launch(); if (g.phase === "intro" && !flags.chase) { flags.chase = 1; toast(tr("tChase")); } break;
+      case "land": SFX.land(); break;
+      case "bonk": SFX.bonk(); VIEW.shake = 0.5; break;
+      case "fall": SFX.fall(); fade(`${tr("fall")}<small>${tr("fallS")}</small>`, 2700); break;
+      case "caught": SFX.catch(); toast(tr("tCaught")); break;
+      case "letter": {
+        SFX.ui(); const D = DELIVERIES[e.di];
+        if (e.di === 0) { toast(tr("tPostmaster"), 5200); setTimeout(() => toast(tr("tFirst"), 5200), 1600); }
+        else toast(`${tr("tLetter")} · <b>${dtx(e.di, 0)}</b> → ${dtx(e.di, 2)}`);
+        if (D.id === 6) setTimeout(() => toast(tr("tGold"), 5200), 1800);
+        if (D.id === 7) setTimeout(() => toast(tr("tStorm"), 5200), 1800);
+        if (D.id === 8) setTimeout(() => toast(tr("tLane"), 5200), 1800);
+        break;
+      }
+      case "drop": { SFX.drop(); const T = ISL[e.to], h = house(T); flags.drop = { t: 0, x: g.P.x, y: g.P.y, z: g.P.z, hx: h.x, hy: T.top + 1, hz: h.z }; break; }
+      case "delivered": {
+        SFX.deliver(e.medal); showResult(e, g); const to = DELIVERIES[e.di].to;
+        npcMeshes.forEach((m) => { if (m.userData.I.id === to) m.userData.hop = 2.2; });
+        if (to === "T") { flags.bellT = 3; SFX.bell(); }
+        if (e.di === 1 || e.di === 6) setTimeout(() => unlock(e.di === 1 ? 1 : 3), 1500);
+        if (e.di === DELIVERIES.length - 1) { $("stage").classList.add("ending"); }
+        break;
+      }
+      case "rested": fade(`${tr("rest")}<small>${tr("restS")}</small>`, 2600); setTimeout(() => unlock(2), 2400); break;
+      case "helper": toast(tr("tHelper")); break;
+      case "free": endScreen(g); break;
+    }
+  }
+}
+function unlock(k) { pattern = k; KITE.setPattern(k); SFX.unlock(); toast(`${tr("tUnlock")} · <b>${tr("unlocks")[k - 1]}</b>`); }
+function tutorial(g, dt) {   // one-time hints driven by what the pilot is doing
+  const P = g.P, T = target(g);
+  if (g.phase !== "deliver" || P.mode !== "fly") return;
+  if (P.air && P.air.upF > 0.4 && !flags.up) { flags.up = 1; toast(tr("tUp"), 5600); }
+  if (T) {
+    const est = P.y - Math.max(0, Math.hypot(T.x - P.x, T.z - P.z) - T.r - 6) / 6 - T.top;
+    flags.lowT = est < 0 ? (flags.lowT || 0) + dt : 0;
+    if (flags.lowT > 3 && !flags.low && !flags.up) { flags.low = 1; toast(tr("tLow"), 5600); }
+  }
+  if (inRange(g) && !flags.near) { flags.near = 1; toast(tr("tNear")); }
+  if (P.v < PHY.STALL && !flags.stall) { flags.stall = 1; toast(tr("tStall")); SFX.stall(); }
+  if (g.di === 2 && g.el > DELIVERIES[2].target && !flags.bell) { flags.bell = 1; flags.bellT = 3; SFX.bell(); toast(tr("tBell")); }
+  if (g.di === 7 && Math.hypot(P.x - WALL.x, P.z - WALL.z) < WALL.r0 && !flags.eye) { flags.eye = 1; toast(tr("tEye")); }
+}
+
+// ---- screens ----
+function titleScreen() {
+  mode = "title"; $("modal").classList.remove("show");
+  const s = $("screen");
+  s.innerHTML = `<div class="title"><div class="k">${tr("kicker")}</div><h1>${tr("t1")}<br><span>${tr("t2")}</span></h1><p>${tr("tag")}</p>
+    <div class="btns"><button class="btn" id="bStart"><svg width="18" height="18" viewBox="0 0 18 18"><path d="M9 1l7 8-7 8-7-8z" fill="#fff"/></svg>${tr("start")}</button><button class="btn alt" id="bSet2">${tr("settings")}</button></div>
+    <div class="keys"><span><kbd>A</kbd><kbd>D</kbd></span><span>${tr("kSteer")}</span><span><kbd>W</kbd><kbd>S</kbd></span><span>${tr("kPitch")}</span>
+      <span><kbd>Space</kbd><kbd>E</kbd></span><span>${tr("kAct")}</span><span><kbd>${LANG === "ko" ? "마우스" : "Mouse"}</kbd></span><span>${tr("kMouse")}</span><span><kbd>Esc</kbd></span><span>${tr("kPause")}</span></div>
+    <div class="foot">${tr("foot")}</div></div>
+    <div class="lang"><button data-l="ko" class="${LANG === "ko" ? "on" : ""}">한국어</button><button data-l="en" class="${LANG === "en" ? "on" : ""}">English</button></div>`;
+  s.classList.add("show");
+  $("bStart").onclick = () => { audioInit(); startGame(); };
+  $("bSet2").onclick = () => { audioInit(); openSettings(); };
+  s.querySelectorAll(".lang button").forEach((b) => (b.onclick = () => { LANG = b.dataset.l; saveUI(); hudKey = ""; applyText(); titleScreen(); }));
+}
+function startGame() {
+  G = newGame({ assist: UI.relax }); BOT = {}; flags = {}; pattern = 0; KITE.setPattern(0); KITE.inited = false; VIEW.init = false; hudKey = "";
+  $("result").classList.remove("show"); $("stage").classList.remove("ending"); $("toast").innerHTML = "";
+  mode = "play"; $("screen").classList.remove("show"); SFX.ui();
+}
+function endScreen(g) {
+  mode = "end";
+  const golds = g.results.filter((r) => r.medal === 3).length, total = g.results.reduce((a, r) => a + r.t, 0);
+  const s = $("screen");
+  s.innerHTML = `<div class="end paper"><div class="kicker">${tr("endK")}</div><h2>${tr("endH")}</h2><div class="sub">${tr("endS")}</div>
+    <div class="tbl">${g.results.map((r) => `<div>${STAMP(r.medal, DELIVERIES[r.id - 1].env)}<span><b>${dtx(r.id - 1, 0)}</b>${UI.relax ? "" : fmt(r.t) + " · "}${tr("medal")[r.medal]}</span></div>`).join("")}</div>
+    <div class="stats"><div><b>${fmt(total)}</b><span>${tr("total")}</span></div><div><b>${g.stamps}</b><span>${tr("stamps")}</span></div><div><b>${golds}/8</b><span>${tr("golds")}</span></div><div><b>${g.drops}</b><span>${tr("drops")}</span></div></div>
+    <div class="btns"><button class="btn" id="bFree">${tr("freeFly")}</button><button class="btn alt" id="bAgain">${tr("again")}</button><a class="btn alt" href="../">${tr("arcade")}</a></div></div>`;
+  s.classList.add("show");
+  try { const best = JSON.parse(localStorage.getItem("kp_best") || "null"); if (!best || g.stamps > best.stamps) localStorage.setItem("kp_best", JSON.stringify({ stamps: g.stamps, total })); } catch (e) { /* not saved */ }
+  $("bFree").onclick = () => { s.classList.remove("show"); $("result").classList.remove("show"); mode = "play"; toast(tr("tFree")); };
+  $("bAgain").onclick = () => startGame();
+}
+function applyText() {
+  document.documentElement.lang = LANG;
+  for (const k of ["Mouse", "Invert", "Roll", "Motion", "Nav", "Relax", "Vol"]) $("l" + k).textContent = tr("o" + k);
+  $("setK").textContent = tr("setK"); $("setH").textContent = tr("setH"); $("setOk").textContent = tr("ok"); $("setTitle").textContent = tr("toTitle"); $("rotT").textContent = tr("rot");
+}
+let prevMode = "title";
+function openSettings() {
+  if (mode === "paused") return;
+  prevMode = mode; if (mode === "play") mode = "paused";
+  for (const [id, k] of [["oMouse", "mouse"], ["oInvert", "invert"], ["oRoll", "roll"], ["oMotion", "motion"], ["oNav", "nav"], ["oRelax", "relax"]]) $(id).checked = !!UI[k];
+  $("oVol").value = UI.vol; $("setTitle").style.display = prevMode === "play" ? "" : "none"; $("modal").classList.add("show");
+}
+function closeSettings() {
+  for (const [id, k] of [["oMouse", "mouse"], ["oInvert", "invert"], ["oRoll", "roll"], ["oMotion", "motion"], ["oNav", "nav"], ["oRelax", "relax"]]) UI[k] = $(id).checked;
+  UI.vol = +$("oVol").value; if (AU.master) AU.master.gain.value = UI.vol; AU.vol = UI.vol; if (G) G.opts.assist = UI.relax; saveUI(); hudKey = "";
+  $("modal").classList.remove("show"); if (mode === "paused") mode = prevMode;
+}
+$("bSet").onclick = () => { audioInit(); openSettings(); };
+$("setOk").onclick = closeSettings;
+$("setTitle").onclick = () => { closeSettings(); titleScreen(); };
+$("rotX").onclick = () => { flags.rotX = 1; $("rotate").classList.remove("show"); };
+
+addEventListener("keydown", (e) => {
+  if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.code)) e.preventDefault();
+  audioInit();
+  if (e.code === "Escape" || e.code === "KeyP") { if ($("modal").classList.contains("show")) closeSettings(); else if (mode === "play") openSettings(); return; }
+  if (mode === "title" && (e.code === "Enter" || e.code === "Space")) { startGame(); return; }
+  if (!e.repeat && (e.code === "Space" || e.code === "KeyE")) act = true;
+  keys[e.code] = true;
+});
+addEventListener("keyup", (e) => { keys[e.code] = false; });
+addEventListener("blur", () => { for (const k in keys) keys[k] = false; mouse.held = false; });
+const stageXY = (cx, cy) => { const r = $("stage").getBoundingClientRect(), k = r.width / 1280; return [(cx - r.left) / k, (cy - r.top) / k]; };
+$("gl").addEventListener("pointerdown", (e) => {
+  if (e.pointerType === "touch" || mode !== "play") return;
+  audioInit(); [mouse.x, mouse.y] = stageXY(e.clientX, e.clientY); mouse.held = true; act = true;
+});
+addEventListener("pointermove", (e) => { if (e.pointerType !== "touch") [mouse.x, mouse.y] = stageXY(e.clientX, e.clientY); });
+addEventListener("pointerup", (e) => { if (e.pointerType !== "touch") mouse.held = false; });
+if (matchMedia("(pointer: coarse)").matches) {
+  $("touch").classList.add("on");
+  $("stick").addEventListener("touchstart", (e) => { audioInit(); const t = e.changedTouches[0], [x, y] = stageXY(t.clientX, t.clientY); Object.assign(stick, { id: t.identifier, x, y, sx: x, sy: y }); e.preventDefault(); }, { passive: false });
+  addEventListener("touchmove", (e) => { for (const t of e.changedTouches) if (t.identifier === stick.id) { [stick.x, stick.y] = stageXY(t.clientX, t.clientY); const k = $("stick").querySelector("i"); k.style.transform = `translate(${clamp(stick.x - stick.sx, -55, 55)}px,${clamp(stick.y - stick.sy, -55, 55)}px)`; } }, { passive: true });
+  addEventListener("touchend", (e) => { for (const t of e.changedTouches) if (t.identifier === stick.id) { stick.id = null; $("stick").querySelector("i").style.transform = ""; } });
+  $("tAct").addEventListener("touchstart", (e) => { audioInit(); act = true; e.preventDefault(); }, { passive: false });
+}
+
+// ---- layout ----
+let K = 1;
+function fit() {
+  const W = innerWidth, H = innerHeight; K = Math.min(W / 1280, H / 720);
+  const st = $("stage"); st.style.transform = `scale(${K})`; st.style.left = `${(W - 1280 * K) / 2}px`; st.style.top = `${(H - 720 * K) / 2}px`;
+  const pr = Math.min(1.5, (devicePixelRatio || 1) * K); renderer.setPixelRatio(pr); renderer.setSize(1280, 720, false); PART.m.material.uniforms.px.value = pr;
+  $("rotate").classList.toggle("show", W < H && W < 760 && !flags.rotX);
+}
+addEventListener("resize", fit);
+
+// ---- self-test (?test=1): the rules, the design numbers, and a full autopilot journey ----
+function selftest() {
+  const out = [], ok = (name, pass, info = "") => out.push({ name, pass: !!pass, info: String(info) }), ev = [];
+  const fly = (v = 14, y = 2000) => { const P = newPilot(0, y, 0, 0); P.mode = "fly"; P.v = v; return P; };
+  let P = fly(); for (let i = 0; i < 1200; i++) stepPilot(P, { steer: 0, pitch: 0 }, STEP, 0, ev);
+  const gr = Math.hypot(P.x, P.z) / (2000 - P.y); ok("cruise glide ratio is 6:1 (02_art_direction §3)", Math.abs(gr - 6) < 0.3, gr.toFixed(2) + ":1");
+  P = fly(); for (let i = 0; i < 2400; i++) stepPilot(P, { steer: 0, pitch: 1 }, STEP, 0, ev); const y0 = P.y, x0 = Math.hypot(P.x, P.z);
+  for (let i = 0; i < 1200; i++) stepPilot(P, { steer: 0, pitch: 1 }, STEP, 0, ev);
+  const dg = (Math.hypot(P.x, P.z) - x0) / (y0 - P.y); ok("full dive: 24 m/s at 4:1", Math.abs(P.v - 24) < 0.6 && Math.abs(dg - 4) < 0.35, `${P.v.toFixed(1)} m/s, ${dg.toFixed(2)}:1`);
+  P = fly(14, 500); const E0 = PHY.G * P.y + P.v * P.v / 2;
+  for (let c = 0; c < 6; c++) { for (let i = 0; i < 360; i++) stepPilot(P, { steer: 0, pitch: 1 }, STEP, 0, ev); for (let i = 0; i < 360; i++) stepPilot(P, { steer: 0, pitch: -1 }, STEP, 0, ev); }
+  const E1 = PHY.G * P.y + P.v * P.v / 2; ok("no free energy: dive/climb cycles always lose height", E1 < E0 - 100, `energy ${E0.toFixed(0)} → ${E1.toFixed(0)}`);
+  P = fly(7); let sinkMax = 0; for (let i = 0; i < 360; i++) { stepPilot(P, { steer: 0, pitch: 0 }, STEP, 0, ev); sinkMax = Math.max(sinkMax, -P.vy); }
+  ok("stall below 8 m/s: extra sink, the nose drops, speed comes back", sinkMax > 2.6 && P.v > PHY.STALL, `max sink ${sinkMax.toFixed(1)} m/s, speed after 3 s ${P.v.toFixed(1)}`);
+  ok("turning circle at 9 m/s fits the strong (16 m) column", 9 / Math.min(1.75, PHY.TURN * PHY.CRUISE / 9) <= 8, `radius ${(9 / Math.min(1.75, PHY.TURN * PHY.CRUISE / 9)).toFixed(1)} m`);
+  for (const k of [1, 2, 3]) {   // circle with the autopilot's technique for 10 s
+    const u = UPDRAFTS.find((q) => q.k === k && !q.pulse); P = newPilot(u.x + u.r * 1.2, 60, u.z, 0); P.mode = "fly"; P.v = 14;
+    for (let i = 0; i < 1200; i++) { const a = Math.atan2(P.z - u.z, P.x - u.x) + 1.2, inp = steerTo(P, u.x + Math.cos(a) * 4, u.z + Math.sin(a) * 4, { steer: 0, pitch: 0 }, -0.6); inp.steer = clamp(inp.steer * 1.4, -1, 1); stepPilot(P, inp, STEP, 0, ev); }
+    const need = [0, 14, 24, 32][k]; ok(`${["", "weak", "mid", "strong"][k]} updraft climbs ≥ ${need} m in 10 s`, P.y - 60 >= need, `+${(P.y - 60).toFixed(1)} m`);
+  }
+  P = newPilot(ISL.L.x, ISL.L.top + 0.35, ISL.L.z, 0); P.perch = "L"; ev.length = 0; launch(P, ev); let n = 0; while (P.mode === "launch" && n++ < 2000) stepPilot(P, { steer: 0, pitch: 0 }, STEP, 0, ev);
+  ok("launch from an island rises exactly +40 m", Math.abs(P.y - (ISL.L.top + 0.35 + 40)) < 0.01, `${(P.y - ISL.L.top - 0.35).toFixed(2)} m`);
+  const I = ISL.B; P = fly(12, I.top + 3); P.x = I.x; P.z = I.z + 5; P.yaw = 0; ev.length = 0;
+  for (let i = 0; i < 600 && P.mode === "fly"; i++) stepPilot(P, { steer: 0, pitch: 1 }, STEP, 0, ev);
+  ok("coming down onto an island top lands (perch)", P.mode === "perch" && P.perch === "B", P.mode);
+  P = fly(14, I.top - 2.5); P.x = I.x; P.z = I.z + I.r + 6; P.yaw = 0; ev.length = 0;
+  for (let i = 0; i < 240; i++) stepPilot(P, { steer: 0, pitch: 0 }, STEP, 0, ev);
+  ok("flying into a cliff bonks instead of landing", ev.some((e) => e.type === "bonk") && P.mode !== "perch", ev.map((e) => e.type).join(","));
+  const g1 = newGame(); g1.phase = "deliver"; g1.di = 2; g1.lastPerch = "B"; Object.assign(g1.P, fly(14, 30)); g1.P.x = 200; g1.P.z = 300;
+  for (let i = 0; i < 120 * 12 && g1.P.mode !== "perch"; i++) gameStep(g1, { steer: 0, pitch: 1 }, STEP);
+  ok("a fall into the cloud sea respawns on the letter's island in 3 s", g1.P.mode === "perch" && g1.P.perch === "B" && g1.drops === 1, `perched on ${g1.P.perch}`);
+  const dists = DELIVERIES.map((D) => Math.hypot(ISL[D.to].x - ISL[D.from].x, ISL[D.to].z - ISL[D.from].z));
+  ok("leg lengths match deliveries_v2.csv (±2%)", DELIVERIES.every((D, i) => Math.abs(dists[i] - D.dist) / D.dist < 0.02), dists.map((d) => d.toFixed(0)).join(" "));
+  ok("rewards and targets match deliveries_v2.csv", DELIVERIES.map((D) => D.reward).join() === "10,11,14,22,26,32,36,50" && DELIVERIES.map((D) => D.target).join() === "46,52,48,70,72,101,103,134");
+  // the whole journey, flown by the planning autopilot with the real rules
+  const J = newGame(), B = {}; let last = -2, steps = 0;
+  while (J.phase !== "free" && steps++ < 120 * 1500) { if (J.di !== last) { B.plan = null; last = J.di; } gameStep(J, botInput(J, B), STEP); J.ev.length = 0; }
+  const times = J.results.map((r) => `#${r.id} ${r.t.toFixed(0)}/${DELIVERIES[r.id - 1].target}s`);
+  ok("autopilot finishes intro + 8 deliveries + ending", J.phase === "free" && J.results.length === 8, `${(J.t / 60).toFixed(1)} min of flight, ${J.drops} falls`);
+  ok("every delivery is possible inside its target time", J.results.every((r) => r.t <= DELIVERIES[r.id - 1].target), times.join(" "));
+  ok("gold (80% of target) is possible on at least half the letters", J.results.filter((r) => r.medal === 3).length >= 4, `${J.results.filter((r) => r.medal === 3).length}/8 gold`);
+  // rendering budget (02_art_direction §2: ≤ 100 draw calls, ≤ 150k triangles)
+  setShot(4); renderer.render(scene, camera);
+  ok("draw calls ≤ 100 in a busy view", renderer.info.render.calls <= 100, renderer.info.render.calls + " calls");
+  ok("triangles ≤ 150k in a busy view", renderer.info.render.triangles <= 150000, renderer.info.render.triangles + " tris");
+  const pass = out.every((o) => o.pass), el = $("selftest");
+  el.textContent = JSON.stringify({ game: "kite-post", pass, results: out }, null, 1); el.hidden = false;
+  document.title = "SELFTEST " + (pass ? "PASS" : "FAIL");
+}
+// deterministic, representative states for screenshots (?shot=1 is the gallery image)
+const SHOTS = {
+  1: { di: 7, at: [-246, 92, -1800], to: "P", yaw: 0.12, steer: 0, el: 70, stamps: 171, pat: 3 },   // #8: the eye of the storm (gallery image)
+  2: { di: 3, at: [-96, 96, 196], to: "i1", yaw: 0.06, steer: 0.1, el: 21, stamps: 51, pat: 1 },   // #4 noon: the windmill archipelago
+  3: { di: 0, at: [40, 99, -8], to: "L", yaw: 0.1, steer: 0, el: 6, stamps: 0, pat: 0 },           // #1 dawn: the lighthouse
+  4: { di: 5, at: [262, 80, -232], to: "C", yaw: -0.25, steer: 0, el: 38, stamps: 129, pat: 2 },   // #6: into the first gold updraft
+};
+function setShot(k = 1) {
+  const S = SHOTS[k] || SHOTS[1];
+  G = newGame(); G.phase = "deliver"; G.di = S.di; G.timing = true; G.stamps = S.stamps; G.caught = true;
+  G.results = DELIVERIES.slice(0, S.di).map((D) => ({ id: D.id, t: D.target * 0.7, medal: 3, air: true, stamps: D.reward }));
+  const T = ISL[S.to], yaw = yawTo(S.at[0], S.at[2], T.x, T.z) + S.yaw;
+  Object.assign(G.P, { x: S.at[0], y: S.at[1], z: S.at[2], yaw, mode: "fly", v: 13, vy: 0, steer: 0, pd: 0 });
+  pattern = S.pat; KITE.setPattern(S.pat); KITE.inited = false; mode = "play"; flags = {};
+  const pal = palTarget(G); for (const key of Object.keys(PAL[pal])) { const v = PAL[pal][key]; if (PCUR[key] instanceof THREE.Color) PCUR[key].setHex(v); else PCUR[key] = v; }
+  for (let i = 0; i < 75; i++) { for (let s = 0; s < 4; s++) gameStep(G, { steer: S.steer, pitch: -0.1 }, STEP); G.ev.length = 0; syncWorld(G, 1 / 30); camUpdate(G, 1 / 30, i === 0); }
+  G.el = S.el;
+}
+
+// ---- main loop ----
+applyText(); fit();
+ATTRACT = newGame(); ABOT = {};
+for (let i = 0; i < 120 * 14; i++) { gameStep(ATTRACT, botInput(ATTRACT, ABOT), STEP); ATTRACT.ev.length = 0; }   // the title opens mid-flight
+if (TEST) selftest();
+if (SHOT) {
+  document.body.classList.add("shot"); setShot(+params.get("shot")); flags.allowToast = 1;
+  toast(`${tr("tLetter")} · <b>${dtx(G.di, 0)}</b> → ${dtx(G.di, 2)}`, 60000); hud(G);
+  (function still() { renderer.render(scene, camera); requestAnimationFrame(still); })();
+} else {
+  titleScreen();
+  let acc = 0, last = performance.now(), lastAtt = -2;
+  (function frame(now) {
+    const dt = Math.min(0.1, (now - last) / 1000) * (mode === "play" ? SPEED : 1); last = now;
+    const g = world();
+    if (mode === "play" || mode === "title") {
+      acc += dt;
+      while (acc >= STEP) {
+        if (mode === "title") { if (ATTRACT.di !== lastAtt) { ABOT.plan = null; lastAtt = ATTRACT.di; } gameStep(ATTRACT, botInput(ATTRACT, ABOT), STEP); if (ATTRACT.phase === "free") { ATTRACT = newGame(); ABOT = {}; } }
+        else gameStep(G, readInput(), STEP);
+        acc -= STEP;
+      }
+      handleEvents(g); if (mode === "play") tutorial(G, dt);
+    }
+    const pn = syncWorld(world(), dt); camUpdate(world(), dt, false); hud(world());
+    if (AU.ctx) { const P = world().P; AU.wind.gain.value += ((P.mode === "fly" ? 0.05 + clamp((P.v - 8) / 16, 0, 1) * 0.16 : 0.02) - AU.wind.gain.value) * Math.min(1, dt * 3); AU.windF.frequency.value = 350 + P.v * 45; musicTick(pn, P.mode === "fly" ? 1 : 0.5);
+      if (P.air && P.air.upF > 0.4 && P.mode === "fly" && mode === "play" && (flags.chime = (flags.chime || 0) - dt) < 0) { flags.chime = 0.7; SFX.up((flags.ck = (flags.ck || 0) + 1)); } }
+    renderer.render(scene, camera);
+    requestAnimationFrame(frame);
+  })(last);
+}
+</script>
+</body>
+</html>
