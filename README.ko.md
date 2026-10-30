@@ -220,6 +220,18 @@ Accessibility Guidelines, Xbox Accessibility Guidelines, APX. 모든 내용은 �
   올바른 스킬 실행 18/18, 사용자 언어로 답변 18/18, 유용한 답변 18/18, 영어 병기 용어 표기 12/12. v1.3.0에서 추가한
   `playable-prototype` 케이스 3개도 모든 채점 항목을 통과했고, 새 경로를 넣은 뒤에도 라우터 케이스는 그대로 통과합니다.
 
+## 실행·전송·다운로드하는 것
+
+- **스킬**은 마크다운 지침입니다. 스스로 무언가를 실행하지 않습니다.
+- **파이썬 스크립트**(`skills/*/scripts/*.py`)는 사용자나 에이전트가 호출할 때만 실행됩니다. 표준 라이브러리만
+  쓰고(차트용 matplotlib는 선택), 넘겨준 파일만 읽고, 지정한 출력 폴더에만 쓰며, **네트워크 요청을 하지 않습니다**.
+- **`skills/playable-prototype/scripts/check.py`**는 프로토타입 자체 테스트와 스크린샷을 위해 로컬에 설치된
+  Chrome·Chromium·Edge를 일회용 프로필로 헤드리스 실행하고, 끝나면 프로필을 지웁니다.
+- **`install.sh` / `tools/install.py`**는 스킬 폴더를 에이전트의 스킬 디렉터리로 복사하고, **`tools/package.py`**는
+  `dist/`에 zip을 만듭니다. 모두 로컬에서만 동작합니다.
+- **hook, MCP 서버, 원격 수집(telemetry), 데이터 수집이 없습니다.** [PRIVACY.md](PRIVACY.md)를 참고하세요.
+- `games/`의 데모 페이지는 브라우저에서 열 때 Google Fonts에서 글꼴을 불러옵니다.
+
 ## 기여
 
 원어민의 용어집 수정, 새 장르 플레이북, 더 나은 출처, 새 예제 워크스루를 환영합니다.

@@ -226,6 +226,20 @@ with engine or production plugins. See the competitive scan in
   and terms were localized with the English in parentheses 12/12. The three `playable-prototype`
   cases added in v1.3.0 passed every grader, and the router cases still pass after adding its new route.
 
+## What it runs, sends, and fetches
+
+- **Skills** are Markdown instructions. They don't execute anything by themselves.
+- **Python scripts** (`skills/*/scripts/*.py`) run only when you or your agent call them. They use
+  the standard library (matplotlib optional for charts), read the files you pass, write to the
+  output folder you choose, and make **no network requests**.
+- **`skills/playable-prototype/scripts/check.py`** starts your locally installed Chrome, Chromium
+  or Edge in headless mode with a throwaway profile, to run a prototype's self-tests and take a
+  screenshot. It deletes the profile afterwards.
+- **`install.sh` / `tools/install.py`** copy skill folders into an agent's skills directory.
+  **`tools/package.py`** builds zip files in `dist/`. Both are local-only.
+- **No hooks, no MCP servers, no telemetry, no data collection.** See [PRIVACY.md](PRIVACY.md).
+- The demo pages in `games/` load fonts from Google Fonts when opened in a browser.
+
 ## Contributing
 
 Native-speaker glossary fixes, new genre playbooks, better sources and new example walkthroughs
