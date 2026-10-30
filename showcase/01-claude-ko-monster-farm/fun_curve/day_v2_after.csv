@@ -1,0 +1,26 @@
+# title: Monster Farm - one in-game day v2 (after)
+# unit: min
+# Intensity = felt engagement 0-10. One in-game day 06:00-24:00 = ~15 real minutes.
+# Types (shared with v1): setup, discover, monster, farm, explore, village, reward, rest
+time,intensity,type,label
+0.0,4,setup,Wake up - monster moods at the window
+0.4,6,discover,Overnight surprise (mutated sprout)
+1.2,5,monster,Morning greeting + feed
+2.0,5,farm,Assign jobs - slime waters / mole tills
+3.0,4,farm,Sow seeds while monsters work
+3.8,6,discover,Combo found - fertile tile
+4.5,3,explore,Forest walk with a companion
+5.3,5,explore,Forage + follow wild tracks
+6.3,7,monster,Befriend a wild monster (mid peak)
+7.0,3,rest,Lunch break with the view
+7.8,5,village,Take a villager request
+8.4,6,monster,Companion does a trick for the kids
+9.0,4,village,Seed shop + trade finds
+9.6,5,farm,Prep crops for the request
+10.5,6,farm,Harvest today's main crop
+11.3,4,monster,Bath and brush (affection fills)
+12.0,6,village,Deliver request - recipe unlocked
+12.8,8,reward,Shipping payout + rare mutation verdict
+13.6,7,monster,Affection level-up - new farm skill
+14.3,3,rest,Campfire diary
+15.0,4,rest,Bedtime teaser for tomorrow

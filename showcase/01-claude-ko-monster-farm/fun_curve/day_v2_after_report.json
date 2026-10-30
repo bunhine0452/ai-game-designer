@@ -1,0 +1,155 @@
+{
+  "title": "Monster Farm - one in-game day v2 (after)",
+  "unit": "min",
+  "metrics": {
+    "duration": 15.0,
+    "beats": 21,
+    "mean_intensity": 5.13,
+    "peak_count": 2,
+    "climax_time": 12.8,
+    "climax_position": 0.853,
+    "climax_intensity": 8.0,
+    "hook_peak": 6.0,
+    "share_high": 0.0,
+    "share_low": 0.002,
+    "pacing_score": 92
+  },
+  "findings": [
+    {
+      "code": "FLAT_ZONE",
+      "severity": "medium",
+      "message": "1.2-3.4: intensity stays within ±0.5 around 4.7 for 2.2 units (flat: interest stops moving).",
+      "suggestion": "Insert a contrast beat: a twist on the current mechanic, a new threat, a reveal, a reward, or a deliberate rest that sets up the next rise.",
+      "start": 1.2,
+      "end": 3.375
+    }
+  ],
+  "beats": [
+    {
+      "time": 0.0,
+      "intensity": 4.0,
+      "type": "setup",
+      "label": "Wake up - monster moods at the window"
+    },
+    {
+      "time": 0.4,
+      "intensity": 6.0,
+      "type": "discover",
+      "label": "Overnight surprise (mutated sprout)"
+    },
+    {
+      "time": 1.2,
+      "intensity": 5.0,
+      "type": "monster",
+      "label": "Morning greeting + feed"
+    },
+    {
+      "time": 2.0,
+      "intensity": 5.0,
+      "type": "farm",
+      "label": "Assign jobs - slime waters / mole tills"
+    },
+    {
+      "time": 3.0,
+      "intensity": 4.0,
+      "type": "farm",
+      "label": "Sow seeds while monsters work"
+    },
+    {
+      "time": 3.8,
+      "intensity": 6.0,
+      "type": "discover",
+      "label": "Combo found - fertile tile"
+    },
+    {
+      "time": 4.5,
+      "intensity": 3.0,
+      "type": "explore",
+      "label": "Forest walk with a companion"
+    },
+    {
+      "time": 5.3,
+      "intensity": 5.0,
+      "type": "explore",
+      "label": "Forage + follow wild tracks"
+    },
+    {
+      "time": 6.3,
+      "intensity": 7.0,
+      "type": "monster",
+      "label": "Befriend a wild monster (mid peak)"
+    },
+    {
+      "time": 7.0,
+      "intensity": 3.0,
+      "type": "rest",
+      "label": "Lunch break with the view"
+    },
+    {
+      "time": 7.8,
+      "intensity": 5.0,
+      "type": "village",
+      "label": "Take a villager request"
+    },
+    {
+      "time": 8.4,
+      "intensity": 6.0,
+      "type": "monster",
+      "label": "Companion does a trick for the kids"
+    },
+    {
+      "time": 9.0,
+      "intensity": 4.0,
+      "type": "village",
+      "label": "Seed shop + trade finds"
+    },
+    {
+      "time": 9.6,
+      "intensity": 5.0,
+      "type": "farm",
+      "label": "Prep crops for the request"
+    },
+    {
+      "time": 10.5,
+      "intensity": 6.0,
+      "type": "farm",
+      "label": "Harvest today's main crop"
+    },
+    {
+      "time": 11.3,
+      "intensity": 4.0,
+      "type": "monster",
+      "label": "Bath and brush (affection fills)"
+    },
+    {
+      "time": 12.0,
+      "intensity": 6.0,
+      "type": "village",
+      "label": "Deliver request - recipe unlocked"
+    },
+    {
+      "time": 12.8,
+      "intensity": 8.0,
+      "type": "reward",
+      "label": "Shipping payout + rare mutation verdict"
+    },
+    {
+      "time": 13.6,
+      "intensity": 7.0,
+      "type": "monster",
+      "label": "Affection level-up - new farm skill"
+    },
+    {
+      "time": 14.3,
+      "intensity": 3.0,
+      "type": "rest",
+      "label": "Campfire diary"
+    },
+    {
+      "time": 15.0,
+      "intensity": 4.0,
+      "type": "rest",
+      "label": "Bedtime teaser for tomorrow"
+    }
+  ]
+}

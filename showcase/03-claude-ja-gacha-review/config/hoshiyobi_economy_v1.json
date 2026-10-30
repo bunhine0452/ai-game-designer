@@ -1,0 +1,53 @@
+{
+  "title": "Hoshiyobi no Shima economy v1 (draft)",
+  "notes": "1 session = 1 day, 90 days. coin = soft currency (コイン). stones = premium currency (星晶石, 有償+無償 merged for economy_sim; the split is in archetypes[].purchases[].paid and analysed by scripts/gacha_deep_dive.py). Prices in JPY.",
+  "players": 2000,
+  "sessions": 90,
+  "seed": 11,
+  "currencies": {
+    "coin": {"start": 5000},
+    "stones": {"start": 3000}
+  },
+  "archetypes": [
+    {"name": "light_f2p", "share": 0.55, "play_prob": 0.5, "income_mult": 0.8, "banner_interest": 0.5},
+    {"name": "core_f2p", "share": 0.30, "play_prob": 0.92, "income_mult": 1.0, "banner_interest": 0.6},
+    {"name": "monthly_pass", "share": 0.11, "play_prob": 0.9, "income_mult": 1.0, "banner_interest": 0.7,
+     "purchases": [{"name": "星詠みパス (30日)", "currency": "stones", "amount": 1800, "paid": 300, "every": 30, "price": 610}]},
+    {"name": "dolphin", "share": 0.035, "play_prob": 0.95, "income_mult": 1.0, "banner_interest": 0.9,
+     "purchases": [{"name": "星詠みパス (30日)", "currency": "stones", "amount": 1800, "paid": 300, "every": 30, "price": 610},
+                   {"name": "星晶石 2,850個", "currency": "stones", "amount": 2850, "paid": 2850, "every": 14, "price": 4900}]},
+    {"name": "whale", "share": 0.005, "play_prob": 0.98, "income_mult": 1.0, "banner_interest": 1.0, "copies_wanted": 2,
+     "purchases": [{"name": "星晶石 6,000個", "currency": "stones", "amount": 6000, "paid": 6000, "every": 7, "price": 10000}]}
+  ],
+  "faucets": [
+    {"name": "quest clear coin", "currency": "coin", "mean": 12000, "sd": 3000, "growth": 0.03},
+    {"name": "expedition coin", "currency": "coin", "mean": 4000, "sd": 1000, "growth": 0.03},
+    {"name": "sell duplicates coin", "currency": "coin", "mean": 2000, "sd": 800},
+    {"name": "daily missions stones (無償)", "currency": "stones", "mean": 60, "sd": 0},
+    {"name": "login bonus stones (無償)", "currency": "stones", "mean": 40, "sd": 0},
+    {"name": "story / event first-clear stones (無償)", "currency": "stones", "mean": 400, "sd": 100, "prob": 0.12}
+  ],
+  "sinks": [
+    {"name": "monster level-up", "currency": "coin", "kind": "buy", "cost": 9000, "cost_growth": 0.01,
+     "max_per_session": 1, "reserve": 0},
+    {"name": "skill training", "currency": "coin", "kind": "fixed", "amount": 2000}
+  ],
+  "gacha": {
+    "name": "Pickup banner (v1)",
+    "currency": "stones",
+    "cost": 150,
+    "max_pulls_per_session": 10,
+    "reserve": 0,
+    "rates": {"SSR": 0.02, "SR": 0.12}
+  },
+  "banner": {
+    "days": 14,
+    "pickup_share": 0.5,
+    "guarantee_after_loss": false,
+    "spark": 300,
+    "carry_pity": false,
+    "carry_spark": false,
+    "consume": "free_first",
+    "yen_per_paid_stone": 1.667
+  }
+}

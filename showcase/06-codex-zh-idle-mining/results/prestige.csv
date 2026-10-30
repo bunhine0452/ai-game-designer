@@ -1,0 +1,6 @@
+chapter,target_level,multiplier,reward,run_minutes,cumulative_minutes,last_upgrade_minutes,ready_calendar_hours,claim_calendar_hours
+1,40,1,1,41.403,41.403,2.422,0.69,8.0
+2,55,2,2,48.981,90.384,2.649,8.816,16.0
+3,70,4,4,55.422,145.806,2.897,16.924,24.0
+4,85,8,8,61.543,207.348,3.169,25.026,32.0
+5,100,16,0,67.776,275.124,3.466,33.13,40.0

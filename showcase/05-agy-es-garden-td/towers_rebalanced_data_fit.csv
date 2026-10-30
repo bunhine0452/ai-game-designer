@@ -1,0 +1,13 @@
+name,cost,fair_cost,residual,verdict
+Cactus Espinoso,150.0,152.35,2.35,undercosted (too strong)
+Calabaza Bomba,230.0,232.27,2.27,undercosted (too strong)
+Diente de León Céfiro,190.0,192.09,2.09,on curve
+Girasol Radiante,95.0,95.75,0.75,on curve
+Lirio Glacial,185.0,185.07,0.07,on curve
+Planta Carnívora,175.0,174.93,-0.07,on curve
+Sauce Protector,245.0,244.56,-0.44,on curve
+Mazorca Cañonera,270.0,269.1,-0.9,on curve
+Orquídea Real,170.0,168.96,-1.04,on curve
+Rosa Francotiradora,205.0,203.93,-1.07,on curve
+Brote Guisante,110.0,108.28,-1.72,on curve
+Seta Esporífera,190.0,187.72,-2.28,overcosted (too weak)

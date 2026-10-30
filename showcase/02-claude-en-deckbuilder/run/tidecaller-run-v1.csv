@@ -1,0 +1,30 @@
+# title: Tidecaller 30-minute run (draft v1)
+# unit: min
+# Intensity = felt engagement 0-10 (rubric: 4-5 routine fight, 6-7 elite or new twist, 8 boss, 9 final boss, 10 once).
+time,intensity,type,label
+0.0,2,story,Lighthouse intro: the keeper hands you the tide
+1.0,3,setup,Starter deck review + tide gauge tutorial popup
+2.0,4,combat,Fight 1: tide-pool crabs (tutorial Surge to Crest)
+3.5,4,reward,Card reward (pick 1 of 3)
+4.5,5,combat,Fight 2: gull flock
+6.0,6,elite,Elite: Barnacle Knight
+7.0,3,shop,Shop
+8.0,5,combat,Fight 3: eels
+9.0,9,boss,Act 1 boss: The Drowned Choir
+10.0,4,reward,Boss relic pick
+11.0,5,combat,Act 2 fight: reef sharks
+12.5,5,combat,Act 2 fight: jellyfish swarm
+14.0,5,combat,Act 2 fight: sharks + eel
+15.5,5,combat,Act 2 fight: siren pair
+16.5,10,combat,Deck comes online: first Crest chain (3 Crests in one turn)
+17.5,4,reward,Card reward
+18.5,8,boss,Act 2 boss: Storm Kraken
+19.5,3,rest,Rest site
+20.5,6,combat,Act 3 fight: abyssal lanterns
+22.0,8,elite,Elite: Pressure Golem
+23.5,8,elite,Elite: Twin Moray
+25.0,8,combat,Act 3 fight: Deepwatch squad
+26.5,3,shop,Shop
+27.5,9,boss,Final boss: The Moon-Eater phase 1
+29.0,9,boss,Final boss phase 2 (more HP and damage)
+30.0,4,reward,Run summary + unlocks

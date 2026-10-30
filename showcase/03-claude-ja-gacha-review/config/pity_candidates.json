@@ -1,0 +1,19 @@
+[
+  {"name": "A_carryover_only",
+   "banner": {"carry_pity": true, "carry_spark": true}},
+  {"name": "B_spark200_carry",
+   "banner": {"spark": 200, "carry_pity": true, "carry_spark": true}},
+  {"name": "C_rate3_guarantee_spark120",
+   "gacha": {"rates": {"SSR": 0.03, "SR": 0.12}},
+   "banner": {"guarantee_after_loss": true, "spark": 120, "carry_pity": true, "carry_spark": true}},
+  {"name": "D_hard80_guarantee_spark200",
+   "gacha": {"pity": {"item": "SSR", "hard": 80, "soft_start": 60, "soft_step": 0.06}},
+   "banner": {"guarantee_after_loss": true, "spark": 200, "carry_pity": true, "carry_spark": true}},
+  {"name": "C2_same_as_C_but_paid_first",
+   "gacha": {"rates": {"SSR": 0.03, "SR": 0.12}},
+   "banner": {"guarantee_after_loss": true, "spark": 120, "carry_pity": true, "carry_spark": true,
+              "consume": "paid_first"}},
+  {"name": "E_hard70_guarantee_spark120",
+   "gacha": {"pity": {"item": "SSR", "hard": 70, "soft_start": 55, "soft_step": 0.05}},
+   "banner": {"guarantee_after_loss": true, "spark": 120, "carry_pity": true, "carry_spark": true}}
+]

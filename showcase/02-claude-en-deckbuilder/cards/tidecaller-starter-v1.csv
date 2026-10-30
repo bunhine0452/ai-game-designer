@@ -1,0 +1,30 @@
+# Tidecaller starter pool, draft v1 (24 cards). Every card moves the Tide gauge (0-10, starts at 5).
+# Surge N = raise the tide by N; Ebb N = lower it by N. Tide 10 = CREST (8 damage to ALL, reset to 5).
+# Tide 0 = SLACK WATER (gain 8 block, draw 1, reset to 5). Drench N = target's next N hits taken deal +3.
+# Numeric columns are fitted by cost_curve.py; direction, rarity, archetype and text are ignored by the fit.
+# tide = how far the card moves the gauge, in either direction (moving it is the resource that feeds Crest and Slack).
+name,cost,damage,block,draw,tide,drench,aoe,exhaust,direction,rarity,archetype,text
+Splash,1,6,0,0,1,0,0,0,Surge,Basic,Crest,"Deal 6. Surge 1."
+Brace,1,0,5,0,1,0,0,0,Ebb,Basic,Slack,"Gain 5 block. Ebb 1."
+Riptide,1,6,0,0,1,1,0,0,Surge,Common,Crest,"Deal 6. Drench 1. Surge 1."
+Undertow,1,4,0,1,1,0,0,0,Ebb,Common,Current,"Deal 4. Draw 1. Ebb 1."
+Brine Lash,1,5,0,0,1,1,0,0,Surge,Common,Crest,"Deal 5. Drench 1. Surge 1."
+Kelp Snare,1,0,4,0,1,1,0,0,Ebb,Common,Slack,"Gain 4 block. Drench 1. Ebb 1."
+Mist Veil,1,0,7,0,1,0,0,0,Ebb,Common,Slack,"Gain 7 block. Ebb 1."
+Ebb and Flow,1,0,0,2,2,0,0,0,Either,Common,Current,"Draw 2. Surge 2 or Ebb 2."
+Spindrift,1,4,0,0,2,0,1,0,Surge,Common,Crest,"Deal 4 to ALL enemies. Surge 2."
+Rogue Wave,1,14,0,0,2,0,0,0,Surge,Uncommon,Crest,"Deal 14. Surge 2."
+Spring Tide,0,0,0,2,4,0,0,0,Surge,Uncommon,Current,"Draw 2. Surge 4."
+Neap Tide,0,0,0,1,3,0,0,1,Ebb,Common,Current,"Draw 1. Ebb 3. Exhaust."
+Saltspray,0,3,0,0,1,1,0,1,Surge,Common,Crest,"Deal 3. Drench 1. Surge 1. Exhaust."
+Breakwater,2,0,12,0,1,0,0,0,Ebb,Common,Slack,"Gain 12 block. Ebb 1."
+Swell,2,10,0,0,2,0,0,0,Surge,Common,Crest,"Deal 10. Surge 2."
+Whirlpool,2,6,0,0,1,1,1,0,Ebb,Uncommon,Slack,"Deal 6 to ALL enemies. Drench 1. Ebb 1."
+Moonpull,2,0,3,2,4,0,0,0,Surge,Uncommon,Current,"Gain 3 block. Draw 2. Surge 4."
+Crest Breaker,2,12,0,0,1,0,0,0,Surge,Common,Crest,"Deal 12. Surge 1."
+Deep Current,2,0,8,1,1,0,0,0,Ebb,Common,Current,"Gain 8 block. Draw 1. Ebb 1."
+Still Water,2,0,5,0,1,0,0,0,Ebb,Uncommon,Slack,"Gain 5 block. Ebb 1. If the tide did not change this turn, keep this block."
+Tidal Wave,3,12,0,0,3,0,1,0,Surge,Rare,Crest,"Deal 12 to ALL enemies. Surge 3."
+Maelstrom,3,18,0,0,1,2,0,1,Ebb,Rare,Slack,"Deal 18. Drench 2. Ebb 1. Exhaust."
+Abyssal Call,3,0,14,0,3,0,0,0,Ebb,Rare,Slack,"Gain 14 block. Ebb 3."
+Drowned Bell,3,8,0,0,1,1,1,1,Ebb,Uncommon,Slack,"Deal 8 to ALL enemies. Drench 1. Ebb 1. Exhaust."

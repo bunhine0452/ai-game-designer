@@ -1,0 +1,158 @@
+{
+  "title": "Low Tide — revised chapter",
+  "unit": "min",
+  "metrics": {
+    "duration": 40.0,
+    "beats": 23,
+    "mean_intensity": 5.99,
+    "peak_count": 5,
+    "climax_time": 38.0,
+    "climax_position": 0.95,
+    "climax_intensity": 10.0,
+    "hook_peak": 6.0,
+    "share_high": 0.077,
+    "share_low": 0.005,
+    "pacing_score": 100
+  },
+  "findings": [],
+  "beats": [
+    {
+      "time": 0.0,
+      "intensity": 3.0,
+      "type": "explore",
+      "label": "Land at the service quay; establish the tide mark and exit route"
+    },
+    {
+      "time": 2.0,
+      "intensity": 6.0,
+      "type": "story",
+      "label": "A disconnected radio repeats your arrival words before you speak"
+    },
+    {
+      "time": 4.0,
+      "intensity": 3.5,
+      "type": "puzzle",
+      "label": "In the dry gatehouse learn the pump bypass on a powerless model"
+    },
+    {
+      "time": 6.0,
+      "intensity": 5.0,
+      "type": "explore",
+      "label": "Wade into the intake; read fresh footprints climbing out of the water"
+    },
+    {
+      "time": 8.0,
+      "intensity": 7.0,
+      "type": "stealth",
+      "label": "First keeper encounter; shut the sluice after watching its patrol"
+    },
+    {
+      "time": 10.0,
+      "intensity": 4.0,
+      "type": "rest",
+      "label": "Latch the maintenance alcove; recover and discover a rescue call sign"
+    },
+    {
+      "time": 12.0,
+      "intensity": 5.0,
+      "type": "puzzle",
+      "label": "Reroute the lower pump using the learned bypass"
+    },
+    {
+      "time": 14.0,
+      "intensity": 6.0,
+      "type": "explore",
+      "label": "Falling water reveals crew harnesses chained to the stairs"
+    },
+    {
+      "time": 16.0,
+      "intensity": 7.5,
+      "type": "stealth",
+      "label": "Cross the exposed gallery while the keeper searches below"
+    },
+    {
+      "time": 18.0,
+      "intensity": 4.5,
+      "type": "story",
+      "label": "Seal the chart room; learn that the beacon summoned the drowned crew"
+    },
+    {
+      "time": 20.0,
+      "intensity": 5.5,
+      "type": "puzzle",
+      "label": "Use the chart to choose a lens path that signals the living boat"
+    },
+    {
+      "time": 22.0,
+      "intensity": 6.5,
+      "type": "explore",
+      "label": "Climb the drowned stair as the keeper follows the moving beam"
+    },
+    {
+      "time": 24.0,
+      "intensity": 8.0,
+      "type": "chase",
+      "label": "Surge breaks the stair; use a practiced sluice to cut off pursuit"
+    },
+    {
+      "time": 26.0,
+      "intensity": 5.0,
+      "type": "rest",
+      "label": "Secure the upper winch room; checkpoint and plan the final route"
+    },
+    {
+      "time": 28.0,
+      "intensity": 6.0,
+      "type": "puzzle",
+      "label": "Practice rotating the lens shutter to open the roof access"
+    },
+    {
+      "time": 30.0,
+      "intensity": 7.0,
+      "type": "stealth",
+      "label": "Apply the shutter cycle with the keeper on the other side of the lens"
+    },
+    {
+      "time": 32.0,
+      "intensity": 8.5,
+      "type": "chase",
+      "label": "Release the lens counterweight while retreating to the roof hatch"
+    },
+    {
+      "time": 34.0,
+      "intensity": 5.5,
+      "type": "rest",
+      "label": "Counterweight pins the hatch; brief sheltered landing before roof exit"
+    },
+    {
+      "time": 36.0,
+      "intensity": 7.0,
+      "type": "puzzle",
+      "label": "Choose the known rescue call sign and redirect the beam offshore"
+    },
+    {
+      "time": 37.0,
+      "intensity": 9.0,
+      "type": "chase",
+      "label": "Keeper breaches the roof; follow the established tether to the boat"
+    },
+    {
+      "time": 38.0,
+      "intensity": 10.0,
+      "type": "chase",
+      "label": "Sever the lit tether as the beacon turns toward you; escape the surge"
+    },
+    {
+      "time": 39.0,
+      "intensity": 5.0,
+      "type": "story",
+      "label": "Boat clears the tower; the radio finally answers in a living voice"
+    },
+    {
+      "time": 40.0,
+      "intensity": 3.0,
+      "type": "rest",
+      "label": "Record the rescued crew name; lighthouse beam sinks below the water"
+    }
+  ]
+}

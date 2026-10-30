@@ -1,0 +1,25 @@
+name,cost,fair_cost,residual,verdict
+Rogue Wave,1.0,2.38,1.38,undercosted (too strong)
+Spring Tide,0.0,0.73,0.73,on curve
+Spindrift,1.0,1.52,0.52,on curve
+Breakwater,2.0,2.39,0.39,on curve
+Maelstrom,3.0,3.36,0.36,on curve
+Saltspray,0.0,0.27,0.27,on curve
+Mist Veil,1.0,1.26,0.26,on curve
+Whirlpool,2.0,2.1,0.1,on curve
+Deep Current,2.0,2.06,0.06,on curve
+Tidal Wave,3.0,3.04,0.04,on curve
+Undertow,1.0,1.04,0.04,on curve
+Neap Tide,0.0,0.03,0.03,on curve
+Crest Breaker,2.0,2.03,0.03,on curve
+Riptide,1.0,1.01,0.01,on curve
+Splash,1.0,0.86,-0.14,on curve
+Brine Lash,1.0,0.82,-0.18,on curve
+Brace,1.0,0.81,-0.19,on curve
+Ebb and Flow,1.0,0.8,-0.2,on curve
+Abyssal Call,3.0,2.77,-0.23,on curve
+Kelp Snare,1.0,0.74,-0.26,on curve
+Swell,2.0,1.6,-0.4,on curve
+Moonpull,2.0,1.4,-0.6,on curve
+Drowned Bell,3.0,2.34,-0.66,on curve
+Still Water,2.0,0.81,-1.19,overcosted (too weak)

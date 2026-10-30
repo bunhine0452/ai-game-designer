@@ -1,0 +1,243 @@
+{
+  "title": "Low Tide — original draft",
+  "unit": "min",
+  "metrics": {
+    "duration": 40.0,
+    "beats": 21,
+    "mean_intensity": 5.69,
+    "peak_count": 3,
+    "climax_time": 12.0,
+    "climax_position": 0.3,
+    "climax_intensity": 10.0,
+    "hook_peak": 3.0,
+    "share_high": 0.219,
+    "share_low": 0.254,
+    "pacing_score": 0
+  },
+  "findings": [
+    {
+      "code": "MISSING_HOOK",
+      "severity": "high",
+      "message": "No beat reaches 6/10 in the first 10% of the experience (best is 3). Players decide early whether to keep going.",
+      "suggestion": "Open with a short, legible high-interest moment (a promise of the core fantasy, a striking reveal, or a quick win), then dip to teach.",
+      "start": 0.0,
+      "end": 4.0
+    },
+    {
+      "code": "FLAT_ZONE",
+      "severity": "high",
+      "message": "0.0-8.0: intensity stays within ±0.5 around 2.9 for 8.0 units (low and flat: boredom and quit risk).",
+      "suggestion": "Insert a contrast beat: a twist on the current mechanic, a new threat, a reveal, a reward, or a deliberate rest that sets up the next rise.",
+      "start": 0.0,
+      "end": 8.0
+    },
+    {
+      "code": "EARLY_CLIMAX",
+      "severity": "high",
+      "message": "The strongest moment (10, The drowned keeper tears through the pump hall; flee upstairs) happens at 30% of the experience; later beats never top it.",
+      "suggestion": "Move or build a climax into the last 30%, or reduce the early peak so the ending is the highest point.",
+      "start": 12.0,
+      "end": 12.0
+    },
+    {
+      "code": "SUSTAINED_PEAK",
+      "severity": "medium",
+      "message": "11.3-20.0: intensity stays at or above 8 for 8.7 units (22% of the run).",
+      "suggestion": "Break the plateau into two peaks with a short release between them, or vary the kind of intensity (spatial, cognitive, emotional).",
+      "start": 11.3,
+      "end": 20.0
+    },
+    {
+      "code": "NO_ESCALATION",
+      "severity": "medium",
+      "message": "Peaks after the hook don't rise (trend -6.6 points across the run).",
+      "suggestion": "Make each major peak a little stronger or more complex than the last: sawtooth upward, resetting lower after each release.",
+      "start": 12.0,
+      "end": 30.0
+    },
+    {
+      "code": "FLAT_ZONE",
+      "severity": "medium",
+      "message": "13.0-20.0: intensity stays within ±0.5 around 8.1 for 7.0 units (high and flat: numbness and fatigue risk).",
+      "suggestion": "Insert a contrast beat: a twist on the current mechanic, a new threat, a reveal, a reward, or a deliberate rest that sets up the next rise.",
+      "start": 13.0,
+      "end": 20.0
+    },
+    {
+      "code": "NO_RELIEF",
+      "severity": "medium",
+      "message": "Peak at 20.0 (8, Return through the same pursuit corridor) is not followed by a drop of 2.5+ within 4.8 units.",
+      "suggestion": "After a peak, give a release beat (safe room, loot, story, shop, short traversal) so the next peak lands harder.",
+      "start": 20.0,
+      "end": 24.8
+    },
+    {
+      "code": "FLAT_ZONE",
+      "severity": "medium",
+      "message": "20.1-30.1: intensity stays within ±0.5 around 7.1 for 10.0 units (high and flat: numbness and fatigue risk).",
+      "suggestion": "Insert a contrast beat: a twist on the current mechanic, a new threat, a reveal, a reward, or a deliberate rest that sets up the next rise.",
+      "start": 20.1,
+      "end": 30.1
+    },
+    {
+      "code": "NO_RELIEF",
+      "severity": "medium",
+      "message": "Peak at 30.0 (7, Climb the service stair ahead of the keeper) is not followed by a drop of 2.5+ within 4.8 units.",
+      "suggestion": "After a peak, give a release beat (safe room, loot, story, shop, short traversal) so the next peak lands harder.",
+      "start": 30.0,
+      "end": 34.8
+    },
+    {
+      "code": "MONOTONY",
+      "severity": "low",
+      "message": "5 consecutive 'explore' beats from 0.0 to 8.0.",
+      "suggestion": "Interleave a different activity or change the rules of the repeated one.",
+      "start": 0.0,
+      "end": 8.0
+    },
+    {
+      "code": "MONOTONY",
+      "severity": "low",
+      "message": "5 consecutive 'chase' beats from 12.0 to 20.0.",
+      "suggestion": "Interleave a different activity or change the rules of the repeated one.",
+      "start": 12.0,
+      "end": 20.0
+    },
+    {
+      "code": "MONOTONY",
+      "severity": "low",
+      "message": "4 consecutive 'puzzle' beats from 22.0 to 28.0.",
+      "suggestion": "Interleave a different activity or change the rules of the repeated one.",
+      "start": 22.0,
+      "end": 28.0
+    }
+  ],
+  "beats": [
+    {
+      "time": 0.0,
+      "intensity": 2.0,
+      "type": "explore",
+      "label": "Land at the flooded service quay; inspect abandoned supplies"
+    },
+    {
+      "time": 2.0,
+      "intensity": 3.0,
+      "type": "explore",
+      "label": "Wade through the intake passage"
+    },
+    {
+      "time": 4.0,
+      "intensity": 3.0,
+      "type": "explore",
+      "label": "Search the keeper office for a key"
+    },
+    {
+      "time": 6.0,
+      "intensity": 3.0,
+      "type": "explore",
+      "label": "Read the maintenance log and find the pump diagram"
+    },
+    {
+      "time": 8.0,
+      "intensity": 3.0,
+      "type": "explore",
+      "label": "Return along the intake passage"
+    },
+    {
+      "time": 10.0,
+      "intensity": 5.0,
+      "type": "puzzle",
+      "label": "Restore the first pump with a valve sequence"
+    },
+    {
+      "time": 12.0,
+      "intensity": 10.0,
+      "type": "chase",
+      "label": "The drowned keeper tears through the pump hall; flee upstairs"
+    },
+    {
+      "time": 14.0,
+      "intensity": 8.0,
+      "type": "chase",
+      "label": "Cross the flooded gallery with the keeper behind"
+    },
+    {
+      "time": 16.0,
+      "intensity": 8.0,
+      "type": "chase",
+      "label": "Evade the keeper along a second gallery"
+    },
+    {
+      "time": 18.0,
+      "intensity": 8.0,
+      "type": "chase",
+      "label": "Repeat the gallery route to retrieve a fuse"
+    },
+    {
+      "time": 20.0,
+      "intensity": 8.0,
+      "type": "chase",
+      "label": "Return through the same pursuit corridor"
+    },
+    {
+      "time": 22.0,
+      "intensity": 7.0,
+      "type": "puzzle",
+      "label": "Fit the fuse while the keeper pounds on the door"
+    },
+    {
+      "time": 24.0,
+      "intensity": 7.0,
+      "type": "puzzle",
+      "label": "Turn the second bank of valves"
+    },
+    {
+      "time": 26.0,
+      "intensity": 7.0,
+      "type": "puzzle",
+      "label": "Repeat the valve pattern on the upper manifold"
+    },
+    {
+      "time": 28.0,
+      "intensity": 7.0,
+      "type": "puzzle",
+      "label": "Open the lens-room drain with another valve bank"
+    },
+    {
+      "time": 30.0,
+      "intensity": 7.0,
+      "type": "chase",
+      "label": "Climb the service stair ahead of the keeper"
+    },
+    {
+      "time": 32.0,
+      "intensity": 6.0,
+      "type": "story",
+      "label": "Listen to a radio recording about the lost rescue crew"
+    },
+    {
+      "time": 34.0,
+      "intensity": 5.0,
+      "type": "puzzle",
+      "label": "Align the lighthouse lens"
+    },
+    {
+      "time": 36.0,
+      "intensity": 4.0,
+      "type": "explore",
+      "label": "Walk to the roof beacon"
+    },
+    {
+      "time": 38.0,
+      "intensity": 3.0,
+      "type": "story",
+      "label": "Wait for the rescue boat"
+    },
+    {
+      "time": 40.0,
+      "intensity": 2.0,
+      "type": "rest",
+      "label": "Board the boat; chapter ends"
+    }
+  ]
+}

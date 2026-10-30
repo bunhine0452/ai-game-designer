@@ -1,0 +1,33 @@
+# Tidecaller starter pool, FINAL v3 (24 cards).
+# Changed vs v1: Rogue Wave (cost 1->2, 14->12 dmg), Spring Tide (cost 0->1, draw 2->1), Still Water (rework: 8 block, Ebb 3),
+#                Drowned Bell (cost 3->2), Crest Breaker (Surge 1 -> Ebb 1; design fix, not a fit fix).
+# Schema change vs v1/v2: AoE is priced per point (aoe_damage = damage dealt to ALL enemies) instead of a flat 0/1 flag.
+# Every card moves the Tide gauge (0-10, starts at 5).
+# Surge N = raise the tide by N; Ebb N = lower it by N. Tide 10 = CREST (8 damage to ALL, reset to 5).
+# Tide 0 = SLACK WATER (gain 8 block, draw 1, reset to 5). Drench N = target's next N hits taken deal +3.
+# tide = how far the card moves the gauge, in either direction (moving it is the resource that feeds Crest and Slack).
+name,cost,damage,aoe_damage,block,draw,tide,drench,exhaust,direction,rarity,archetype,text
+Splash,1,6,0,0,0,1,0,0,Surge,Basic,Crest,"Deal 6. Surge 1."
+Brace,1,0,0,5,0,1,0,0,Ebb,Basic,Slack,"Gain 5 block. Ebb 1."
+Riptide,1,6,0,0,0,1,1,0,Surge,Common,Crest,"Deal 6. Drench 1. Surge 1."
+Undertow,1,4,0,0,1,1,0,0,Ebb,Common,Current,"Deal 4. Draw 1. Ebb 1."
+Brine Lash,1,5,0,0,0,1,1,0,Surge,Common,Crest,"Deal 5. Drench 1. Surge 1."
+Kelp Snare,1,0,0,4,0,1,1,0,Ebb,Common,Slack,"Gain 4 block. Drench 1. Ebb 1."
+Mist Veil,1,0,0,7,0,1,0,0,Ebb,Common,Slack,"Gain 7 block. Ebb 1."
+Ebb and Flow,1,0,0,0,2,2,0,0,Either,Common,Current,"Draw 2. Surge 2 or Ebb 2."
+Spindrift,1,0,4,0,0,2,0,0,Surge,Common,Crest,"Deal 4 to ALL enemies. Surge 2."
+Rogue Wave,2,12,0,0,0,2,0,0,Surge,Uncommon,Crest,"Deal 12. Surge 2."
+Spring Tide,1,0,0,0,1,4,0,0,Surge,Uncommon,Current,"Draw 1. Surge 4."
+Neap Tide,0,0,0,0,1,3,0,1,Ebb,Common,Current,"Draw 1. Ebb 3. Exhaust."
+Saltspray,0,3,0,0,0,1,1,1,Surge,Common,Crest,"Deal 3. Drench 1. Surge 1. Exhaust."
+Breakwater,2,0,0,12,0,1,0,0,Ebb,Common,Slack,"Gain 12 block. Ebb 1."
+Swell,2,10,0,0,0,2,0,0,Surge,Common,Crest,"Deal 10. Surge 2."
+Whirlpool,2,0,6,0,0,1,1,0,Ebb,Uncommon,Slack,"Deal 6 to ALL enemies. Drench 1. Ebb 1."
+Moonpull,2,0,0,3,2,4,0,0,Surge,Uncommon,Current,"Gain 3 block. Draw 2. Surge 4."
+Crest Breaker,2,12,0,0,0,1,0,0,Ebb,Common,Slack,"Deal 12. Ebb 1."
+Deep Current,2,0,0,8,1,1,0,0,Ebb,Common,Current,"Gain 8 block. Draw 1. Ebb 1."
+Still Water,2,0,0,8,0,3,0,0,Ebb,Uncommon,Slack,"Gain 8 block. Ebb 3."
+Tidal Wave,3,0,12,0,0,3,0,0,Surge,Rare,Crest,"Deal 12 to ALL enemies. Surge 3."
+Maelstrom,3,18,0,0,0,1,2,1,Ebb,Rare,Slack,"Deal 18. Drench 2. Ebb 1. Exhaust."
+Abyssal Call,3,0,0,14,0,3,0,0,Ebb,Rare,Slack,"Gain 14 block. Ebb 3."
+Drowned Bell,2,0,8,0,0,1,1,1,Ebb,Uncommon,Slack,"Deal 8 to ALL enemies. Drench 1. Ebb 1. Exhaust."

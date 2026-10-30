@@ -1,0 +1,177 @@
+{
+  "title": "Monster Farm - one in-game day v1 (before)",
+  "unit": "min",
+  "metrics": {
+    "duration": 15.0,
+    "beats": 18,
+    "mean_intensity": 3.86,
+    "peak_count": 1,
+    "climax_time": 5.0,
+    "climax_position": 0.333,
+    "climax_intensity": 8.0,
+    "hook_peak": 4.0,
+    "share_high": 0.0,
+    "share_low": 0.14,
+    "pacing_score": 29
+  },
+  "findings": [
+    {
+      "code": "MISSING_HOOK",
+      "severity": "high",
+      "message": "No beat reaches 6/10 in the first 10% of the experience (best is 4). Players decide early whether to keep going.",
+      "suggestion": "Open with a short, legible high-interest moment (a promise of the core fantasy, a striking reveal, or a quick win), then dip to teach.",
+      "start": 0.0,
+      "end": 1.5
+    },
+    {
+      "code": "FLAT_ZONE",
+      "severity": "high",
+      "message": "0.0-3.5: intensity stays within ±0.5 around 3.9 for 3.5 units (low and flat: boredom and quit risk).",
+      "suggestion": "Insert a contrast beat: a twist on the current mechanic, a new threat, a reveal, a reward, or a deliberate rest that sets up the next rise.",
+      "start": 0.0,
+      "end": 3.4875
+    },
+    {
+      "code": "EARLY_CLIMAX",
+      "severity": "high",
+      "message": "The strongest moment (8, Rare crop harvest + shipping payout) happens at 33% of the experience; later beats never top it.",
+      "suggestion": "Move or build a climax into the last 30%, or reduce the early peak so the ending is the highest point.",
+      "start": 5.0,
+      "end": 5.0
+    },
+    {
+      "code": "FLAT_ZONE",
+      "severity": "high",
+      "message": "5.8-14.0: intensity stays within ±0.5 around 3.6 for 8.2 units (low and flat: boredom and quit risk).",
+      "suggestion": "Insert a contrast beat: a twist on the current mechanic, a new threat, a reveal, a reward, or a deliberate rest that sets up the next rise.",
+      "start": 5.8125,
+      "end": 13.9875
+    },
+    {
+      "code": "MONOTONY",
+      "severity": "medium",
+      "message": "5 consecutive 'farm' beats from 0.5 to 4.5.",
+      "suggestion": "Interleave a different activity or change the rules of the repeated one.",
+      "start": 0.5,
+      "end": 4.5
+    },
+    {
+      "code": "MONOTONY",
+      "severity": "low",
+      "message": "5 consecutive 'explore' beats from 8.0 to 11.5.",
+      "suggestion": "Interleave a different activity or change the rules of the repeated one.",
+      "start": 8.0,
+      "end": 11.5
+    }
+  ],
+  "beats": [
+    {
+      "time": 0.0,
+      "intensity": 3.0,
+      "type": "setup",
+      "label": "Wake up - check weather and calendar"
+    },
+    {
+      "time": 0.5,
+      "intensity": 4.0,
+      "type": "farm",
+      "label": "Walk the fields"
+    },
+    {
+      "time": 1.5,
+      "intensity": 4.0,
+      "type": "farm",
+      "label": "Water crops (order slime to help)"
+    },
+    {
+      "time": 2.5,
+      "intensity": 4.0,
+      "type": "farm",
+      "label": "Keep watering"
+    },
+    {
+      "time": 3.5,
+      "intensity": 4.0,
+      "type": "farm",
+      "label": "Pull weeds"
+    },
+    {
+      "time": 4.5,
+      "intensity": 5.0,
+      "type": "farm",
+      "label": "Harvest"
+    },
+    {
+      "time": 5.0,
+      "intensity": 8.0,
+      "type": "reward",
+      "label": "Rare crop harvest + shipping payout"
+    },
+    {
+      "time": 6.0,
+      "intensity": 3.0,
+      "type": "village",
+      "label": "Walk to village"
+    },
+    {
+      "time": 7.0,
+      "intensity": 4.0,
+      "type": "village",
+      "label": "Seed shop"
+    },
+    {
+      "time": 8.0,
+      "intensity": 3.0,
+      "type": "explore",
+      "label": "Walk to forest"
+    },
+    {
+      "time": 8.5,
+      "intensity": 4.0,
+      "type": "explore",
+      "label": "Forage"
+    },
+    {
+      "time": 9.5,
+      "intensity": 4.0,
+      "type": "explore",
+      "label": "Forage"
+    },
+    {
+      "time": 10.5,
+      "intensity": 4.0,
+      "type": "explore",
+      "label": "Forage"
+    },
+    {
+      "time": 11.5,
+      "intensity": 3.0,
+      "type": "explore",
+      "label": "Walk home"
+    },
+    {
+      "time": 12.0,
+      "intensity": 4.0,
+      "type": "monster",
+      "label": "Feed monsters"
+    },
+    {
+      "time": 13.0,
+      "intensity": 3.0,
+      "type": "monster",
+      "label": "Pet monsters"
+    },
+    {
+      "time": 14.0,
+      "intensity": 3.0,
+      "type": "rest",
+      "label": "Write diary"
+    },
+    {
+      "time": 15.0,
+      "intensity": 2.0,
+      "type": "rest",
+      "label": "Go to sleep"
+    }
+  ]
+}

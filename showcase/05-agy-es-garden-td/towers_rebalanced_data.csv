@@ -1,0 +1,13 @@
+name,cost,dps,range,aoe_radius,slow_pct
+Brote Guisante,110,22,3.0,0.0,0
+Cactus Espinoso,150,36,4.0,0.0,0
+Planta Carnívora,175,65,1.5,0.0,0
+Rosa Francotiradora,205,50,5.5,0.0,0
+Seta Esporífera,190,30,3.0,1.8,0
+Calabaza Bomba,230,45,2.5,2.4,0
+Lirio Glacial,185,10,3.2,1.2,45
+Girasol Radiante,95,8,2.0,0.0,25
+Diente de León Céfiro,190,25,5.0,1.0,10
+Sauce Protector,245,20,3.5,2.0,50
+Mazorca Cañonera,270,55,4.5,2.0,0
+Orquídea Real,170,22,3.5,0.8,20

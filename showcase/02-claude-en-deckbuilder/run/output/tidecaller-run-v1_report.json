@@ -1,0 +1,225 @@
+{
+  "title": "Tidecaller 30-minute run (draft v1)",
+  "unit": "min",
+  "metrics": {
+    "duration": 30.0,
+    "beats": 26,
+    "mean_intensity": 5.76,
+    "peak_count": 5,
+    "climax_time": 16.5,
+    "climax_position": 0.55,
+    "climax_intensity": 10.0,
+    "hook_peak": 4.0,
+    "share_high": 0.202,
+    "share_low": 0.037,
+    "pacing_score": 43
+  },
+  "findings": [
+    {
+      "code": "MISSING_HOOK",
+      "severity": "high",
+      "message": "No beat reaches 6/10 in the first 10% of the experience (best is 4). Players decide early whether to keep going.",
+      "suggestion": "Open with a short, legible high-interest moment (a promise of the core fantasy, a striking reveal, or a quick win), then dip to teach.",
+      "start": 0.0,
+      "end": 3.0
+    },
+    {
+      "code": "EARLY_CLIMAX",
+      "severity": "high",
+      "message": "The strongest moment (10, Deck comes online: first Crest chain (3 Crests in one turn)) happens at 55% of the experience; later beats never top it.",
+      "suggestion": "Move or build a climax into the last 30%, or reduce the early peak so the ending is the highest point.",
+      "start": 16.5,
+      "end": 16.5
+    },
+    {
+      "code": "NO_ESCALATION",
+      "severity": "medium",
+      "message": "Peaks after the hook don't rise (trend -0.9 points across the run).",
+      "suggestion": "Make each major peak a little stronger or more complex than the last: sawtooth upward, resetting lower after each release.",
+      "start": 9.0,
+      "end": 29.0
+    },
+    {
+      "code": "FLAT_ZONE",
+      "severity": "medium",
+      "message": "9.8-15.4: intensity stays within ±0.5 around 4.9 for 5.6 units (flat: interest stops moving).",
+      "suggestion": "Insert a contrast beat: a twist on the current mechanic, a new threat, a reveal, a reward, or a deliberate rest that sets up the next rise.",
+      "start": 9.825,
+      "end": 15.45
+    },
+    {
+      "code": "FLAT_ZONE",
+      "severity": "medium",
+      "message": "21.3-25.3: intensity stays within ±0.5 around 7.9 for 4.0 units (high and flat: numbness and fatigue risk).",
+      "suggestion": "Insert a contrast beat: a twist on the current mechanic, a new threat, a reveal, a reward, or a deliberate rest that sets up the next rise.",
+      "start": 21.3,
+      "end": 25.275
+    },
+    {
+      "code": "MONOTONY",
+      "severity": "low",
+      "message": "5 consecutive 'combat' beats from 11.0 to 16.5.",
+      "suggestion": "Interleave a different activity or change the rules of the repeated one.",
+      "start": 11.0,
+      "end": 16.5
+    }
+  ],
+  "beats": [
+    {
+      "time": 0.0,
+      "intensity": 2.0,
+      "type": "story",
+      "label": "Lighthouse intro: the keeper hands you the tide"
+    },
+    {
+      "time": 1.0,
+      "intensity": 3.0,
+      "type": "setup",
+      "label": "Starter deck review + tide gauge tutorial popup"
+    },
+    {
+      "time": 2.0,
+      "intensity": 4.0,
+      "type": "combat",
+      "label": "Fight 1: tide-pool crabs (tutorial Surge to Crest)"
+    },
+    {
+      "time": 3.5,
+      "intensity": 4.0,
+      "type": "reward",
+      "label": "Card reward (pick 1 of 3)"
+    },
+    {
+      "time": 4.5,
+      "intensity": 5.0,
+      "type": "combat",
+      "label": "Fight 2: gull flock"
+    },
+    {
+      "time": 6.0,
+      "intensity": 6.0,
+      "type": "elite",
+      "label": "Elite: Barnacle Knight"
+    },
+    {
+      "time": 7.0,
+      "intensity": 3.0,
+      "type": "shop",
+      "label": "Shop"
+    },
+    {
+      "time": 8.0,
+      "intensity": 5.0,
+      "type": "combat",
+      "label": "Fight 3: eels"
+    },
+    {
+      "time": 9.0,
+      "intensity": 9.0,
+      "type": "boss",
+      "label": "Act 1 boss: The Drowned Choir"
+    },
+    {
+      "time": 10.0,
+      "intensity": 4.0,
+      "type": "reward",
+      "label": "Boss relic pick"
+    },
+    {
+      "time": 11.0,
+      "intensity": 5.0,
+      "type": "combat",
+      "label": "Act 2 fight: reef sharks"
+    },
+    {
+      "time": 12.5,
+      "intensity": 5.0,
+      "type": "combat",
+      "label": "Act 2 fight: jellyfish swarm"
+    },
+    {
+      "time": 14.0,
+      "intensity": 5.0,
+      "type": "combat",
+      "label": "Act 2 fight: sharks + eel"
+    },
+    {
+      "time": 15.5,
+      "intensity": 5.0,
+      "type": "combat",
+      "label": "Act 2 fight: siren pair"
+    },
+    {
+      "time": 16.5,
+      "intensity": 10.0,
+      "type": "combat",
+      "label": "Deck comes online: first Crest chain (3 Crests in one turn)"
+    },
+    {
+      "time": 17.5,
+      "intensity": 4.0,
+      "type": "reward",
+      "label": "Card reward"
+    },
+    {
+      "time": 18.5,
+      "intensity": 8.0,
+      "type": "boss",
+      "label": "Act 2 boss: Storm Kraken"
+    },
+    {
+      "time": 19.5,
+      "intensity": 3.0,
+      "type": "rest",
+      "label": "Rest site"
+    },
+    {
+      "time": 20.5,
+      "intensity": 6.0,
+      "type": "combat",
+      "label": "Act 3 fight: abyssal lanterns"
+    },
+    {
+      "time": 22.0,
+      "intensity": 8.0,
+      "type": "elite",
+      "label": "Elite: Pressure Golem"
+    },
+    {
+      "time": 23.5,
+      "intensity": 8.0,
+      "type": "elite",
+      "label": "Elite: Twin Moray"
+    },
+    {
+      "time": 25.0,
+      "intensity": 8.0,
+      "type": "combat",
+      "label": "Act 3 fight: Deepwatch squad"
+    },
+    {
+      "time": 26.5,
+      "intensity": 3.0,
+      "type": "shop",
+      "label": "Shop"
+    },
+    {
+      "time": 27.5,
+      "intensity": 9.0,
+      "type": "boss",
+      "label": "Final boss: The Moon-Eater phase 1"
+    },
+    {
+      "time": 29.0,
+      "intensity": 9.0,
+      "type": "boss",
+      "label": "Final boss phase 2 (more HP and damage)"
+    },
+    {
+      "time": 30.0,
+      "intensity": 4.0,
+      "type": "reward",
+      "label": "Run summary + unlocks"
+    }
+  ]
+}

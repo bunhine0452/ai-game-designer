@@ -1,0 +1,194 @@
+{
+  "title": "Tidecaller 30-minute run (revised v2)",
+  "unit": "min",
+  "metrics": {
+    "duration": 30.0,
+    "beats": 29,
+    "mean_intensity": 5.99,
+    "peak_count": 9,
+    "climax_time": 29.0,
+    "climax_position": 0.967,
+    "climax_intensity": 10.0,
+    "hook_peak": 7.0,
+    "share_high": 0.085,
+    "share_low": 0.002,
+    "pacing_score": 100
+  },
+  "findings": [],
+  "beats": [
+    {
+      "time": 0.0,
+      "intensity": 4.0,
+      "type": "setup",
+      "label": "Pick 1 of 3 starting tide relics (20 s; intro moved to the death screen)"
+    },
+    {
+      "time": 0.5,
+      "intensity": 7.0,
+      "type": "combat",
+      "label": "Cold open: shipwreck ambush at tide 8 - first Crest inside 60 s"
+    },
+    {
+      "time": 1.5,
+      "intensity": 4.0,
+      "type": "reward",
+      "label": "First card reward (pick 1 of 3)"
+    },
+    {
+      "time": 2.5,
+      "intensity": 5.0,
+      "type": "combat",
+      "label": "Fight: tide-pool crabs push the gauge (enemy tide intent introduced)"
+    },
+    {
+      "time": 3.5,
+      "intensity": 6.0,
+      "type": "event",
+      "label": "Event: Riptide shrine - trade HP for a Surge relic"
+    },
+    {
+      "time": 4.5,
+      "intensity": 6.0,
+      "type": "combat",
+      "label": "Fight: gull flock (AoE check)"
+    },
+    {
+      "time": 6.0,
+      "intensity": 7.0,
+      "type": "elite",
+      "label": "Elite: Barnacle Knight (armored unless the tide is low)"
+    },
+    {
+      "time": 7.0,
+      "intensity": 3.0,
+      "type": "shop",
+      "label": "Shop: first card removal"
+    },
+    {
+      "time": 8.0,
+      "intensity": 5.0,
+      "type": "combat",
+      "label": "Fight: eels"
+    },
+    {
+      "time": 9.0,
+      "intensity": 8.0,
+      "type": "boss",
+      "label": "Act 1 boss: The Drowned Choir"
+    },
+    {
+      "time": 10.0,
+      "intensity": 4.0,
+      "type": "reward",
+      "label": "Boss relic pick"
+    },
+    {
+      "time": 11.0,
+      "intensity": 5.0,
+      "type": "combat",
+      "label": "Act 2 fight: reef sharks (enemies now Ebb the gauge against you)"
+    },
+    {
+      "time": 12.5,
+      "intensity": 7.0,
+      "type": "event",
+      "label": "Spring-tide night: opt in - next 2 fights start at tide 8 for double gold"
+    },
+    {
+      "time": 13.5,
+      "intensity": 6.0,
+      "type": "combat",
+      "label": "Spring-tide fight: jellyfish swarm (Drench check)"
+    },
+    {
+      "time": 14.5,
+      "intensity": 3.0,
+      "type": "rest",
+      "label": "Tide pool: upgrade or heal"
+    },
+    {
+      "time": 15.5,
+      "intensity": 8.0,
+      "type": "combat",
+      "label": "Siren pair: the deck comes online - first double Crest"
+    },
+    {
+      "time": 16.5,
+      "intensity": 4.0,
+      "type": "reward",
+      "label": "Rare card reward"
+    },
+    {
+      "time": 17.5,
+      "intensity": 6.0,
+      "type": "elite",
+      "label": "Elite: Undertow Twins (one Surges and one Ebbs every turn)"
+    },
+    {
+      "time": 18.5,
+      "intensity": 8.5,
+      "type": "boss",
+      "label": "Act 2 boss: Storm Kraken (seizes the gauge every 2nd turn)"
+    },
+    {
+      "time": 19.5,
+      "intensity": 3.0,
+      "type": "rest",
+      "label": "Rest site + lighthouse story beat"
+    },
+    {
+      "time": 20.5,
+      "intensity": 6.0,
+      "type": "combat",
+      "label": "Act 3 fight: abyssal lanterns"
+    },
+    {
+      "time": 22.0,
+      "intensity": 8.0,
+      "type": "elite",
+      "label": "Elite: Pressure Golem"
+    },
+    {
+      "time": 23.0,
+      "intensity": 4.0,
+      "type": "event",
+      "label": "Event: wreck salvage (pick 1 of 3 upgrades)"
+    },
+    {
+      "time": 24.0,
+      "intensity": 7.0,
+      "type": "combat",
+      "label": "Act 3 fight: Deepwatch squad"
+    },
+    {
+      "time": 25.0,
+      "intensity": 8.0,
+      "type": "elite",
+      "label": "Elite: Twin Moray (optional path; skip = safer route)"
+    },
+    {
+      "time": 26.0,
+      "intensity": 3.0,
+      "type": "shop",
+      "label": "Shop + heal before the boss"
+    },
+    {
+      "time": 27.5,
+      "intensity": 9.0,
+      "type": "boss",
+      "label": "Final boss: The Moon-Eater phase 1"
+    },
+    {
+      "time": 29.0,
+      "intensity": 10.0,
+      "type": "boss",
+      "label": "Phase 2: the Moon-Eater swings the tide each turn - Crest on its turn to break it"
+    },
+    {
+      "time": 30.0,
+      "intensity": 5.0,
+      "type": "reward",
+      "label": "Short resolution: run summary + unlock"
+    }
+  ]
+}

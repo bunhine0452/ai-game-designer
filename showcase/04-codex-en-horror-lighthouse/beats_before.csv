@@ -1,0 +1,22 @@
+time,intensity,type,label
+0,2,explore,Land at the flooded service quay; inspect abandoned supplies
+2,3,explore,Wade through the intake passage
+4,3,explore,Search the keeper office for a key
+6,3,explore,Read the maintenance log and find the pump diagram
+8,3,explore,Return along the intake passage
+10,5,puzzle,Restore the first pump with a valve sequence
+12,10,chase,The drowned keeper tears through the pump hall; flee upstairs
+14,8,chase,Cross the flooded gallery with the keeper behind
+16,8,chase,Evade the keeper along a second gallery
+18,8,chase,Repeat the gallery route to retrieve a fuse
+20,8,chase,Return through the same pursuit corridor
+22,7,puzzle,Fit the fuse while the keeper pounds on the door
+24,7,puzzle,Turn the second bank of valves
+26,7,puzzle,Repeat the valve pattern on the upper manifold
+28,7,puzzle,Open the lens-room drain with another valve bank
+30,7,chase,Climb the service stair ahead of the keeper
+32,6,story,Listen to a radio recording about the lost rescue crew
+34,5,puzzle,Align the lighthouse lens
+36,4,explore,Walk to the roof beacon
+38,3,story,Wait for the rescue boat
+40,2,rest,Board the boat; chapter ends

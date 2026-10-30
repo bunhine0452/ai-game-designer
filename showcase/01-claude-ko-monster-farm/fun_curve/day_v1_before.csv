@@ -1,0 +1,23 @@
+# title: Monster Farm - one in-game day v1 (before)
+# unit: min
+# Intensity = felt engagement 0-10. One in-game day 06:00-24:00 = ~15 real minutes.
+# Types (shared with v2): setup, discover, monster, farm, explore, village, reward, rest
+time,intensity,type,label
+0.0,3,setup,Wake up - check weather and calendar
+0.5,4,farm,Walk the fields
+1.5,4,farm,Water crops (order slime to help)
+2.5,4,farm,Keep watering
+3.5,4,farm,Pull weeds
+4.5,5,farm,Harvest
+5.0,8,reward,Rare crop harvest + shipping payout
+6.0,3,village,Walk to village
+7.0,4,village,Seed shop
+8.0,3,explore,Walk to forest
+8.5,4,explore,Forage
+9.5,4,explore,Forage
+10.5,4,explore,Forage
+11.5,3,explore,Walk home
+12.0,4,monster,Feed monsters
+13.0,3,monster,Pet monsters
+14.0,3,rest,Write diary
+15.0,2,rest,Go to sleep
