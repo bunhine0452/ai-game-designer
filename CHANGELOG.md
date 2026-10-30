@@ -4,6 +4,29 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [1.6.0] - 2026-10-30
+
+### Added
+- **Workflow commands** (Claude Code): `/game-designer:new-game`, `balance-check`, `ship-check`
+  and `prototype` chain the skills into common workflows.
+- **Subagents:** `design-critic` (independent review) and `economy-auditor` (runs the
+  simulators and reports exact numbers).
+- **`export_engine.py`** (balance-economy): turns a final design table into Godot (Resource and
+  loader), Unity (Serializable row and ScriptableObject), Unreal (USTRUCT and DataTable CSV) or
+  typed JSON, with provenance. Adds `references/engine-handoff.md`.
+- **Playtest kit** (design-review): `playtest_report.py` (funnel, difficulty spikes, drop-off,
+  quit clusters, questionnaire means), `references/playtest-kit.md` and an example log.
+- **`game-design-charts`**, an optional marketplace plugin: a standard-library MCP server
+  (`interest_curve`, `gacha_odds`) that renders interactive charts in hosts that support MCP
+  Apps and returns exact text everywhere.
+- Agent Skills `license`, `compatibility` and `metadata` fields, plus `argument-hint`, on every
+  skill.
+- The README reports the with/without-plugin ablation over 21 cases: mean score 0.984 vs 0.778.
+
+### Notes
+- Submitted to the Claude plugin directory. One automated policy hold remains for reviewer
+  confirmation: a heuristic reads the word "pass" (as in "ethics pass") as a credential.
+
 ## [1.5.0] - 2026-10-30
 
 ### Changed
