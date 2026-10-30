@@ -83,7 +83,9 @@
 가져왔고, 게임마다 자체 테스트가 들어 있습니다 (`?test=1`을 붙여 열기). 3D 게임은 자동 조종이 배달 8건을
 모두 목표 시간 안에 끝내고, 픽셀 게임은 풀이기가 모든 방이 풀린다는 것을 증명합니다.
 
-**▶ [아케이드 열기](https://bunhine0452.github.io/ai-game-designer/games/?lang=ko)**
+**▶ [아케이드 열기](https://bunhine0452.github.io/ai-game-designer/games/?lang=ko)** · 봇 플레이 관전: [종이연 우편부 자동 조종](https://bunhine0452.github.io/ai-game-designer/games/kite-post/?autopilot=1&speed=2&lang=ko) · [도트 정원사 풀이기](https://bunhine0452.github.io/ai-game-designer/games/dot-gardener/?autoplay=1&lang=ja)
+
+<p align="center"><img src="docs/images/play/kite-post.gif" width="49%" alt="종이연 우편부: 자동 조종이 상승기류를 돌아 등대 섬에 편지를 떨어뜨림"> <img src="docs/images/play/dot-gardener.gif" width="49%" alt="도트 정원사: 풀이기가 덩굴 다리를 키우고 방이 개화함"></p>
 
 <table>
 <tr><td align="center" width="25%"><a href="https://bunhine0452.github.io/ai-game-designer/games/kite-post/"><img src="games/screenshots/kite-post.png" width="200" alt="Kite Post"></a><br><sub><b>종이연 우편부</b> · 3D</sub></td><td align="center" width="25%"><a href="https://bunhine0452.github.io/ai-game-designer/games/dot-gardener/"><img src="games/screenshots/dot-gardener.png" width="200" alt="Dot Gardener"></a><br><sub><b>도트 정원사</b> · 픽셀 아트</sub></td><td align="center" width="25%"><a href="https://bunhine0452.github.io/ai-game-designer/games/tidecaller/"><img src="games/screenshots/tidecaller.png" width="200" alt="Tidecaller"></a><br><sub><b>Tidecaller</b></sub></td><td align="center" width="25%"><a href="https://bunhine0452.github.io/ai-game-designer/games/monster-farm/"><img src="games/screenshots/monster-farm.png" width="200" alt="Monster Farm"></a><br><sub><b>몬스터 팜</b></sub></td></tr>

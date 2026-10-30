@@ -1503,10 +1503,10 @@ if (SHOT) {
   toast(`${tr("tLetter")} · <b>${dtx(G.di, 0)}</b> → ${dtx(G.di, 2)}`, 60000); hud(G);
   (function still() { renderer.render(scene, camera); requestAnimationFrame(still); })();
 } else {
-  titleScreen();
+  if (AUTO) startGame(); else titleScreen();   // ?autopilot=1 is a watch mode: the autopilot flies the real journey
   let acc = 0, last = performance.now(), lastAtt = -2;
   (function frame(now) {
-    const dt = Math.min(0.1, (now - last) / 1000) * (mode === "play" ? SPEED : 1); last = now;
+    const dt = Math.max(0, Math.min(0.1, (now - last) / 1000)) * (mode === "play" ? SPEED : 1); last = now;   // rAF stamps can precede the script's clock
     const g = world();
     if (mode === "play" || mode === "title") {
       acc += dt;

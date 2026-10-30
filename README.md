@@ -87,7 +87,9 @@ from the design docs, and each game ships self-tests (open it with `?test=1`): t
 autopilot flies all eight deliveries inside their target times, and the pixel game's solver proves
 every room.
 
-**▶ [Open the arcade](https://bunhine0452.github.io/ai-game-designer/games/)**
+**▶ [Open the arcade](https://bunhine0452.github.io/ai-game-designer/games/)** · watch the bots play: [Kite Post autopilot](https://bunhine0452.github.io/ai-game-designer/games/kite-post/?autopilot=1&speed=2) · [Dot Gardener solver](https://bunhine0452.github.io/ai-game-designer/games/dot-gardener/?autoplay=1)
+
+<p align="center"><img src="docs/images/play/kite-post.gif" width="49%" alt="Kite Post: the autopilot circles an updraft and drops a letter on the lighthouse isle"> <img src="docs/images/play/dot-gardener.gif" width="49%" alt="Dot Gardener: the solver grows vine bridges and the room blooms"></p>
 
 <table>
 <tr><td align="center" width="25%"><a href="https://bunhine0452.github.io/ai-game-designer/games/kite-post/"><img src="games/screenshots/kite-post.png" width="200" alt="Kite Post"></a><br><sub><b>Kite Post</b> · 3D</sub></td><td align="center" width="25%"><a href="https://bunhine0452.github.io/ai-game-designer/games/dot-gardener/"><img src="games/screenshots/dot-gardener.png" width="200" alt="Dot Gardener"></a><br><sub><b>Dot Gardener</b> · pixel art</sub></td><td align="center" width="25%"><a href="https://bunhine0452.github.io/ai-game-designer/games/tidecaller/"><img src="games/screenshots/tidecaller.png" width="200" alt="Tidecaller"></a><br><sub><b>Tidecaller</b></sub></td><td align="center" width="25%"><a href="https://bunhine0452.github.io/ai-game-designer/games/monster-farm/"><img src="games/screenshots/monster-farm.png" width="200" alt="Monster Farm"></a><br><sub><b>Monster Farm</b></sub></td></tr>

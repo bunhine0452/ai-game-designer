@@ -900,11 +900,12 @@ function setShot(k) {
 
 // ---- main ----
 fit(); enterRoom(0, false);
+if (AUTO && !SHOT && !TEST) startGame(0);   // ?autoplay=1 is a watch mode: the solver plays every room
 if (TEST) selftest();
 if (SHOT) { document.body.classList.add("shot"); setShot(params.get("shot")); }
 let last = performance.now();
 (function frame(now) {
-  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  const dt = Math.max(0, Math.min(0.05, (now - last) / 1000)); last = now;   // rAF stamps can precede the script's clock
   if (!SHOT) update(dt); else G.t += 0;
   G.shake = Math.max(0, G.shake - dt);
   if (G.scene === "play" || G.scene === "title") music(G.scene === "title" ? "bloom" : G.bloomT >= 0 ? "bloom" : G.room.R.dark ? "dark" : "decay");
