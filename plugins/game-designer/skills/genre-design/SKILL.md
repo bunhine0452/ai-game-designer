@@ -1,6 +1,13 @@
 ---
 name: genre-design
 description: Genre playbooks for designing games in any genre and combining genres. Each playbook covers core loop, signature mechanics, pacing shape, progression model, balancing levers, failure modes and reference games with why they work. Use when the user names a genre or asks how a genre works, what players expect, how to differentiate, or how to mix genres. Covers action, platformer, FPS/TPS shooter, fighting, JRPG/WRPG/ARPG, roguelike/roguelite, metroidvania, puzzle, RTS/4X/tactics, tower defense, simulation/tycoon, city builder, survival/crafting, sandbox, horror, narrative/adventure/visual novel, card game/deckbuilder, idle/incremental, casual/hypercasual/match-3, rhythm, racing, sports, MOBA, battle royale, MMO, party/social, educational/serious, and hybrids. Also triggers on 장르, 로그라이크, 메트로배니아, 덱빌딩, 방치형, 타워 디펜스, 장르 혼합; ジャンル, ローグライク, デッキ構築, 放置系, ジャンル融合; 游戏类型, 肉鸽, 卡牌构筑, 放置类, 塔防, 品类融合; género, mezcla de géneros.
+argument-hint: "[genre, hybrid, or concept]"
+license: MIT
+compatibility: Any agent that reads SKILL.md folders (Claude Code, Claude apps, Codex, Antigravity, Cursor, Copilot). Scripts need Python 3; matplotlib optional.
+metadata:
+  author: bunhine0452
+  version: "1.6.0"
+  repository: https://github.com/bunhine0452/ai-game-designer
 ---
 
 # Genre design playbooks

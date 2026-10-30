@@ -1,6 +1,13 @@
 ---
 name: balance-economy
 description: Designs and checks game numbers with runnable models. Covers progression curves and XP/level tables, stat and damage formulas, TTK and DPS budgets, cost curves for cards, units and items, transitive and intransitive (rock-paper-scissors) balance, faucets and sinks, currencies and inflation, drop rates, loot tables, gacha, pity systems and loot-box disclosure rules. Use when the user asks to balance, tune or model numbers, build an XP table, simulate an economy, check drop or gacha odds, or find overpowered or underpowered content. Includes scripts for progression tables, Monte Carlo economy and gacha simulation with exact pity math, and cost-curve outlier detection. Also triggers on 밸런스, 경험치 테이블, 성장 곡선, 재화 설계, 인플레이션, 확률형 아이템, 천장, 드롭률, 데미지 공식; バランス調整, 経験値テーブル, 経済設計, ガチャ, 天井, ドロップ率; 数值平衡, 经验值表, 经济系统, 抽卡, 保底, 掉落率; balance, economía del juego, tasa de botín.
+argument-hint: "[config or CSV path, or a balance question]"
+license: MIT
+compatibility: Any agent that reads SKILL.md folders (Claude Code, Claude apps, Codex, Antigravity, Cursor, Copilot). Scripts need Python 3; matplotlib optional.
+metadata:
+  author: bunhine0452
+  version: "1.6.0"
+  repository: https://github.com/bunhine0452/ai-game-designer
 ---
 
 # Balance and economy

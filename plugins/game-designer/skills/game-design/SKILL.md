@@ -1,6 +1,13 @@
 ---
 name: game-design
 description: Entry point for game design work in any genre, from first concept to soft launch. Use when the user pitches or describes a game idea, asks how to design a game, wants a design brief, design pillars, a core loop, MDA analysis, target aesthetics or player motivations, or is unsure which design skill applies. Routes to fun-curve (pacing), genre-design (genre playbooks), balance-economy (numbers, economy, gacha), gdd-art-direction (documents, art, audio, accessibility) design-review (critique, playtest notes, dark patterns) and playable-prototype (playable browser prototypes). Also triggers on 게임 기획, 게임 디자인, 게임 아이디어, 코어 루프, 디자인 기둥, 기획 도와줘; ゲーム企画, ゲームデザイン, ゲームのアイデア, コアループ, デザインの柱; 游戏策划, 游戏设计, 游戏创意, 核心循环, 设计支柱; diseño de juegos, idea de juego, bucle principal, pilares de diseño.
+argument-hint: "[game idea or design question]"
+license: MIT
+compatibility: Any agent that reads SKILL.md folders (Claude Code, Claude apps, Codex, Antigravity, Cursor, Copilot). Scripts need Python 3; matplotlib optional.
+metadata:
+  author: bunhine0452
+  version: "1.6.0"
+  repository: https://github.com/bunhine0452/ai-game-designer
 ---
 
 # Game Design (entry point and router)

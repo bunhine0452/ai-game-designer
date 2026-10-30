@@ -14,6 +14,13 @@ English and more), with the English term in parentheses the first time a concept
 | `design-review` | Structured critiques of concepts, specs, builds and playtest notes, with an ethics pass for dark patterns. |
 | `playable-prototype` | Turns design documents into single-file browser prototypes with self-tests, bots and screenshots. |
 
+## Commands (Claude Code)
+
+`/game-designer:new-game <idea>`, `/game-designer:balance-check <file>`,
+`/game-designer:ship-check <doc>` and `/game-designer:prototype <doc>` chain the skills into
+common workflows. The `design-critic` and `economy-auditor` subagents give an independent review
+and exact simulator numbers.
+
 ## Try it
 
 - "I have an idea for a cozy farming game where monsters change the land. Make it a design brief."

@@ -1,6 +1,13 @@
 ---
 name: playable-prototype
 description: Turns game design documents into playable, testable browser prototypes. Produces a single-file HTML5 game whose numbers come straight from the design (cards, stats, curves, economy), with procedural placeholder art and sound, built-in self-tests (?test=1) including bots that play it start to finish, and automatic screenshots. Use when the user wants to prototype, greybox or make a design playable, build a vertical slice, turn a paper prototype into a digital one, test a core loop, share a playable demo, or build a quick game from a GDD, one-pager, beat list, card list or economy model. Hands production art and engine work to asset or engine tools. Also triggers on 프로토타입, 플레이 가능하게, 그레이박스, 데모 게임 만들기, 빠르게 만들어 보기; プロトタイプ, 遊べる試作, グレーボックス, デモ版; 原型, 可玩原型, 灰盒, 做个试玩版; prototipo jugable, demo jugable.
+argument-hint: "[design document path or one-pager]"
+license: MIT
+compatibility: Any agent that reads SKILL.md folders. Scripts need Python 3; check.py also needs a local Chrome, Chromium or Edge.
+metadata:
+  author: bunhine0452
+  version: "1.6.0"
+  repository: https://github.com/bunhine0452/ai-game-designer
 ---
 
 # Playable prototype

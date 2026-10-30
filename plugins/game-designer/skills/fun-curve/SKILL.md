@@ -1,6 +1,13 @@
 ---
 name: fun-curve
 description: Designs, plots and critiques interest curves (fun curves), flow and pacing for a play session, level, run, chapter or whole game. Use when the user asks about pacing, tension and release, intensity graphs, difficulty curves, flow channel, boredom or frustration points, a boring middle, climax placement, session length, game feel or juice, or wants a beat list plotted and diagnosed, or wants playtest or telemetry data turned into a curve. Runs a script that flags missing hooks, flat zones, peaks without relief, early climaxes and non-escalating peaks. Also triggers on 재미 곡선, 관심 곡선, 페이싱, 완급 조절, 긴장과 이완, 난이도 곡선, 몰입, 지루한 구간, 타격감; 面白さの曲線, 興味曲線, ペーシング, 緩急, 緊張と緩和, 難易度曲線, 手触り; 趣味曲线, 兴趣曲线, 节奏, 心流, 难度曲线, 打击感; curva de diversión, ritmo, curva de dificultad.
+argument-hint: "[beats CSV/JSON path, or a level or session to pace]"
+license: MIT
+compatibility: Any agent that reads SKILL.md folders (Claude Code, Claude apps, Codex, Antigravity, Cursor, Copilot). Scripts need Python 3; matplotlib optional.
+metadata:
+  author: bunhine0452
+  version: "1.6.0"
+  repository: https://github.com/bunhine0452/ai-game-designer
 ---
 
 # Fun curve: interest, flow and pacing

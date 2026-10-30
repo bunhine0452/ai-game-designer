@@ -1,6 +1,13 @@
 ---
 name: design-review
 description: Structured, research-backed critique of a game concept, pitch, GDD, prototype description, build notes or playtest notes, in any genre. Produces prioritized issues with evidence, severity and specific fixes, plus a mandatory ethics pass for dark patterns, manipulative monetization, loot-box and odds-disclosure risks and protections for minors. Use when the user asks for feedback, a critique, a review, "what's wrong with my game", a sanity check before pitching or launch, playtest analysis, or a monetization or ethics review. Also triggers on 피드백, 기획 리뷰, 기획서 검토, 문제점, 플레이테스트 분석, 다크 패턴, 과금 구조 검토; フィードバック, 企画レビュー, 問題点, プレイテスト分析, ダークパターン, 課金設計; 反馈, 策划评审, 问题, 试玩分析, 暗黑模式, 付费设计; revisión de diseño, crítica, patrones oscuros.
+argument-hint: "[document, build notes, or playtest notes to review]"
+license: MIT
+compatibility: Any agent that reads SKILL.md folders (Claude Code, Claude apps, Codex, Antigravity, Cursor, Copilot). Scripts need Python 3; matplotlib optional.
+metadata:
+  author: bunhine0452
+  version: "1.6.0"
+  repository: https://github.com/bunhine0452/ai-game-designer
 ---
 
 # Design review

@@ -147,6 +147,25 @@ In Claude Code, skills trigger automatically from what you ask, or you can call 
 e.g. `/game-designer:fun-curve`.
 ---
 
+## Commands and agents (Claude Code)
+
+Skills trigger on their own from what you ask. For common workflows there are also commands,
+and two specialist subagents:
+
+| Command | What it does |
+|---|---|
+| `/game-designer:new-game <idea>` | A starter design pack: brief, genre fit, first-session interest curve, and riskiest assumptions with cheap tests |
+| `/game-designer:balance-check <file>` | Picks and runs the right simulator (economy, cost curve, pacing, XP), then proposes and re-tests the smallest fixes |
+| `/game-designer:ship-check <doc>` | A pre-release review: pacing, onboarding, accessibility, monetization ethics and scope, ending in a go or no-go verdict |
+| `/game-designer:prototype <doc>` | A tested, playable browser prototype built from a design document |
+
+| Agent | Use it for |
+|---|---|
+| `design-critic` | An independent second opinion. It sees only the material, not how it was made |
+| `economy-auditor` | Running the simulators and reporting exact numbers before they ship |
+
+Other agents load the same skills. The commands are Claude Code only.
+
 ## Usage examples
 
 Ask in any language. These are just starting points.
