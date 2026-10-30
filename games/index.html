@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Playable Prototypes · ai-game-designer</title>
+<meta name="description" content="Six original browser games built from design documents written with the ai-game-designer skills.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;600&family=Instrument+Serif:ital@0;1&family=Geist+Mono&display=swap" rel="stylesheet">
+<style>
+  :root { --ink:#0d121d; --card:#131a28; --ivory:#ede6d6; --slate:#7b879c; --gold:#f0b44c; --line:#222c3f; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--ink); color:var(--ivory); font:16px/1.55 "Instrument Sans",system-ui,-apple-system,"Apple SD Gothic Neo",sans-serif; }
+  a { color:inherit; }
+  .wrap { max-width:1160px; margin:0 auto; padding:0 20px; }
+  .mono { font-family:"Geist Mono",ui-monospace,monospace; letter-spacing:.14em; text-transform:uppercase; font-size:12px; }
+  header { padding:64px 0 36px; display:grid; grid-template-columns:1fr auto; gap:20px; align-items:end; }
+  header .label { color:var(--gold); } header .rule { width:46px; height:1px; background:var(--gold); margin:10px 0 22px; }
+  h1 { font-family:"Instrument Serif",Georgia,serif; font-weight:400; font-size:clamp(44px,7vw,84px); line-height:.98; margin:0; }
+  h1 em { font-style:italic; }
+  .lede { max-width:640px; color:#d9d2c3; font-size:18px; margin:20px 0 0; }
+  .lang { background:none; border:1px solid var(--line); color:var(--slate); padding:8px 14px; border-radius:999px; cursor:pointer; }
+  .lang:hover { color:var(--ivory); border-color:var(--slate); }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(330px,1fr)); gap:22px; padding-bottom:40px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:16px; overflow:hidden; display:flex; flex-direction:column; transition:border-color .2s, transform .2s; }
+  .card:hover { border-color:#3a4864; transform:translateY(-2px); }
+  .shot { aspect-ratio:16/10.75; background:#000 center/cover no-repeat; border-bottom:1px solid var(--line); }
+  .body { padding:18px 18px 16px; display:flex; flex-direction:column; gap:8px; flex:1; }
+  .meta { color:var(--slate); display:flex; justify-content:space-between; gap:10px; letter-spacing:.06em; font-size:11px; }
+  h2 { font-family:"Instrument Serif",Georgia,serif; font-weight:400; font-size:30px; line-height:1.05; margin:4px 0 0; }
+  h2 small { display:block; font-family:"Instrument Sans",system-ui,sans-serif; font-size:13px; color:var(--slate); margin-top:6px; }
+  p { margin:0; color:#cfc8b8; font-size:15px; }
+  .from { font-size:13px; color:var(--slate); } .from a { color:var(--ivory); text-decoration-color:var(--line); }
+  .actions { display:flex; gap:10px; margin-top:auto; padding-top:8px; align-items:center; }
+  .play { background:var(--gold); color:#221800; text-decoration:none; font-weight:600; padding:9px 16px; border-radius:10px; }
+  .ok { color:#7fd6a8; font-size:13px; }
+  section.how { border-top:1px solid var(--line); padding:34px 0 60px; display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:24px; }
+  section.how h3 { font-family:"Instrument Serif",Georgia,serif; font-weight:400; font-size:24px; margin:6px 0; }
+  footer { color:var(--slate); padding:0 0 40px; font-size:13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="mono label">Plate 02 · Playable</div><div class="rule"></div>
+      <h1 data-i18n="title"></h1>
+      <p class="lede" data-i18n="lede"></p>
+    </div>
+    <button class="lang" id="lang">한국어</button>
+  </header>
+  <main class="grid" id="grid"></main>
+  <section class="how">
+    <div><div class="mono label" style="color:var(--gold)">01</div><h3 data-i18n="h1"></h3><p data-i18n="p1"></p></div>
+    <div><div class="mono label" style="color:var(--gold)">02</div><h3 data-i18n="h2"></h3><p data-i18n="p2"></p></div>
+    <div><div class="mono label" style="color:var(--gold)">03</div><h3 data-i18n="h3"></h3><p data-i18n="p3"></p></div>
+  </section>
+  <footer><span data-i18n="foot"></span> <a href="https://github.com/bunhine0452/ai-game-designer">github.com/bunhine0452/ai-game-designer</a></footer>
+</div>
+<script>
+"use strict";
+const GAMES = [
+  { slug: "monster-farm", title: "Monster Farm", orig: "몬스터 팜", genre: { en: "Cozy farming", ko: "힐링 농장" }, checks: 13, session: "01-claude-ko-monster-farm",
+    agent: "Claude Code · 한국어",
+    en: "Place monsters so their areas overlap: Mossling and Glowbug together grow glimmer turnips worth triple. No failure, only detours.",
+    ko: "몬스터의 범위를 겹치게 배치하세요. 모슬링과 반딧몽이 겹치면 값이 3배인 반짝 순무가 자랍니다. 실패는 없고 우회만 있어요.",
+    from: { en: "one-page design + revised day curve", ko: "원페이지 기획서 + 수정된 하루 관심 곡선" } },
+  { slug: "tidecaller", title: "Tidecaller", orig: "", genre: { en: "Roguelike deckbuilder", ko: "로그라이크 덱빌딩" }, checks: 13, session: "02-claude-en-deckbuilder",
+    agent: "Claude Code · English",
+    en: "Every card raises or lowers one shared tide. Hit 10 to Crest and strike every enemy; break the Moon-Eater's eclipse on its own turn.",
+    ko: "모든 카드가 하나의 조수 게이지를 올리거나 내립니다. 10이면 크레스트로 모든 적을 강타하고, 문이터의 일식은 그 턴에 깨야 합니다.",
+    from: { en: "final v3 card pool (cost-curve pass) + run curve", ko: "비용 곡선을 거친 최종 v3 카드 24장 + 런 곡선" } },
+  { slug: "hoshiyobi-island", title: "Hoshiyobi Island", orig: "星喚びの島", genre: { en: "Transparent gacha demo", ko: "투명한 가챠 데모" }, checks: 10, session: "03-claude-ja-gacha-review",
+    agent: "Claude Code · 日本語",
+    en: "The reviewed v2 banner: odds always shown, guarantee and spark badges always visible, exact chance from your current stars. Free stars only.",
+    ko: "리뷰를 거친 v2 배너. 확률표와 확정·교환 배지를 항상 보여 주고, 지금 가진 별로 얻을 확률을 정확히 계산합니다. 무료 재화만 써요.",
+    from: { en: "v2 economy config + monetization review", ko: "v2 경제 설정 + 과금 설계 리뷰" } },
+  { slug: "low-tide", title: "Low Tide", orig: "", genre: { en: "Horror chapter", ko: "호러 챕터" }, checks: 9, session: "04-codex-en-horror-lighthouse",
+    agent: "Codex · English",
+    en: "Restore the pump, work the lens, signal the boat. The keeper hunts by sound. Directional captions and reduced flashing built in.",
+    ko: "펌프를 되살리고 렌즈를 돌려 보트에 신호를 보내세요. 관리자는 소리로 쫓아옵니다. 방향 자막과 섬광 줄이기를 기본 지원해요.",
+    from: { en: "revised 40-min beat list + accessibility checklist", ko: "수정된 40분 비트 리스트 + 접근성 체크리스트" } },
+  { slug: "garden-guardians", title: "Garden Guardians", orig: "Jardín de Guardianes", genre: { en: "Tower defense", ko: "타워 디펜스" }, checks: 9, session: "05-agy-es-garden-td",
+    agent: "Antigravity · Español",
+    en: "Different plants side by side pollinate for bonus damage. Waves are telegraphed; fertilize and prune mid-wave so you never just watch.",
+    ko: "다른 식물을 이웃해 심으면 수분 보너스가 붙습니다. 웨이브는 미리 예고되고, 비료와 가지치기로 웨이브 중에도 손을 쓸 수 있어요.",
+    from: { en: "rebalanced 12-tower cost table", ko: "재조정된 타워 12종 비용표" } },
+  { slug: "stardust-mine", title: "Stardust Mine", orig: "星尘矿场", genre: { en: "Idle mining", ko: "방치형 채굴" }, checks: 12, session: "06-codex-zh-idle-mining",
+    agent: "Codex · 中文",
+    en: "Exact numbers from the design: cost 200 × 1.18^(L−1), five planets, 41 minutes for chapter one. Offline counts 100%. No paid speed-ups.",
+    ko: "기획 수치 그대로입니다. 비용 200 × 1.18^(L−1), 행성 5개, 1장 41분. 오프라인도 100% 진행되고 유료 가속은 없습니다.",
+    from: { en: "economy model + five-chapter prestige plan", ko: "경제 모델 + 5장 환생 설계" } },
+];
+const I18N = {
+  en: { title: "Games <em>designed</em><br>with ai-game-designer", lede: "Six original prototypes built from the design documents our six showcase sessions wrote, across three agents and five languages. Every number in them comes from those documents.",
+        play: "Play", design: "Design docs", checks: "self-tests passing", by: "Designed with", built: "Built from",
+        h1: "Design first", p1: "Each game starts from a showcase session's documents: briefs, beat lists, card pools, cost tables and economy models made with the skills.",
+        h2: "One file, no install", p2: "Every game is a single HTML file with procedural art and sound. It runs in any modern browser, on desktop or phone.",
+        h3: "Tested like software", p3: "Open any game with ?test=1 to run its self-tests: formulas against the design numbers, plus bots that play it start to finish.",
+        foot: "Original concepts and code, MIT licensed. Plugin and design docs:" },
+  ko: { title: "ai-game-designer로<br><em>기획한</em> 게임들", lede: "쇼케이스 세션 6개가 쓴 기획 문서로 만든 오리지널 프로토타입 6개입니다. 에이전트 세 종류, 다섯 개 언어로 기획했고, 게임 속 숫자는 모두 그 문서에서 왔습니다.",
+        play: "플레이", design: "기획 문서", checks: "개 자체 테스트 통과", by: "기획", built: "바탕 문서",
+        h1: "기획이 먼저", p1: "각 게임은 스킬로 만든 쇼케이스 문서에서 출발합니다. 브리프, 비트 리스트, 카드 풀, 비용표, 경제 모델이 그 바탕입니다.",
+        h2: "파일 하나, 설치 없음", p2: "모든 게임이 절차적 아트와 사운드를 담은 HTML 파일 하나입니다. 데스크톱이든 휴대폰이든 최신 브라우저면 바로 실행돼요.",
+        h3: "소프트웨어처럼 검증", p3: "아무 게임에나 ?test=1을 붙이면 자체 테스트가 돌아갑니다. 기획 수치와 공식을 대조하고, 봇이 처음부터 끝까지 플레이합니다.",
+        foot: "오리지널 콘셉트와 코드, MIT 라이선스. 플러그인과 기획 문서:" },
+};
+let lang = (navigator.language || "en").startsWith("ko") ? "ko" : "en";
+function render() {
+  const t = I18N[lang]; document.documentElement.lang = lang;
+  document.querySelectorAll("[data-i18n]").forEach((el) => (el.innerHTML = t[el.dataset.i18n]));
+  document.getElementById("lang").textContent = lang === "en" ? "한국어" : "English";
+  document.getElementById("grid").innerHTML = GAMES.map((g) => `<article class="card">
+    <a class="shot" href="${g.slug}/" style="background-image:url('screenshots/${g.slug}.png')" aria-label="${t.play} ${g.title}"></a>
+    <div class="body">
+      <div class="meta mono"><span>${g.genre[lang]}</span><span>${g.agent}</span></div>
+      <h2>${g.title}${g.orig ? `<small>${g.orig}</small>` : ""}</h2>
+      <p>${g[lang]}</p>
+      <div class="from">${t.built}: <a href="../showcase/${g.session}/">${g.from[lang]}</a></div>
+      <div class="actions"><a class="play" href="${g.slug}/">${t.play} →</a><span class="ok">✓ ${g.checks} ${t.checks}</span></div>
+    </div></article>`).join("");
+}
+document.getElementById("lang").onclick = () => { lang = lang === "en" ? "ko" : "en"; render(); };
+const p = new URLSearchParams(location.search); if (p.get("lang") === "ko" || p.get("lang") === "en") lang = p.get("lang");
+render();
+</script>
+</body>
+</html>

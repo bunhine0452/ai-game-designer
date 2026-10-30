@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hoshiyobi Island · 星喚びの島</title>
+<style>
+  :root { --bg:#120d24; --panel:#1d1638; --ink:#f4f0ff; --ink2:#b9afd8; --ssr:#ffcf5a; --sr:#b58cff; --r:#8fb3d9; --good:#4ee1a0; --line:#352a63; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:radial-gradient(1200px 600px at 70% -10%, #2c1f5c, var(--bg)); color:var(--ink); font:15px/1.45 system-ui,-apple-system,"Hiragino Sans","Yu Gothic",sans-serif; min-height:100vh; }
+  header { display:flex; flex-wrap:wrap; gap:6px 16px; align-items:baseline; padding:12px 16px; border-bottom:1px solid var(--line); }
+  header h1 { margin:0; font-size:20px; } .sub { color:var(--ink2); font-size:13px; } a { color:var(--ssr); }
+  main { display:grid; grid-template-columns:minmax(0,1.3fr) minmax(300px,1fr); gap:16px; padding:16px; max-width:1240px; margin:0 auto; }
+  @media (max-width:860px){ main { grid-template-columns:1fr; } }
+  .panel { background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:14px 16px; }
+  .banner { position:relative; border-radius:16px; overflow:hidden; min-height:230px; padding:18px; background:linear-gradient(135deg,#3b2a7a,#1b4a78 60%,#0f7a74); border:1px solid #5a49a8; display:flex; gap:16px; align-items:center; }
+  .banner h2 { margin:0 0 4px; font-size:26px; } .banner p { margin:4px 0; color:#e6e0ff; }
+  .badges { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0; }
+  .badge { border-radius:999px; padding:6px 12px; background:#2a2052; border:1px solid var(--line); font-size:13px; }
+  .badge.hot { background:rgba(78,225,160,.15); border-color:var(--good); color:#c8ffe6; }
+  .row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:8px 0; }
+  button { font:inherit; cursor:pointer; border-radius:12px; border:1px solid var(--line); background:#2a2052; color:var(--ink); padding:10px 14px; }
+  button.primary { background:var(--ssr); color:#2a1d00; border-color:var(--ssr); font-weight:750; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .results { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-top:12px; min-height:150px; }
+  @media (max-width:560px){ .results { grid-template-columns:repeat(3,1fr); } }
+  .card { border-radius:12px; padding:6px; text-align:center; background:#160f2e; border:2px solid var(--r); font-size:12px; }
+  .card.SSR { border-color:var(--ssr); box-shadow:0 0 18px rgba(255,207,90,.35); } .card.SR { border-color:var(--sr); }
+  .card svg { width:100%; height:auto; display:block; }
+  .card .tag { font-weight:700; } .card.SSR .tag { color:var(--ssr); } .card.SR .tag { color:var(--sr); } .card.R .tag { color:var(--r); }
+  table { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; } td, th { padding:5px 4px; border-bottom:1px solid var(--line); text-align:left; } th { color:var(--ink2); font-weight:600; font-size:13px; }
+  td.num { text-align:right; }
+  .muted { color:var(--ink2); font-size:13px; }
+  .book { display:grid; grid-template-columns:repeat(auto-fill,minmax(74px,1fr)); gap:8px; }
+  .book .card { opacity:.35; } .book .card.owned { opacity:1; }
+  canvas { width:100%; height:150px; display:block; }
+  #history { max-height:150px; overflow:auto; font-size:13px; margin:0; padding-left:18px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Hoshiyobi Island <span class="sub">星喚びの島 · transparent gacha demo</span></h1>
+  <span class="sub">Prototype of the <a href="../../showcase/03-claude-ja-gacha-review/">reviewed v2 banner</a> made with <a href="../../">ai-game-designer</a>. Free stars only, no real money.</span>
+</header>
+<main>
+  <section>
+    <div class="banner">
+      <div id="heroArt" style="width:190px;flex:none"></div>
+      <div>
+        <div class="sub" style="color:#e6e0ff">Pickup banner · ピックアップ</div>
+        <h2>Aurora Kirin <span style="font-size:15px">オーロラ麒麟</span></h2>
+        <p>SSR 3% (pickup 1.5%) · SR 12% · R 85%</p>
+        <p>Lose the 50/50 once and your next SSR is guaranteed to be the pickup. At 120 pulls you can exchange for it, and points carry over to the next banner.</p>
+      </div>
+    </div>
+    <div class="badges" aria-live="polite">
+      <span class="badge" id="sparkBadge"></span>
+      <span class="badge" id="guarBadge"></span>
+      <span class="badge" id="starsBadge"></span>
+    </div>
+    <div class="row">
+      <button class="primary" id="pull1">Summon ×1 · 150★</button>
+      <button class="primary" id="pull10">Summon ×10 · 1,500★</button>
+      <button id="exchange" disabled>Exchange for Aurora Kirin</button>
+      <button id="earn">Expedition: +1,500★</button>
+    </div>
+    <p class="muted">Results are shown plainly, with no near-miss animations and no offers on the result screen.</p>
+    <div class="results" id="results"></div>
+    <h3>Collection · 図鑑</h3>
+    <div class="book" id="book"></div>
+  </section>
+  <section class="panel">
+    <h3 style="margin-top:0">Odds · 提供割合 <span class="muted">(shown before every summon)</span></h3>
+    <table>
+      <tr><th>Rarity</th><th>Units</th><th class="num">Rate per summon</th></tr>
+      <tbody id="oddsBody"></tbody>
+    </table>
+    <p class="muted" id="consolidated"></p>
+    <h3>Your chance with the stars you have</h3>
+    <p id="chanceLine"></p>
+    <canvas id="cdf" width="560" height="150" aria-label="Chance of getting the pickup by pull number"></canvas>
+    <p class="muted">Exact math from the current state (guarantee and spark points), not a simulation.</p>
+    <h3>Summon history</h3>
+    <ol id="history" reversed></ol>
+  </section>
+</main>
+<pre id="selftest" hidden></pre>
+<script>
+"use strict";
+// ---- Banner rules: showcase/03 config/hoshiyobi_economy_v2.json + review --------------------
+const RATE = { SSR: 0.03, SR: 0.12 }, PICKUP_SHARE = 0.5, SPARK = 120, COST = 150;
+const PICKUP = { id: "kirin", name: "Aurora Kirin", jp: "オーロラ麒麟", hue: 170, horn: 1, ears: 1, r: "SSR" };
+const POOL = {
+  SSR: [{ id: "whale", name: "Tide Whale", jp: "潮鯨", hue: 205, fin: 1 }, { id: "fox", name: "Ember Fox", jp: "熾火狐", hue: 18, ears: 1, flame: 1 },
+        { id: "owl", name: "Moon Owl", jp: "月梟", hue: 255, ears: 1 }, { id: "golem", name: "Thorn Golem", jp: "茨巨人", hue: 110, spikes: 1 }],
+  SR: [{ id: "sprout", name: "Sproutling", hue: 95, leaf: 1 }, { id: "puff", name: "Puffcap", hue: 330, spikes: 1 }, { id: "ray", name: "Glow Ray", hue: 190, fin: 1 },
+       { id: "bat", name: "Dusk Bat", hue: 280, ears: 1 }, { id: "crab", name: "Coral Crab", hue: 8 }, { id: "moth", name: "Lantern Moth", hue: 48, ears: 1 }],
+  R: [{ id: "slime", name: "Star Slime", hue: 210 }, { id: "pebble", name: "Pebble", hue: 30 }, { id: "drop", name: "Dewdrop", hue: 185, fin: 1 },
+      { id: "mote", name: "Mote", hue: 60 }, { id: "frog", name: "Bog Frog", hue: 120, ears: 1 }],
+};
+let rng = Math.random;
+function seeded(a) { return () => { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+const fresh = () => ({ stars: 3000, spark: 0, guaranteed: false, pulls: 0, owned: {}, history: [] });
+let S = fresh();
+
+// One summon: returns {r, unit, how}. Spark points accrue per summon and carry over.
+function summon() {
+  S.pulls++; S.spark = Math.min(SPARK, S.spark + 1);
+  const x = rng();
+  if (x < RATE.SSR) {
+    let unit;
+    if (S.guaranteed || rng() < PICKUP_SHARE) { unit = PICKUP; S.guaranteed = false; }
+    else { unit = POOL.SSR[Math.floor(rng() * POOL.SSR.length)]; S.guaranteed = true; }
+    return grant("SSR", unit, unit === PICKUP ? "pickup" : "lost 50/50");
+  }
+  if (x < RATE.SSR + RATE.SR) return grant("SR", POOL.SR[Math.floor(rng() * POOL.SR.length)], "");
+  return grant("R", POOL.R[Math.floor(rng() * POOL.R.length)], "");
+}
+function grant(r, unit, how) {
+  S.owned[unit.id] = (S.owned[unit.id] || 0) + 1;
+  const res = { r, unit, how, n: S.pulls }; S.history.push(res); if (S.history.length > 200) S.history.shift();
+  return res;
+}
+function exchange() {
+  if (S.spark < SPARK) return false;
+  S.spark = 0; grant("SSR", PICKUP, "exchange"); return true;
+}
+function pull(n) {
+  if (S.stars < COST * n) return [];
+  S.stars -= COST * n; const out = []; for (let i = 0; i < n; i++) out.push(summon()); return out;
+}
+
+// ---- Exact odds from any state: P(pickup obtained by summon k), k = 1..max -------------------
+function pickupCdf(state, maxK = SPARK) {
+  let notYet = [state.guaranteed ? 0 : 1, state.guaranteed ? 1 : 0];   // [not guaranteed, guaranteed]
+  const cdf = []; let got = 0;
+  for (let k = 1; k <= maxK; k++) {
+    if (state.spark + k >= SPARK) { got += notYet[0] + notYet[1]; notYet = [0, 0]; cdf.push(got); continue; }  // can exchange
+    const p = RATE.SSR;
+    const g0 = notYet[0], g1 = notYet[1];
+    got += g1 * p + g0 * p * PICKUP_SHARE;
+    notYet = [g0 * (1 - p), g1 * (1 - p) + g0 * p * (1 - PICKUP_SHARE)];
+    cdf.push(got);
+    if (notYet[0] + notYet[1] < 1e-12) break;
+  }
+  return cdf;
+}
+const meanFromCdf = (cdf) => cdf.reduce((s, c, i) => s + (c - (i ? cdf[i - 1] : 0)) * (i + 1), 0);
+
+// ---- Art: procedural creature portraits (round = friendly, element shown in silhouette) -------
+function art(u, size = 120) {
+  const h = u.hue, body = `hsl(${h} 70% 62%)`, dark = `hsl(${h} 55% 30%)`, light = `hsl(${h} 85% 82%)`;
+  let extra = "";
+  if (u.ears) extra += `<path d="M34 40 L44 14 L54 38 Z M66 38 L76 14 L86 40 Z" fill="${dark}"/>`;
+  if (u.horn) extra += `<path d="M60 8 L66 34 L54 34 Z" fill="#fff6c8" stroke="#ffcf5a" stroke-width="2"/>`;
+  if (u.fin) extra += `<path d="M60 22 Q72 6 84 24 Q72 22 66 34 Z" fill="${dark}"/>`;
+  if (u.spikes) extra += `<path d="M30 52 L22 40 L38 46 Z M90 52 L98 40 L82 46 Z M60 26 L56 12 L64 12 Z" fill="${dark}"/>`;
+  if (u.leaf) extra += `<path d="M60 26 Q48 6 62 4 Q70 16 60 26 Z" fill="hsl(110 60% 45%)"/>`;
+  if (u.flame) extra += `<path d="M92 78 Q108 60 98 44 Q112 52 106 74 Q102 88 92 78 Z" fill="hsl(28 95% 60%)"/>`;
+  return `<svg viewBox="0 0 120 120" width="${size}" height="${size}" role="img" aria-label="${u.name}">
+    <defs><radialGradient id="g${u.id}${size}" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="${light}"/><stop offset="1" stop-color="${body}"/></radialGradient></defs>
+    <ellipse cx="60" cy="104" rx="34" ry="7" fill="rgba(0,0,0,.25)"/>${extra}
+    <circle cx="60" cy="68" r="36" fill="url(#g${u.id}${size})" stroke="${dark}" stroke-width="3"/>
+    <circle cx="48" cy="64" r="6" fill="#1a1230"/><circle cx="72" cy="64" r="6" fill="#1a1230"/>
+    <circle cx="50" cy="62" r="2" fill="#fff"/><circle cx="74" cy="62" r="2" fill="#fff"/>
+    <path d="M52 80 Q60 86 68 80" stroke="#1a1230" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <circle cx="42" cy="76" r="5" fill="hsl(${h} 90% 75% / .55)"/><circle cx="78" cy="76" r="5" fill="hsl(${h} 90% 75% / .55)"/></svg>`;
+}
+
+// ---- UI --------------------------------------------------------------------------------------
+const $ = (id) => document.getElementById(id);
+function render(last = []) {
+  $("sparkBadge").textContent = `Exchange points ${S.spark} / ${SPARK}${S.spark >= SPARK ? " — exchange ready" : ` · ${SPARK - S.spark} to go (carries over)`}`;
+  $("guarBadge").textContent = S.guaranteed ? "Next SSR: pickup guaranteed" : "Next SSR: 50/50 for the pickup";
+  $("guarBadge").classList.toggle("hot", S.guaranteed);
+  $("starsBadge").textContent = `★ ${S.stars.toLocaleString()} (${Math.floor(S.stars / COST)} summons)`;
+  $("pull1").disabled = S.stars < COST; $("pull10").disabled = S.stars < COST * 10;
+  $("exchange").disabled = S.spark < SPARK;
+  if (last.length) $("results").innerHTML = last.map((x) => `<div class="card ${x.r}">${art(x.unit, 96)}<div class="tag">${x.r}</div>${x.unit.name}${x.how ? `<div class="muted">${x.how}</div>` : ""}</div>`).join("");
+  const all = [{ ...PICKUP, r: "SSR" }, ...POOL.SSR.map((u) => ({ ...u, r: "SSR" })), ...POOL.SR.map((u) => ({ ...u, r: "SR" })), ...POOL.R.map((u) => ({ ...u, r: "R" }))];
+  $("book").innerHTML = all.map((u) => `<div class="card ${u.r} ${S.owned[u.id] ? "owned" : ""}" title="${u.name}">${art(u, 64)}<div>${S.owned[u.id] ? "×" + S.owned[u.id] : "?"}</div></div>`).join("");
+  $("history").innerHTML = S.history.slice(-40).reverse().map((x) => `<li value="${x.n}"><b style="color:var(--${x.r.toLowerCase()})">${x.r}</b> ${x.unit.name}${x.how ? ` (${x.how})` : ""}</li>`).join("");
+  const cdf = pickupCdf(S), have = Math.floor(S.stars / COST);
+  const within = have ? cdf[Math.min(have, cdf.length) - 1] : 0;
+  const worst = cdf.findIndex((c) => c > 1 - 1e-9) + 1;
+  $("chanceLine").innerHTML = `With <b>${have}</b> summons you have a <b>${(within * 100).toFixed(1)}%</b> chance to get Aurora Kirin. It is guaranteed by summon <b>#${worst || "—"}</b> from now (exchange or 50/50 guarantee).`;
+  drawCdf(cdf, have);
+}
+function drawCdf(cdf, have) {
+  const c = $("cdf"), g = c.getContext("2d"), W = c.width, H = c.height, pad = 26;
+  g.clearRect(0, 0, W, H); g.strokeStyle = "#352a63"; g.lineWidth = 1;
+  for (let y = 0; y <= 4; y++) { const yy = H - pad - (H - 2 * pad) * y / 4; g.beginPath(); g.moveTo(pad, yy); g.lineTo(W - 8, yy); g.stroke(); }
+  g.fillStyle = "#b9afd8"; g.font = "12px system-ui"; g.fillText("100%", 0, pad + 4); g.fillText("0", 12, H - pad + 4); g.fillText(`summons from now → ${SPARK}`, W - 170, H - 6);
+  g.strokeStyle = "#ffcf5a"; g.lineWidth = 2.5; g.beginPath();
+  cdf.forEach((v, i) => { const x = pad + (W - pad - 8) * (i + 1) / SPARK, y = H - pad - (H - 2 * pad) * v; i ? g.lineTo(x, y) : g.moveTo(x, y); });
+  g.stroke();
+  if (have) { const x = pad + (W - pad - 8) * Math.min(have, SPARK) / SPARK; g.strokeStyle = "#4ee1a0"; g.setLineDash([4, 4]); g.beginPath(); g.moveTo(x, pad); g.lineTo(x, H - pad); g.stroke(); g.setLineDash([]); g.fillStyle = "#4ee1a0"; g.fillText("your stars", Math.min(x + 4, W - 70), pad + 10); }
+}
+function odds() {
+  const per = (r, n) => (r / n * 100).toFixed(3) + "%";
+  $("oddsBody").innerHTML =
+    `<tr><td>SSR (pickup)</td><td>Aurora Kirin</td><td class="num">${(RATE.SSR * PICKUP_SHARE * 100).toFixed(2)}%</td></tr>` +
+    `<tr><td>SSR (others)</td><td>${POOL.SSR.map((u) => u.name).join(", ")}</td><td class="num">${(RATE.SSR * (1 - PICKUP_SHARE) * 100).toFixed(2)}% (${per(RATE.SSR * (1 - PICKUP_SHARE), POOL.SSR.length)} each)</td></tr>` +
+    `<tr><td>SR</td><td>${POOL.SR.length} units</td><td class="num">${(RATE.SR * 100).toFixed(2)}% (${per(RATE.SR, POOL.SR.length)} each)</td></tr>` +
+    `<tr><td>R</td><td>${POOL.R.length} units</td><td class="num">${((1 - RATE.SSR - RATE.SR) * 100).toFixed(2)}% (${per(1 - RATE.SSR - RATE.SR, POOL.R.length)} each)</td></tr>`;
+  const m = meanFromCdf(pickupCdf(fresh()));
+  $("consolidated").textContent = `Consolidated pickup rate from a fresh start: ${(100 / m).toFixed(2)}% (1 in ${m.toFixed(1)} summons on average), at most ${SPARK} summons. Displayed rates are the actual rates; there is no hidden rate increase.`;
+}
+$("pull1").onclick = () => render(pull(1));
+$("pull10").onclick = () => render(pull(10));
+$("exchange").onclick = () => { exchange(); render([S.history[S.history.length - 1]]); };
+$("earn").onclick = () => { S.stars += 1500; render(); };
+$("heroArt").innerHTML = art(PICKUP, 190);
+
+// ---- Self-test (?test=1) and screenshot state (?shot=1) --------------------------------------
+function selftest() {
+  const out = [], ok = (name, cond, info = "") => out.push({ name, pass: !!cond, info });
+  const exact = meanFromCdf(pickupCdf(fresh()));
+  ok("exact mean = 47.1 summons (design doc)", Math.abs(exact - 47.1) < 0.1, exact.toFixed(2));
+  ok("consolidated rate = 2.12%", Math.abs(100 / exact - 2.12) < 0.01, (100 / exact).toFixed(3));
+  ok("worst case = 120 summons", pickupCdf(fresh()).length === 120 && pickupCdf(fresh())[119] > 1 - 1e-12);
+  rng = seeded(7); let tot = 0, worst = 0; const N = 40000;
+  for (let i = 0; i < N; i++) { S = fresh(); S.stars = 1e9; let n = 0;
+    while (true) { n++; const r = pull(1)[0]; if (r.unit === PICKUP) break; if (S.spark >= SPARK) { exchange(); break; } }
+    tot += n; worst = Math.max(worst, n); }
+  ok("Monte Carlo mean matches exact (±2%)", Math.abs(tot / N - exact) / exact < 0.02, (tot / N).toFixed(2));
+  ok("Monte Carlo worst case ≤ 120", worst <= 120, String(worst));
+  // First roll: SSR; second roll: lose the 50/50.
+  S = fresh(); let seq = [0.001, 0.9]; rng = () => seq.shift() ?? 0.5; pull(1); ok("losing 50/50 sets guarantee", S.guaranteed === true);
+  seq = [0.001, 0.9]; rng = () => seq.shift() ?? 0.5; const r = pull(1)[0]; ok("guaranteed SSR is the pickup", r.unit === PICKUP && !S.guaranteed);
+  S = fresh(); S.spark = 119; rng = () => 0.99; pull(1); ok("spark reaches 120 and exchange works", S.spark === 120 && exchange() && S.spark === 0);
+  S = fresh(); pull(10); ok("ten summons cost 1,500 stars", S.stars === 1500);
+  const sum = RATE.SSR + RATE.SR + (1 - RATE.SSR - RATE.SR); ok("odds table sums to 100%", Math.abs(sum - 1) < 1e-12);
+  const pass = out.every((o) => o.pass);
+  $("selftest").textContent = JSON.stringify({ game: "hoshiyobi-island", pass, results: out }, null, 1);
+  $("selftest").hidden = false; document.title = `SELFTEST ${pass ? "PASS" : "FAIL"}`;
+  S = fresh(); rng = Math.random;
+}
+const params = new URLSearchParams(location.search);
+odds();
+if (params.has("test")) { selftest(); render(); }
+else if (params.has("shot")) {
+  rng = seeded(20261030); S = fresh(); S.stars = 6000; pull(10); pull(10); S.spark = 47;
+  const seq = [0.001, 0.9]; const keep = rng; rng = () => (seq.length ? seq.shift() : keep()); const last = pull(10);
+  render(last);
+} else render();
+</script>
+</body>
+</html>

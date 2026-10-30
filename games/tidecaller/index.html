@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tidecaller · tide-spell deckbuilder</title>
+<style>
+  :root { --bg:#06131f; --panel:#0d2233; --ink:#eaf6ff; --ink2:#9cc0d6; --surge:#2ec4b6; --ebb:#6c63ff; --hp:#ff6b6b; --block:#8ecae6; --gold:#ffd166; --line:#18405a; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:linear-gradient(#06131f,#0a2236); color:var(--ink); font:15px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif; min-height:100vh; }
+  header { display:flex; flex-wrap:wrap; gap:6px 16px; align-items:baseline; padding:12px 16px; border-bottom:1px solid var(--line); }
+  header h1 { margin:0; font-size:20px; } .sub { color:var(--ink2); font-size:13px; } a { color:var(--gold); }
+  main { max-width:1180px; margin:0 auto; padding:12px 16px 24px; }
+  .map { display:flex; gap:6px; align-items:center; flex-wrap:wrap; margin-bottom:10px; }
+  .node { padding:5px 10px; border-radius:999px; background:#0f2a3f; border:1px solid var(--line); font-size:13px; color:var(--ink2); }
+  .node.cur { border-color:var(--gold); color:var(--ink); } .node.done { opacity:.5; text-decoration:line-through; }
+  .arena { display:grid; grid-template-columns:240px 1fr; gap:16px; align-items:end; min-height:250px; }
+  @media (max-width:760px){ .arena { grid-template-columns:1fr; } }
+  .unit { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:10px; text-align:center; position:relative; }
+  .enemies { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+  .enemy { width:190px; cursor:default; } .enemy.targetable { cursor:pointer; outline:2px dashed var(--gold); }
+  .enemy.dead { opacity:.25; }
+  .hpbar { height:10px; background:#2a1620; border-radius:6px; overflow:hidden; margin:6px 0 2px; } .hpbar i { display:block; height:100%; background:var(--hp); }
+  .intent { font-weight:650; color:var(--gold); min-height:20px; } .status { font-size:12px; color:var(--ink2); min-height:16px; }
+  .tide { margin:14px 0 10px; }
+  .gauge { display:grid; grid-template-columns:repeat(11,1fr); gap:3px; }
+  .gauge div { height:26px; border-radius:6px; background:#0f2a3f; border:1px solid var(--line); font-size:11px; color:var(--ink2); display:flex; align-items:center; justify-content:center; }
+  .gauge div.on { background:linear-gradient(180deg,#5ee7df,#2ec4b6); color:#002; border-color:#5ee7df; font-weight:700; }
+  .gauge div.end0 { box-shadow:inset 0 0 0 2px var(--ebb); } .gauge div.end10 { box-shadow:inset 0 0 0 2px var(--surge); }
+  .bar { display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin:8px 0; }
+  .energy { font-size:20px; font-weight:800; color:var(--gold); }
+  .hand { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; min-height:178px; }
+  .card { width:132px; min-height:170px; border-radius:12px; padding:8px; background:#102c42; border:2px solid var(--line); cursor:pointer; display:flex; flex-direction:column; gap:4px; transition:transform .12s; }
+  .card:hover { transform:translateY(-6px); } .card.Surge { border-color:var(--surge); } .card.Ebb { border-color:var(--ebb); } .card.Either { border-color:var(--surge) var(--ebb) var(--ebb) var(--surge); }
+  .card.disabled { opacity:.45; cursor:not-allowed; transform:none; } .card.selected { outline:3px solid var(--gold); }
+  .card .top { display:flex; justify-content:space-between; font-weight:750; } .card .cost { color:var(--gold); }
+  .card .dir { font-size:12px; font-weight:700; } .card.Surge .dir { color:var(--surge); } .card.Ebb .dir { color:var(--ebb); }
+  .card .txt { font-size:12.5px; color:#d6ecff; flex:1; } .card .rar { font-size:11px; color:var(--ink2); }
+  button { font:inherit; cursor:pointer; border-radius:10px; border:1px solid var(--line); background:#123651; color:var(--ink); padding:9px 14px; }
+  button.primary { background:var(--gold); color:#2b1d00; border-color:var(--gold); font-weight:750; }
+  #log { font-size:13px; color:var(--ink2); max-height:90px; overflow:auto; margin:6px 0 0; padding-left:18px; }
+  .overlay { position:fixed; inset:0; background:rgba(2,8,14,.82); display:none; align-items:center; justify-content:center; padding:16px; z-index:5; }
+  .overlay.show { display:flex; } .overlay .box { background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:18px; max-width:760px; width:100%; text-align:center; }
+  .pick { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin:12px 0; }
+  .float { position:absolute; left:50%; top:30%; transform:translateX(-50%); font-weight:800; color:#fff; text-shadow:0 2px 6px #000; animation:up .8s ease-out forwards; pointer-events:none; }
+  @keyframes up { to { top:-10%; opacity:0; } }
+  .crest { animation:flash .5s; } @keyframes flash { 0% { box-shadow:0 0 0 0 rgba(94,231,223,.9); } 100% { box-shadow:0 0 0 30px rgba(94,231,223,0); } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Tidecaller <span class="sub">every card is a tide spell</span></h1>
+  <span class="sub">Playable prototype of the <a href="../../showcase/02-claude-en-deckbuilder/">showcase design</a> made with <a href="../../">ai-game-designer</a> · the 24 cards use the final v3 numbers from the cost-curve pass</span>
+</header>
+<main>
+  <div class="map" id="map"></div>
+  <div class="arena">
+    <div class="unit" id="player">
+      <svg viewBox="0 0 120 110" width="120" height="110" aria-label="Tidecaller"><defs><linearGradient id="robe" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#2ec4b6"/><stop offset="1" stop-color="#145a7a"/></linearGradient></defs><ellipse cx="60" cy="102" rx="34" ry="6" fill="rgba(0,0,0,.35)"/><path d="M60 18 L88 98 L32 98 Z" fill="url(#robe)"/><circle cx="60" cy="24" r="14" fill="#f2d7b6"/><path d="M44 22 Q60 0 76 22 Q60 14 44 22 Z" fill="#1d3557"/><path d="M84 30 Q100 50 88 70" stroke="#8ecae6" stroke-width="5" fill="none" stroke-linecap="round"/></svg>
+      <div><b>You</b></div>
+      <div class="hpbar"><i id="php"></i></div>
+      <div class="status" id="pstat"></div>
+    </div>
+    <div class="enemies" id="enemies"></div>
+  </div>
+  <div class="tide">
+    <div class="bar"><span><b>Tide</b> <span class="sub">0 = Slack Water (+8 block, draw 1) · 10 = Crest (8 damage to ALL) · then back to 5</span></span><span id="tideVal"></span></div>
+    <div class="gauge" id="gauge"></div>
+  </div>
+  <div class="bar">
+    <span class="energy" id="energy"></span>
+    <span class="sub" id="piles"></span>
+    <button class="primary" id="endTurn">End turn</button>
+  </div>
+  <div class="hand" id="hand"></div>
+  <ol id="log" reversed></ol>
+</main>
+<div class="overlay" id="overlay"><div class="box" id="box"></div></div>
+<pre id="selftest" hidden></pre>
+<script>
+"use strict";
+// ---- Cards: showcase/02 cards/tidecaller-starter-v3.csv (FINAL v3) -------------------------
+const CSV = `Splash,1,6,0,0,0,1,0,0,Surge,Basic
+Brace,1,0,0,5,0,1,0,0,Ebb,Basic
+Riptide,1,6,0,0,0,1,1,0,Surge,Common
+Undertow,1,4,0,0,1,1,0,0,Ebb,Common
+Brine Lash,1,5,0,0,0,1,1,0,Surge,Common
+Kelp Snare,1,0,0,4,0,1,1,0,Ebb,Common
+Mist Veil,1,0,0,7,0,1,0,0,Ebb,Common
+Ebb and Flow,1,0,0,0,2,2,0,0,Either,Common
+Spindrift,1,0,4,0,0,2,0,0,Surge,Common
+Rogue Wave,2,12,0,0,0,2,0,0,Surge,Uncommon
+Spring Tide,1,0,0,0,1,4,0,0,Surge,Uncommon
+Neap Tide,0,0,0,0,1,3,0,1,Ebb,Common
+Saltspray,0,3,0,0,0,1,1,1,Surge,Common
+Breakwater,2,0,0,12,0,1,0,0,Ebb,Common
+Swell,2,10,0,0,0,2,0,0,Surge,Common
+Whirlpool,2,0,6,0,0,1,1,0,Ebb,Uncommon
+Moonpull,2,0,0,3,2,4,0,0,Surge,Uncommon
+Crest Breaker,2,12,0,0,0,1,0,0,Ebb,Common
+Deep Current,2,0,0,8,1,1,0,0,Ebb,Common
+Still Water,2,0,0,8,0,3,0,0,Ebb,Uncommon
+Tidal Wave,3,0,12,0,0,3,0,0,Surge,Rare
+Maelstrom,3,18,0,0,0,1,2,1,Ebb,Rare
+Abyssal Call,3,0,0,14,0,3,0,0,Ebb,Rare
+Drowned Bell,2,0,8,0,0,1,1,1,Ebb,Uncommon`;
+const CARDS = CSV.split("\n").map((l) => { const [name, cost, dmg, aoe, block, draw, tide, drench, exhaust, dir, rarity] = l.split(",");
+  return { name, cost: +cost, dmg: +dmg, aoe: +aoe, block: +block, draw: +draw, tide: +tide, drench: +drench, exhaust: +exhaust === 1, dir, rarity }; });
+const byName = Object.fromEntries(CARDS.map((c) => [c.name, c]));
+function cardText(c) {
+  const t = [];
+  if (c.dmg) t.push(`Deal ${c.dmg}.`); if (c.aoe) t.push(`Deal ${c.aoe} to ALL.`); if (c.block) t.push(`Gain ${c.block} block.`);
+  if (c.draw) t.push(`Draw ${c.draw}.`); if (c.drench) t.push(`Drench ${c.drench}.`);
+  t.push(c.dir === "Either" ? `Surge ${c.tide} or Ebb ${c.tide}.` : `${c.dir} ${c.tide}.`); if (c.exhaust) t.push("Exhaust.");
+  return t.join(" ");
+}
+const needsTarget = (c) => c.dmg > 0 || (c.drench > 0 && c.aoe === 0);
+
+// ---- Enemies (original; intents include what they do to the tide) ---------------------------
+const ENEMIES = {
+  crab:     { name: "Brine Crab", hp: 22, art: "crab", plan: [{ atk: 6 }, { block: 6, tide: +1 }, { atk: 8 }] },
+  gull:     { name: "Storm Gull", hp: 12, art: "gull", plan: [{ atk: 3 }, { atk: 4, tide: -1 }] },
+  sentinel: { name: "Drowned Sentinel", hp: 58, art: "sentinel", plan: [{ atk: 12 }, { atk: 8, seize: 2 }] },
+  moon:     { name: "Moon-Eater", hp: 110, art: "moon", boss: true, plan: [{ atk: 10 }, { atk: 6, tide: -2 }, { block: 12, atk: 4 }] },
+};
+const ROUTE = [
+  { kind: "fight", label: "Shoal", foes: ["crab", "crab"] },
+  { kind: "fight", label: "Gull rocks", foes: ["gull", "gull", "gull"] },
+  { kind: "rest", label: "Tide pool" },
+  { kind: "fight", label: "Elite: Sentinel", foes: ["sentinel"] },
+  { kind: "fight", label: "Boss: Moon-Eater", foes: ["moon"] },
+];
+const START_DECK = ["Splash", "Splash", "Splash", "Splash", "Brace", "Brace", "Brace", "Brace", "Riptide", "Undertow"];
+
+let rng = Math.random;
+function seeded(a) { return () => { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+let G;
+function newRun() {
+  G = { node: 0, hp: 60, maxHp: 60, deck: START_DECK.map((n) => byName[n]), log: [], pending: null }; shownPending = null;
+  startNode();
+}
+function log(m) { G.log.push(m); if (G.log.length > 60) G.log.shift(); }
+function startNode() {
+  const n = ROUTE[G.node];
+  if (n.kind === "rest") { G.fight = null; G.pending = "rest"; return; }
+  G.fight = { foes: n.foes.map((k, i) => ({ ...ENEMIES[k], key: k, maxHp: ENEMIES[k].hp, block: 0, drench: 0, step: i, phase: 1, eclipse: false, stagger: false })),
+              draw: shuffle(G.deck.slice()), hand: [], discard: [], exhaust: [], energy: 3, block: 0, tide: 5, turn: 0, crestThisTurn: false };
+  startTurn();
+}
+function drawCards(n) {
+  const F = G.fight;
+  for (let i = 0; i < n; i++) {
+    if (!F.draw.length) { if (!F.discard.length) return; F.draw = shuffle(F.discard); F.discard = []; }
+    F.hand.push(F.draw.pop());
+  }
+}
+function startTurn() {
+  const F = G.fight; F.turn++; F.energy = 3; F.block = 0; F.crestThisTurn = false; drawCards(5);
+  for (const e of F.foes) if (e.hp > 0) e.intent = e.stagger ? { stunned: true } : nextIntent(e);
+  for (const e of F.foes) e.stagger = false;
+}
+function nextIntent(e) {
+  if (e.key === "moon" && e.phase === 2) return { atk: 8, swing: (G.fight.turn % 2 ? +3 : -3), eclipse: true };
+  const it = e.plan[e.step % e.plan.length]; e.step++; return it;
+}
+const alive = () => G.fight.foes.filter((e) => e.hp > 0);
+
+function hit(e, amount) {
+  if (e.hp <= 0) return 0;
+  let dmg = amount + (e.drench > 0 ? 3 : 0); if (e.drench > 0) e.drench--;
+  if (e.eclipse) dmg = Math.floor(dmg / 2);
+  const absorbed = Math.min(e.block, dmg); e.block -= absorbed; dmg -= absorbed; e.hp = Math.max(0, e.hp - dmg);
+  floatOn(e, `-${dmg}`);
+  if (e.key === "moon" && e.phase === 1 && e.hp <= e.maxHp / 2 && e.hp > 0) { e.phase = 2; log("The Moon-Eater swallows the moon: Eclipse! Crest on its turn to break it."); }
+  return dmg;
+}
+function moveTide(delta) {
+  const F = G.fight; F.tide = Math.max(0, Math.min(10, F.tide + delta));
+  if (F.tide >= 10) { crest(); F.tide = 5; }
+  else if (F.tide <= 0) { slack(); F.tide = 5; }
+}
+function crest() {
+  const F = G.fight; F.crestThisTurn = true; log("CREST! 8 damage to all enemies.");
+  for (const e of alive()) { if (e.key === "moon" && e.eclipse) { e.eclipse = false; e.stagger = true; log("The Crest breaks the Eclipse. The Moon-Eater staggers."); } hit(e, 8); }
+  pulse = "crest";
+}
+function slack() { const F = G.fight; F.block += 8; drawCards(1); log("Slack Water: +8 block, draw 1."); pulse = "slack"; }
+
+function canPlay(c) { return G.fight && c.cost <= G.fight.energy; }
+function play(idx, target, choice) {
+  const F = G.fight, c = F.hand[idx]; if (!c || !canPlay(c)) return false;
+  F.energy -= c.cost; F.hand.splice(idx, 1);
+  if (c.dmg && target) hit(target, c.dmg);
+  if (c.aoe) for (const e of alive()) hit(e, c.aoe);
+  if (c.drench) for (const e of (c.aoe ? alive() : target ? [target] : [])) e.drench += c.drench;
+  if (c.block) F.block += c.block;
+  if (c.draw) drawCards(c.draw);
+  const dir = c.dir === "Either" ? (choice || "Surge") : c.dir;
+  moveTide(dir === "Surge" ? c.tide : -c.tide);
+  (c.exhaust ? F.exhaust : F.discard).push(c);
+  log(`${c.name}${target ? " → " + target.name : ""}`);
+  checkEnd(); return true;
+}
+function endTurn() {
+  const F = G.fight; F.discard.push(...F.hand); F.hand = [];
+  for (const e of alive()) {
+    const it = e.intent || {}; e.block = 0;
+    if (it.stunned) { log(`${e.name} is staggered.`); continue; }
+    if (it.eclipse) e.eclipse = true;
+    if (it.block) e.block += it.block;
+    if (it.atk) { const d = Math.max(0, it.atk - F.block); F.block = Math.max(0, F.block - it.atk); G.hp = Math.max(0, G.hp - d); log(`${e.name} hits for ${d}.`); }
+    if (it.tide) moveTide(it.tide);
+    if (it.seize) { F.tide = it.seize; log(`${e.name} seizes the tide: it drops to ${it.seize}.`); }
+    if (it.swing) moveTide(it.swing);
+  }
+  if (G.hp <= 0) { G.pending = "loss"; return; }
+  if (!checkEnd()) startTurn();
+}
+function checkEnd() {
+  if (alive().length) return false;
+  const boss = ROUTE[G.node].foes && ROUTE[G.node].foes.includes("moon");
+  G.fight = null;
+  G.pending = boss ? "win" : "reward"; return true;
+}
+function rewardChoices() {
+  const pool = CARDS.filter((c) => c.rarity !== "Basic"), w = { Common: 6, Uncommon: 3, Rare: 1 }, out = [];
+  while (out.length < 3) { const total = pool.reduce((s, c) => s + w[c.rarity], 0); let x = rng() * total;
+    for (const c of pool) { x -= w[c.rarity]; if (x <= 0) { if (!out.includes(c)) out.push(c); break; } } }
+  return out;
+}
+function advanceNode() { G.pending = null; G.node++; startNode(); render(); }
+
+// ---- Rendering ---------------------------------------------------------------------------------
+const $ = (id) => document.getElementById(id);
+let selected = -1, pulse = "";
+const ART = {
+  crab: `<path d="M30 70 Q60 30 90 70 Q60 86 30 70 Z" fill="#e76f51"/><circle cx="50" cy="58" r="4" fill="#111"/><circle cx="70" cy="58" r="4" fill="#111"/><path d="M28 66 Q12 50 22 40 Q30 52 36 60 Z M92 66 Q108 50 98 40 Q90 52 84 60 Z" fill="#c4553c"/>`,
+  gull: `<path d="M20 60 Q45 40 60 58 Q75 40 100 60 Q75 52 60 70 Q45 52 20 60 Z" fill="#e9ecef"/><circle cx="60" cy="62" r="7" fill="#dee2e6"/><path d="M60 64 L68 66 L60 68 Z" fill="#ffb703"/>`,
+  sentinel: `<rect x="38" y="24" width="44" height="62" rx="10" fill="#3d5a80"/><rect x="46" y="38" width="28" height="8" rx="3" fill="#98c1d9"/><path d="M30 90 Q60 70 90 90" stroke="#2ec4b6" stroke-width="5" fill="none"/>`,
+  moon: `<circle cx="60" cy="56" r="34" fill="#22223b"/><circle cx="72" cy="48" r="26" fill="#f1faee"/><path d="M40 70 Q60 86 80 70" stroke="#e63946" stroke-width="5" fill="none"/><circle cx="48" cy="52" r="5" fill="#e63946"/>`,
+};
+function intentText(it) {
+  if (!it) return ""; if (it.stunned) return "💫 staggered";
+  const p = []; if (it.atk) p.push(`⚔ ${it.atk}`); if (it.block) p.push(`🛡 ${it.block}`);
+  if (it.tide) p.push(`${it.tide > 0 ? "↑" : "↓"}${Math.abs(it.tide)} tide`); if (it.seize) p.push(`tide → ${it.seize}`);
+  if (it.swing) p.push(`${it.swing > 0 ? "↑" : "↓"}${Math.abs(it.swing)} tide`); if (it.eclipse) p.push("🌑 Eclipse");
+  return p.join(" · ");
+}
+function floatOn(e, txt) { e._float = txt; }
+function render() {
+  $("map").innerHTML = ROUTE.map((n, i) => `<span class="node ${i === G.node ? "cur" : i < G.node ? "done" : ""}">${n.label}</span>`).join("→");
+  $("php").style.width = `${G.hp / G.maxHp * 100}%`;
+  const F = G.fight;
+  $("pstat").textContent = `HP ${G.hp}/${G.maxHp}${F ? ` · 🛡 ${F.block}` : ""} · deck ${G.deck.length}`;
+  if (!F) { $("enemies").innerHTML = ""; $("hand").innerHTML = ""; $("gauge").innerHTML = ""; $("energy").textContent = ""; $("piles").textContent = ""; $("tideVal").textContent = ""; }
+  else {
+    $("enemies").innerHTML = F.foes.map((e, i) => `<div class="unit enemy ${e.hp <= 0 ? "dead" : ""} ${selected >= 0 && e.hp > 0 ? "targetable" : ""}" data-i="${i}">
+      <div class="intent">${e.hp > 0 ? intentText(e.intent) : "defeated"}</div>
+      <svg viewBox="0 0 120 100" width="120" height="100">${ART[e.art]}</svg><div><b>${e.name}</b>${e.boss ? ` <span class="sub">phase ${e.phase}</span>` : ""}</div>
+      <div class="hpbar"><i style="width:${e.hp / e.maxHp * 100}%"></i></div>
+      <div class="status">HP ${e.hp}/${e.maxHp}${e.block ? ` · 🛡 ${e.block}` : ""}${e.drench ? ` · 💧 drench ${e.drench}` : ""}${e.eclipse ? " · 🌑 Eclipse (½ damage)" : ""}</div>
+      ${e._float ? `<div class="float">${e._float}</div>` : ""}</div>`).join("");
+    F.foes.forEach((e) => (e._float = ""));
+    $("gauge").innerHTML = Array.from({ length: 11 }, (_, i) => `<div class="${i <= F.tide && F.tide > 0 && i > 0 ? "on" : ""} ${i === 0 ? "end0" : i === 10 ? "end10" : ""}">${i === 0 ? "Slack" : i === 10 ? "Crest" : i}</div>`).join("");
+    $("tideVal").innerHTML = `<b>${F.tide}</b> / 10`;
+    if (pulse) { $("gauge").classList.remove("crest"); void $("gauge").offsetWidth; $("gauge").classList.add("crest"); pulse = ""; }
+    $("energy").textContent = `⚡ ${F.energy} / 3`;
+    $("piles").textContent = `Draw ${F.draw.length} · Discard ${F.discard.length} · Exhausted ${F.exhaust.length} · Turn ${F.turn}`;
+    $("hand").innerHTML = F.hand.map((c, i) => `<div class="card ${c.dir} ${canPlay(c) ? "" : "disabled"} ${i === selected ? "selected" : ""}" data-i="${i}" tabindex="0" role="button" aria-label="${c.name}: ${cardText(c)}">
+      <div class="top"><span>${c.name}</span><span class="cost">${c.cost}</span></div>
+      <div class="dir">${c.dir === "Surge" ? "▲ Surge" : c.dir === "Ebb" ? "▼ Ebb" : "▲▼ Either"}</div>
+      <div class="txt">${cardText(c)}</div><div class="rar">${c.rarity}</div></div>`).join("");
+  }
+  $("log").innerHTML = G.log.slice(-12).reverse().map((m) => `<li>${m}</li>`).join("");
+  showPending();
+}
+// The game logic only records what should happen next; the UI decides how to show it.
+let shownPending = null;
+function showPending() {
+  if (!G.pending || shownPending === G.pending + G.node) return;
+  shownPending = G.pending + G.node;
+  if (G.pending === "reward") showReward(); else if (G.pending === "rest") showRest(); else showEnd(G.pending === "win");
+}
+function overlay(html) { $("box").innerHTML = html; $("overlay").classList.add("show"); }
+function closeOverlay() { $("overlay").classList.remove("show"); }
+function showReward() {
+  const choices = rewardChoices();
+  overlay(`<h2>Choose a card</h2><p class="sub">Pick one for your deck, or skip to keep it lean.</p><div class="pick">${choices.map((c, i) =>
+    `<div class="card ${c.dir}" data-pick="${i}"><div class="top"><span>${c.name}</span><span class="cost">${c.cost}</span></div><div class="dir">${c.dir}</div><div class="txt">${cardText(c)}</div><div class="rar">${c.rarity}</div></div>`).join("")}</div><button id="skip">Skip</button>`);
+  $("box").querySelectorAll("[data-pick]").forEach((el) => el.onclick = () => { G.deck.push(choices[+el.dataset.pick]); closeOverlay(); advanceNode(); });
+  $("skip").onclick = () => { closeOverlay(); advanceNode(); };
+}
+function showRest() {
+  overlay(`<h2>Tide pool</h2><p>A quiet pool before the deep water.</p><div class="pick"><button class="primary" id="heal">Rest: heal 18</button><button id="remove">Remove a Brace or Splash</button></div>`);
+  $("heal").onclick = () => { G.hp = Math.min(G.maxHp, G.hp + 18); closeOverlay(); advanceNode(); };
+  $("remove").onclick = () => { const i = G.deck.findIndex((c) => c.name === "Brace" || c.name === "Splash"); if (i >= 0) G.deck.splice(i, 1); closeOverlay(); advanceNode(); };
+}
+function showEnd(win) {
+  overlay(`<h2>${win ? "The tide turns." : "Swept under."}</h2><p>${win ? "You broke the Moon-Eater's eclipse and the sea goes still." : "The current was too strong this time."}</p><button class="primary" id="again">New run</button>`);
+  $("again").onclick = () => { closeOverlay(); newRun(); render(); };
+}
+
+// ---- Input ---------------------------------------------------------------------------------------
+let pendingChoice = null;
+$("hand").addEventListener("click", (ev) => {
+  const el = ev.target.closest(".card"); if (!el || !G.fight) return;
+  const i = +el.dataset.i, c = G.fight.hand[i]; if (!c || !canPlay(c)) return;
+  if (c.dir === "Either") { either(i); return; }
+  if (needsTarget(c) && alive().length > 1) { selected = selected === i ? -1 : i; render(); return; }
+  play(i, alive()[0]); selected = -1; render();
+});
+$("enemies").addEventListener("click", (ev) => {
+  const el = ev.target.closest(".enemy"); if (!el || selected < 0 || !G.fight) return;
+  const e = G.fight.foes[+el.dataset.i]; if (e.hp <= 0) return;
+  play(selected, e, pendingChoice); selected = -1; pendingChoice = null; render();
+});
+$("endTurn").onclick = () => { if (G.fight) { selected = -1; endTurn(); render(); } };
+// "Either" cards ask Surge or Ebb in an inline panel (no browser dialogs).
+function either(i) {
+  overlay(`<h3>${G.fight.hand[i].name}</h3><div class="pick"><button class="primary" id="cs">▲ Surge</button><button id="ce">▼ Ebb</button></div>`);
+  const go = (choice) => {
+    closeOverlay(); const c = G.fight.hand[i];
+    if (needsTarget(c) && alive().length > 1) { selected = i; pendingChoice = choice; } else play(i, alive()[0], choice);
+    render();
+  };
+  $("cs").onclick = () => go("Surge"); $("ce").onclick = () => go("Ebb");
+}
+
+// ---- Self-test (?test=1) and screenshot state (?shot=1) ---------------------------------------------
+function selftest() {
+  const out = [], ok = (name, cond, info = "") => out.push({ name, pass: !!cond, info });
+  ok("24 cards from the v3 pool", CARDS.length === 24);
+  ok("Rogue Wave is cost 2 / 12 dmg (v3 fix)", byName["Rogue Wave"].cost === 2 && byName["Rogue Wave"].dmg === 12);
+  ok("Crest Breaker is Ebb 1 (v3 fix)", byName["Crest Breaker"].dir === "Ebb" && byName["Crest Breaker"].tide === 1);
+  rng = seeded(1); newRun(); let F = G.fight; F.tide = 9; const hp0 = F.foes.map((e) => e.hp);
+  F.hand = [byName["Splash"]]; F.energy = 3; play(0, F.foes[0]);
+  ok("Surge to 10 triggers Crest and resets to 5", F.tide === 5);
+  ok("Crest hits ALL enemies for 8 (+6 Splash on target)", F.foes[0].hp === hp0[0] - 14 && F.foes[1].hp === hp0[1] - 8, `${F.foes.map((e) => e.hp)}`);
+  F.tide = 1; F.block = 0; const handN = F.hand.length; F.hand.push(byName["Brace"]); play(F.hand.length - 1, null);
+  ok("Ebb to 0 triggers Slack Water: +5 +8 block, draw 1", F.block === 13 && F.tide === 5 && F.hand.length === handN + 1, `block ${F.block}`);
+  const e = F.foes[0]; e.hp = 50; e.block = 0; e.drench = 0; const h = e.hp; F.hand = [byName["Riptide"], byName["Splash"]]; F.energy = 3; F.tide = 5;
+  play(0, e); play(0, e); ok("Drench adds +3 to the next hit", h - e.hp === 6 + 6 + 3, `${h - e.hp}`);
+  F.hand = [byName["Saltspray"]]; F.energy = 3; const ex0 = F.exhaust.length; play(0, alive()[0]); ok("Exhaust cards leave the deck for the fight", F.exhaust.length === ex0 + 1);
+  F.hand = [byName["Swell"]]; F.energy = 1; ok("Cannot play above energy", !play(0, alive()[0]));
+  F.hand = [byName["Ebb and Flow"]]; F.energy = 3; F.tide = 5; play(0, null, "Ebb"); ok("Either card can Ebb", F.tide === 3);
+  // Moon-Eater: Eclipse halves damage; a Crest on its turn breaks it and staggers.
+  G.node = 4; startNode(); F = G.fight; const m = F.foes[0]; m.hp = 50; m.phase = 2; m.eclipse = true; const before = m.hp;
+  hit(m, 10); ok("Eclipse halves damage", before - m.hp === 5, `${before - m.hp}`);
+  F.tide = 9; moveTide(1); ok("Crest breaks Eclipse and staggers the boss", !m.eclipse && m.stagger);
+  // Smoke test: a greedy bot plays the whole run 30 times without errors.
+  let wins = 0, errors = 0;
+  for (let s = 0; s < 30; s++) {
+    try {
+      rng = seeded(100 + s); newRun(); let guard = 0;
+      while (guard++ < 600) {
+        if (G.pending === "loss") break;
+        if (G.pending === "win") { wins++; break; }
+        if (G.pending) { G.pending = null; G.node++; startNode(); continue; }
+        const Fx = G.fight; let played = true;
+        while (played && G.fight) {
+          played = false;
+          for (let i = 0; i < Fx.hand.length; i++) if (canPlay(Fx.hand[i])) { play(i, alive()[0], Fx.tide >= 6 ? "Surge" : "Ebb"); played = true; break; }
+        }
+        if (G.fight) endTurn();
+      }
+    } catch (err) { errors++; out.push({ name: "bot error", pass: false, info: String(err && err.stack || err).slice(0, 300) }); }
+  }
+  ok("30 bot runs finish without errors", errors === 0, `bot wins ${wins}/30`);
+  const pass = out.every((o) => o.pass);
+  $("selftest").textContent = JSON.stringify({ game: "tidecaller", pass, results: out }, null, 1);
+  $("selftest").hidden = false; document.title = `SELFTEST ${pass ? "PASS" : "FAIL"}`;
+  rng = Math.random;
+}
+const params = new URLSearchParams(location.search);
+if (params.has("test")) { selftest(); closeOverlay(); newRun(); render(); }
+else if (params.has("shot")) {
+  rng = seeded(42); newRun(); G.deck.push(byName["Rogue Wave"], byName["Moonpull"], byName["Tidal Wave"]);
+  G.node = 4; startNode(); const F = G.fight; F.hand = ["Rogue Wave", "Moonpull", "Splash", "Ebb and Flow", "Brace"].map((n) => byName[n]);
+  F.tide = 8; F.turn = 4; F.foes[0].hp = 61; F.foes[0].drench = 1; F.foes[0].intent = { atk: 10 }; G.hp = 41;
+  G.log = ["Spring Tide → Surge 4", "CREST! 8 damage to all enemies.", "Moon-Eater hits for 4.", "Riptide → Moon-Eater"];
+  render();
+} else { newRun(); render(); }
+</script>
+</body>
+</html>

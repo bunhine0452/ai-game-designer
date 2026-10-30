@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Garden Guardians · Jardín de Guardianes</title>
+<style>
+  :root { --bg:#10200f; --panel:#18301a; --ink:#f1fbe9; --ink2:#b5cfa8; --nectar:#ffc857; --line:#2c4d2c; --bad:#ff7b7b; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif; }
+  header { display:flex; flex-wrap:wrap; gap:6px 16px; align-items:baseline; padding:12px 16px; border-bottom:1px solid var(--line); }
+  header h1 { margin:0; font-size:20px; } .sub { color:var(--ink2); font-size:13px; } a { color:var(--nectar); }
+  main { display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:14px; padding:14px 16px; max-width:1260px; margin:0 auto; }
+  @media (max-width:900px){ main { grid-template-columns:1fr; } }
+  canvas { width:100%; height:auto; display:block; border-radius:14px; background:#1f3d1e; touch-action:manipulation; }
+  .panel { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:12px 14px; }
+  .hud { display:flex; gap:14px; flex-wrap:wrap; font-weight:700; margin-bottom:8px; } .hud span { white-space:nowrap; }
+  .towers { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .tw { border:2px solid var(--line); border-radius:12px; padding:6px 8px; cursor:pointer; background:#1d3a1f; font-size:12.5px; }
+  .tw.sel { border-color:var(--nectar); } .tw.poor { opacity:.5; } .tw b { font-size:13.5px; } .tw .c { color:var(--nectar); font-weight:700; }
+  button { font:inherit; cursor:pointer; border-radius:10px; border:1px solid var(--line); background:#24472a; color:var(--ink); padding:8px 12px; }
+  button.primary { background:var(--nectar); color:#2a1b00; border-color:var(--nectar); font-weight:750; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:8px 0; }
+  .muted { color:var(--ink2); font-size:12.5px; }
+  #preview { font-size:13px; } #info { min-height:58px; font-size:13px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Garden Guardians <span class="sub">Jardín de Guardianes · tower defense</span></h1>
+  <span class="sub">Playable prototype of the <a href="../../showcase/05-agy-es-garden-td/">showcase design</a> made with <a href="../../">ai-game-designer</a> · tower stats from the rebalanced cost table</span>
+</header>
+<main>
+  <section>
+    <canvas id="c" width="960" height="600" aria-label="Garden map. Pests walk the dirt path toward your flowers."></canvas>
+    <p class="muted">Click a plant on the right, then a grass tile. Different plants next to each other pollinate: +10% damage per different neighbour, up to +30%.</p>
+  </section>
+  <aside class="panel">
+    <div class="hud"><span>🍯 <span id="nectar"></span></span><span>🌸 <span id="lives"></span></span><span>🌊 Wave <span id="wave"></span>/10</span></div>
+    <div id="preview" class="muted"></div>
+    <div class="row"><button class="primary" id="go">Start wave</button><button id="speed">Speed 1×</button></div>
+    <div class="towers" id="towers"></div>
+    <h3 style="margin:12px 0 4px;font-size:15px">Gardener tools</h3>
+    <div class="row"><button id="fert">🌱 Fertilize (2× rate, 5 s)</button><button id="prune">✂ Prune (80% back)</button></div>
+    <div id="info" class="muted">Select a planted guardian to see its stats.</div>
+  </aside>
+</main>
+<pre id="selftest" hidden></pre>
+<script>
+"use strict";
+// Rebuild DOM only when the markup changes (ui() runs every frame; rebuilding would eat clicks).
+const setHTML = (el, html) => { if (el._html !== html) { el._html = html; el.innerHTML = html; } };
+// ---- Towers: showcase/05 towers_rebalanced_data.csv (name,cost,dps,range,aoe_radius,slow_pct) ----
+const TOWERS = [
+  { id: "pea",    name: "Brote Guisante",      en: "Pea Sprout",     cost: 110, dps: 22, range: 3.0, aoe: 0,   slow: 0,  rof: 1.6, color: "#7bd389", shape: "pod" },
+  { id: "cactus", name: "Cactus Espinoso",     en: "Thorn Cactus",   cost: 150, dps: 36, range: 4.0, aoe: 0,   slow: 0,  rof: 1.2, color: "#5fbf77", shape: "cactus", pierce: true },
+  { id: "spore",  name: "Seta Esporífera",     en: "Spore Cap",      cost: 190, dps: 30, range: 3.0, aoe: 1.8, slow: 0,  rof: 0.8, color: "#e07a5f", shape: "mushroom" },
+  { id: "rose",   name: "Rosa Francotiradora", en: "Sniper Rose",    cost: 205, dps: 50, range: 5.5, aoe: 0,   slow: 0,  rof: 0.5, color: "#ef476f", shape: "rose" },
+  { id: "lily",   name: "Lirio Glacial",       en: "Frost Lily",     cost: 185, dps: 10, range: 3.2, aoe: 1.2, slow: 45, rof: 1.0, color: "#9bf6ff", shape: "lily" },
+  { id: "sun",    name: "Girasol Radiante",    en: "Radiant Sunflower", cost: 95, dps: 8, range: 2.0, aoe: 0,  slow: 25, rof: 1.0, color: "#ffd166", shape: "sun" },
+];
+const PESTS = {
+  aphid:  { name: "Aphid",  hp: 40,  speed: 1.6, bounty: 6,  color: "#a7c957", r: 9 },
+  beetle: { name: "Beetle", hp: 120, speed: 0.9, bounty: 14, color: "#6d597a", r: 13, armor: 0.5 },
+  snail:  { name: "Snail",  hp: 260, speed: 0.55, bounty: 22, color: "#d4a373", r: 15 },
+  queen:  { name: "Locust Queen", hp: 1800, speed: 0.5, bounty: 200, color: "#bc4749", r: 22, armor: 0.3 },
+};
+// Waves are telegraphed: the next wave's composition is always shown.
+const WAVES = [
+  [["aphid", 8]], [["aphid", 12]], [["aphid", 8], ["beetle", 3]], [["beetle", 6]], [["aphid", 14], ["snail", 2]],
+  [["beetle", 8], ["snail", 2]], [["aphid", 20], ["beetle", 6]], [["snail", 6], ["beetle", 6]], [["aphid", 24], ["snail", 5], ["beetle", 8]], [["queen", 1], ["beetle", 10]],
+];
+const COLS = 16, ROWS = 10, TILE = 60;
+const PATH = [[0, 2], [5, 2], [5, 7], [10, 7], [10, 1], [13, 1], [13, 8], [15, 8], [16, 8]];   // waypoints (tile coords)
+
+let rng = Math.random;
+function seeded(a) { return () => { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+const pathTiles = new Set();
+for (let i = 0; i < PATH.length - 1; i++) {
+  const [x0, y0] = PATH[i], [x1, y1] = PATH[i + 1];
+  for (let x = Math.min(x0, x1); x <= Math.max(x0, x1); x++) for (let y = Math.min(y0, y1); y <= Math.max(y0, y1); y++) pathTiles.add(x + "," + y);
+}
+const pathLen = PATH.slice(1).reduce((s, p, i) => s + Math.abs(p[0] - PATH[i][0]) + Math.abs(p[1] - PATH[i][1]), 0);
+function posAt(d) {          // distance along path (tiles) -> pixel position
+  for (let i = 0; i < PATH.length - 1; i++) {
+    const [x0, y0] = PATH[i], [x1, y1] = PATH[i + 1], seg = Math.abs(x1 - x0) + Math.abs(y1 - y0);
+    if (d <= seg) { const t = seg ? d / seg : 0; return [(x0 + (x1 - x0) * t + .5) * TILE, (y0 + (y1 - y0) * t + .5) * TILE]; }
+    d -= seg;
+  }
+  const [x, y] = PATH[PATH.length - 1]; return [(x + .5) * TILE, (y + .5) * TILE];
+}
+
+let S;
+function fresh() { return { nectar: 260, lives: 15, wave: 0, running: false, towers: [], pests: [], shots: [], spawnQ: [], spawnT: 0, sel: "pea", picked: null, speed: 1, fertCd: 0, result: "" }; }
+const towerAt = (x, y) => S.towers.find((t) => t.x === x && t.y === y);
+function neighbourBonus(t) {
+  const kinds = new Set();
+  for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]]) { const n = towerAt(t.x + dx, t.y + dy); if (n && n.def.id !== t.def.id) kinds.add(n.def.id); }
+  return Math.min(0.3, kinds.size * 0.1);
+}
+function place(id, x, y) {
+  const def = TOWERS.find((d) => d.id === id);
+  if (!def || x < 0 || y < 0 || x >= COLS || y >= ROWS || pathTiles.has(x + "," + y) || towerAt(x, y) || S.nectar < def.cost) return null;
+  S.nectar -= def.cost; const t = { def, x, y, cd: 0, lvl: 1, spent: def.cost, boost: 0 }; S.towers.push(t); return t;
+}
+function prune(t) { const i = S.towers.indexOf(t); if (i < 0) return 0; const back = Math.floor(t.spent * 0.8); S.nectar += back; S.towers.splice(i, 1); return back; }
+const upCost = (t) => Math.round(t.def.cost * (t.lvl === 1 ? 0.75 : 1.25));
+function upgrade(t) { if (t.lvl >= 3 || S.nectar < upCost(t)) return false; S.nectar -= upCost(t); t.spent += upCost(t); t.lvl++; return true; }
+const stat = (t) => { const m = 1 + 0.4 * (t.lvl - 1); return { dps: t.def.dps * m * (1 + neighbourBonus(t)), range: t.def.range * (1 + 0.1 * (t.lvl - 1)) }; };
+
+function startWave() {
+  if (S.running || S.wave >= WAVES.length || S.result) return;
+  S.spawnQ = []; for (const [k, n] of WAVES[S.wave]) for (let i = 0; i < n; i++) S.spawnQ.push(k);
+  if (S.wave === 9) S.spawnQ.sort((a, b) => (a === "queen") - (b === "queen"));   // escorts first, queen last
+  S.running = true; S.spawnT = 0;
+}
+function damage(p, amount, pierce) {
+  const dmg = amount * (p.def.armor && !pierce ? 1 - p.def.armor : 1); p.hp -= dmg;
+  if (p.hp <= 0 && !p.dead) { p.dead = true; S.nectar += p.def.bounty; }
+}
+function step(dt) {
+  if (S.result) return;
+  S.fertCd = Math.max(0, S.fertCd - dt);
+  if (S.running) {
+    S.spawnT -= dt;
+    if (S.spawnQ.length && S.spawnT <= 0) { const k = S.spawnQ.shift(); S.pests.push({ def: PESTS[k], key: k, hp: PESTS[k].hp, maxHp: PESTS[k].hp, d: 0, slowT: 0, slow: 0 }); S.spawnT = k === "aphid" ? 0.55 : 1.1; }
+  }
+  for (const p of S.pests) {
+    if (p.dead) continue;
+    p.slowT = Math.max(0, p.slowT - dt); const sp = p.def.speed * (p.slowT > 0 ? 1 - p.slow : 1);
+    p.d += sp * dt;
+    if (p.d >= pathLen) { p.dead = true; p.leaked = true; S.lives -= p.key === "queen" ? 5 : 1; }
+  }
+  for (const t of S.towers) {
+    t.boost = Math.max(0, t.boost - dt); t.cd -= dt * (t.boost > 0 ? 2 : 1);
+    if (t.cd > 0) continue;
+    const { dps, range } = stat(t), [tx, ty] = [(t.x + .5) * TILE, (t.y + .5) * TILE];
+    let best = null, bestD = -1;
+    for (const p of S.pests) { if (p.dead) continue; const [px, py] = posAt(p.d); if (Math.hypot(px - tx, py - ty) <= range * TILE && p.d > bestD) { best = p; bestD = p.d; } }
+    if (!best) continue;
+    t.cd = 1 / t.def.rof; const perShot = dps / t.def.rof, [bx, by] = posAt(best.d);
+    if (t.def.aoe) { for (const p of S.pests) { if (p.dead) continue; const [px, py] = posAt(p.d); if (Math.hypot(px - bx, py - by) <= t.def.aoe * TILE) { damage(p, perShot, t.def.pierce); if (t.def.slow) { p.slow = Math.max(p.slow, t.def.slow / 100); p.slowT = 1.5; } } } }
+    else { damage(best, perShot, t.def.pierce); if (t.def.slow) { best.slow = Math.max(best.slow, t.def.slow / 100); best.slowT = 1.5; } }
+    S.shots.push({ x0: tx, y0: ty, x1: bx, y1: by, t: 0.18, color: t.def.color, aoe: t.def.aoe });
+  }
+  S.shots.forEach((s) => (s.t -= dt)); S.shots = S.shots.filter((s) => s.t > 0);
+  S.pests = S.pests.filter((p) => !p.dead);
+  if (S.lives <= 0) { S.lives = 0; S.result = "lose"; S.running = false; }
+  else if (S.running && !S.spawnQ.length && !S.pests.length) {
+    S.running = false; S.nectar += 40 + S.wave * 10; S.wave++;
+    if (S.wave >= WAVES.length) S.result = "win";
+  }
+}
+
+// ---- Rendering --------------------------------------------------------------------------------
+const cv = document.getElementById("c"), g = cv.getContext("2d"), $ = (id) => document.getElementById(id);
+function drawPlant(def, x, y, s = 1) {
+  g.save(); g.translate(x, y); g.scale(s, s);
+  g.fillStyle = "rgba(0,0,0,.25)"; g.beginPath(); g.ellipse(0, 20, 18, 6, 0, 0, 7); g.fill();
+  g.fillStyle = "#3a7d44"; g.fillRect(-2, 4, 4, 16);
+  g.fillStyle = def.color;
+  if (def.shape === "pod") { g.beginPath(); g.arc(0, -2, 13, 0, 7); g.fill(); g.fillStyle = "#2d6a4f"; g.beginPath(); g.arc(6, -4, 5, 0, 7); g.fill(); }
+  else if (def.shape === "cactus") { g.fillRect(-7, -18, 14, 34); g.fillRect(-16, -6, 9, 6); g.fillRect(7, -12, 9, 6); g.fillStyle = "#fff"; for (let i = -14; i < 14; i += 7) g.fillRect(-1, i, 2, 2); }
+  else if (def.shape === "mushroom") { g.fillStyle = "#f6e7cb"; g.fillRect(-4, -4, 8, 18); g.fillStyle = def.color; g.beginPath(); g.ellipse(0, -6, 17, 11, 0, Math.PI, 0); g.fill(); g.fillStyle = "#fff"; g.beginPath(); g.arc(-6, -9, 2.5, 0, 7); g.arc(5, -11, 2, 0, 7); g.fill(); }
+  else if (def.shape === "rose") { for (let k = 0; k < 5; k++) { g.beginPath(); g.ellipse(Math.cos(k * 1.26) * 6, -4 + Math.sin(k * 1.26) * 6, 8, 5, k * 1.26, 0, 7); g.fill(); } g.fillStyle = "#9d0208"; g.beginPath(); g.arc(0, -4, 5, 0, 7); g.fill(); }
+  else if (def.shape === "lily") { for (let k = 0; k < 6; k++) { g.beginPath(); g.ellipse(Math.cos(k * 1.05) * 8, -4 + Math.sin(k * 1.05) * 8, 9, 4, k * 1.05, 0, 7); g.fill(); } g.fillStyle = "#e0fbfc"; g.beginPath(); g.arc(0, -4, 4, 0, 7); g.fill(); }
+  else { for (let k = 0; k < 10; k++) { g.beginPath(); g.ellipse(Math.cos(k * .63) * 11, -4 + Math.sin(k * .63) * 11, 6, 3, k * .63, 0, 7); g.fill(); } g.fillStyle = "#7f5539"; g.beginPath(); g.arc(0, -4, 7, 0, 7); g.fill(); }
+  g.restore();
+}
+function draw() {
+  for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) {
+    g.fillStyle = pathTiles.has(x + "," + y) ? ((x + y) % 2 ? "#a47148" : "#9c6644") : ((x + y) % 2 ? "#2d5a27" : "#31622b");
+    g.fillRect(x * TILE, y * TILE, TILE, TILE);
+  }
+  // goal flowers
+  for (let i = 0; i < Math.min(S.lives, 15); i++) { g.fillStyle = ["#ff99c8", "#fcf6bd", "#d0f4de"][i % 3]; g.beginPath(); g.arc(15.2 * TILE + (i % 3) * 14, 8.1 * TILE + Math.floor(i / 3) * 12 - 30, 5, 0, 7); g.fill(); }
+  // synergy lines
+  g.strokeStyle = "rgba(255,200,87,.35)"; g.lineWidth = 3;
+  for (const t of S.towers) for (const [dx, dy] of [[1, 0], [0, 1], [1, 1], [1, -1]]) { const n = towerAt(t.x + dx, t.y + dy); if (n && n.def.id !== t.def.id) { g.beginPath(); g.moveTo((t.x + .5) * TILE, (t.y + .5) * TILE); g.lineTo((n.x + .5) * TILE, (n.y + .5) * TILE); g.stroke(); } }
+  for (const t of S.towers) {
+    if (S.picked === t) { g.strokeStyle = "rgba(255,255,255,.5)"; g.lineWidth = 2; g.beginPath(); g.arc((t.x + .5) * TILE, (t.y + .5) * TILE, stat(t).range * TILE, 0, 7); g.stroke(); }
+    drawPlant(t.def, (t.x + .5) * TILE, (t.y + .5) * TILE, 1 + (t.lvl - 1) * 0.12);
+    if (t.boost > 0) { g.strokeStyle = "#b5e48c"; g.lineWidth = 3; g.beginPath(); g.arc((t.x + .5) * TILE, (t.y + .5) * TILE, 26, 0, 7); g.stroke(); }
+    for (let k = 1; k < t.lvl; k++) { g.fillStyle = "#ffc857"; g.beginPath(); g.arc(t.x * TILE + 8 + k * 8, t.y * TILE + 8, 3, 0, 7); g.fill(); }
+  }
+  for (const s of S.shots) { g.strokeStyle = s.color; g.lineWidth = 3; g.beginPath(); g.moveTo(s.x0, s.y0); g.lineTo(s.x1, s.y1); g.stroke(); if (s.aoe) { g.fillStyle = s.color + "55"; g.beginPath(); g.arc(s.x1, s.y1, s.aoe * TILE, 0, 7); g.fill(); } }
+  for (const p of S.pests) {
+    const [x, y] = posAt(p.d);
+    g.fillStyle = p.slowT > 0 ? "#bde0fe" : p.def.color; g.beginPath(); g.ellipse(x, y, p.def.r, p.def.r * .75, 0, 0, 7); g.fill();
+    g.fillStyle = "#111"; g.beginPath(); g.arc(x + p.def.r * .5, y - 2, 2, 0, 7); g.fill();
+    if (p.def.armor) { g.strokeStyle = "#e0e1dd"; g.lineWidth = 2; g.beginPath(); g.arc(x, y, p.def.r + 2, Math.PI, 0); g.stroke(); }
+    g.fillStyle = "#300"; g.fillRect(x - 16, y - p.def.r - 9, 32, 4); g.fillStyle = "#ff595e"; g.fillRect(x - 16, y - p.def.r - 9, 32 * Math.max(0, p.hp / p.maxHp), 4);
+  }
+  if (S.result) { g.fillStyle = "rgba(0,0,0,.55)"; g.fillRect(0, 0, cv.width, cv.height); g.fillStyle = "#fff"; g.font = "700 46px system-ui"; g.textAlign = "center"; g.fillText(S.result === "win" ? "The garden blooms!" : "The pests got through", cv.width / 2, cv.height / 2); g.font = "20px system-ui"; g.fillText("Reload to play again", cv.width / 2, cv.height / 2 + 40); g.textAlign = "left"; }
+}
+function ui() {
+  $("nectar").textContent = Math.floor(S.nectar); $("lives").textContent = S.lives; $("wave").textContent = Math.min(S.wave + (S.running ? 1 : 0), 10);
+  const next = WAVES[S.wave];
+  setHTML($("preview"), S.result ? "" : next ? `${S.running ? "Now" : "Next"}: ${next.map(([k, n]) => `${n}× ${PESTS[k].name}${PESTS[k].armor ? " (armored: Thorn Cactus pierces)" : ""}`).join(", ")}` : "");
+  $("go").disabled = S.running || !!S.result || S.wave >= WAVES.length;
+  $("speed").textContent = `Speed ${S.speed}×`;
+  setHTML($("towers"), TOWERS.map((d) => `<div class="tw ${S.sel === d.id ? "sel" : ""} ${S.nectar < d.cost ? "poor" : ""}" data-id="${d.id}"><b>${d.en}</b><div class="muted">${d.name}</div><span class="c">${d.cost}🍯</span> · ${d.dps} dps · r${d.range}${d.aoe ? ` · area ${d.aoe}` : ""}${d.slow ? ` · slow ${d.slow}%` : ""}${d.pierce ? " · pierce" : ""}</div>`).join(""));
+  $("fert").disabled = !S.picked || S.fertCd > 0; $("fert").textContent = S.fertCd > 0 ? `🌱 Fertilize (${Math.ceil(S.fertCd)} s)` : "🌱 Fertilize (2× rate, 5 s)";
+  $("prune").disabled = !S.picked;
+  const t = S.picked;
+  setHTML($("info"), t ? `<b>${t.def.en}</b> level ${t.lvl} · ${stat(t).dps.toFixed(1)} dps (pollination +${Math.round(neighbourBonus(t) * 100)}%) · range ${stat(t).range.toFixed(1)}<div class="row"><button id="up" ${t.lvl >= 3 || S.nectar < upCost(t) ? "disabled" : ""}>Upgrade (${t.lvl >= 3 ? "max" : upCost(t) + "🍯"})</button></div>` : "Select a planted guardian to see its stats.");
+  const up = $("up"); if (up) up.onclick = () => { upgrade(t); ui(); };
+}
+$("towers").onclick = (e) => { const el = e.target.closest(".tw"); if (el) { S.sel = el.dataset.id; S.picked = null; ui(); } };
+cv.addEventListener("click", (e) => {
+  const r = cv.getBoundingClientRect(), x = Math.floor((e.clientX - r.left) / r.width * COLS), y = Math.floor((e.clientY - r.top) / r.height * ROWS);
+  const t = towerAt(x, y); if (t) { S.picked = t; ui(); return; }
+  if (place(S.sel, x, y)) S.picked = null; ui();
+});
+$("go").onclick = () => { startWave(); ui(); };
+$("speed").onclick = () => { S.speed = S.speed === 1 ? 2 : S.speed === 2 ? 3 : 1; ui(); };
+$("fert").onclick = () => { if (S.picked && S.fertCd <= 0) { S.picked.boost = 5; S.fertCd = 20; } ui(); };
+$("prune").onclick = () => { if (S.picked) { prune(S.picked); S.picked = null; } ui(); };
+
+// ---- Self-test (?test=1) and screenshot state (?shot=1) ----------------------------------------
+function layout() { [["pea", 4, 3], ["cactus", 6, 4], ["lily", 4, 5], ["spore", 6, 6], ["rose", 9, 4], ["sun", 11, 6], ["cactus", 9, 2], ["spore", 12, 3], ["pea", 11, 2], ["rose", 12, 7], ["lily", 14, 6], ["cactus", 14, 4]].forEach(([k, x, y]) => place(k, x, y)); }
+function selftest() {
+  const out = [], ok = (name, cond, info = "") => out.push({ name, pass: !!cond, info });
+  const csv = { pea: [110, 22, 3.0, 0, 0], cactus: [150, 36, 4.0, 0, 0], spore: [190, 30, 3.0, 1.8, 0], rose: [205, 50, 5.5, 0, 0], lily: [185, 10, 3.2, 1.2, 45], sun: [95, 8, 2.0, 0, 25] };
+  ok("tower stats match the rebalanced table", TOWERS.every((t) => JSON.stringify([t.cost, t.dps, t.range, t.aoe, t.slow]) === JSON.stringify(csv[t.id])));
+  S = fresh(); S.nectar = 1e6; const t = place("pea", 3, 3); S.pests.push({ def: { ...PESTS.snail, hp: 1e9 }, key: "snail", hp: 1e9, maxHp: 1e9, d: 5.5, slowT: 0, slow: 0 });
+  const sp = S.pests[0]; sp.def = { ...sp.def, speed: 0 }; const h0 = sp.hp; for (let i = 0; i < 1000; i++) step(0.01);
+  ok("Pea Sprout deals ~22 dps", Math.abs((h0 - sp.hp) / 10 - 22) < 2.5, ((h0 - sp.hp) / 10).toFixed(1));
+  S = fresh(); S.nectar = 1e6; place("pea", 3, 3); place("lily", 4, 3); place("sun", 3, 4);
+  ok("pollination: two different neighbours = +20%", Math.abs(neighbourBonus(towerAt(3, 3)) - 0.2) < 1e-9);
+  S = fresh(); const b = { def: PESTS.beetle, key: "beetle", hp: 120, maxHp: 120, d: 0 }; damage(b, 40, false); const afterArmor = b.hp; damage(b, 40, true);
+  ok("armor halves damage, pierce ignores it", afterArmor === 100 && b.hp === 60);
+  S = fresh(); S.nectar = 500; const tt = place("rose", 2, 4); const back = prune(tt); ok("prune refunds 80%", back === 164 && S.towers.length === 0);
+  ok("cannot plant on the path", !place("pea", 0, 2));
+  S = fresh(); S.pests.push({ def: PESTS.aphid, key: "aphid", hp: 40, maxHp: 40, d: pathLen - 0.01, slowT: 0, slow: 0 }); step(0.1); ok("a leaking pest costs one flower", S.lives === 14);
+  // Full game: a fixed layout, upgrades bought between waves, 10 waves with no errors.
+  let errs = 0;
+  try { rng = seeded(3); S = fresh(); S.nectar = 2400; layout(); let guard = 0;
+    while (!S.result && guard++ < 20) { startWave(); let k = 0; while (S.running && k++ < 40000) step(0.02); for (const x of S.towers) upgrade(x); }
+  } catch (e) { errs++; out.push({ name: "simulation error", pass: false, info: String(e) }); }
+  ok("10 waves simulate to a result without errors", errs === 0 && !!S.result, `${S.result}, lives ${S.lives}`);
+  // Balance probe: a simple bot that starts with the normal 260 nectar and buys between waves.
+  const spots = [["pea", 4, 3], ["sun", 4, 1], ["cactus", 6, 4], ["lily", 4, 5], ["spore", 6, 6], ["rose", 9, 4], ["cactus", 9, 2], ["spore", 11, 6], ["pea", 11, 2], ["lily", 12, 3], ["rose", 12, 7], ["cactus", 14, 4]];
+  const results = [];
+  for (let seed = 0; seed < 5; seed++) {
+    rng = seeded(50 + seed); S = fresh(); let i = 0, guard = 0;
+    while (!S.result && guard++ < 20) {
+      while (i < spots.length && S.nectar >= TOWERS.find((d) => d.id === spots[i][0]).cost) { place(...spots[i]); i++; }
+      if (i >= 4) for (const x of S.towers) if (S.nectar > 400) upgrade(x);
+      startWave(); let k = 0; while (S.running && k++ < 40000) step(0.02);
+    }
+    results.push(`${S.result} (wave ${S.wave}, lives ${S.lives})`);
+  }
+  ok("balance probe: starting nectar is enough to make progress", results.every((r) => !r.startsWith("lose (wave 1") && !r.startsWith("lose (wave 2")), results.join("; "));
+  const pass = out.every((o) => o.pass);
+  $("selftest").textContent = JSON.stringify({ game: "garden-guardians", pass, results: out }, null, 1);
+  $("selftest").hidden = false; document.title = `SELFTEST ${pass ? "PASS" : "FAIL"}`;
+  S = fresh(); rng = Math.random;
+}
+const params = new URLSearchParams(location.search);
+S = fresh();
+if (params.has("test")) selftest();
+else if (params.has("shot")) { rng = seeded(9); S.nectar = 2400; layout(); S.towers.slice(0, 6).forEach(upgrade); S.wave = 6; startWave(); for (let i = 0; i < 900; i++) step(0.02); S.towers[2].boost = 3; S.picked = S.towers[4]; S.nectar = 340; }
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (!params.has("test") && !params.has("shot")) for (let i = 0; i < S.speed; i++) step(dt);
+  draw(); ui(); requestAnimationFrame(frame);
+}
+ui(); requestAnimationFrame(frame);
+</script>
+</body>
+</html>

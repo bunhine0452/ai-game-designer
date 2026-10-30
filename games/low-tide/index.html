@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Low Tide · a short horror chapter</title>
+<style>
+  :root { --bg:#04070b; --panel:#0c141c; --ink:#e7eef5; --ink2:#8ea3b5; --beam:#ffe8a3; --line:#1b2a38; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif; }
+  header { display:flex; flex-wrap:wrap; gap:6px 16px; align-items:baseline; padding:12px 16px; border-bottom:1px solid var(--line); }
+  header h1 { margin:0; font-size:20px; } .sub { color:var(--ink2); font-size:13px; } a { color:var(--beam); }
+  main { display:grid; grid-template-columns:minmax(0,1fr) 290px; gap:14px; padding:14px 16px; max-width:1300px; margin:0 auto; }
+  @media (max-width:920px){ main { grid-template-columns:1fr; } }
+  .stage { position:relative; } canvas { width:100%; height:auto; display:block; border-radius:12px; background:#000; }
+  #captions { position:absolute; left:50%; bottom:14px; transform:translateX(-50%); text-align:center; pointer-events:none; width:92%; }
+  #captions div { display:inline-block; background:rgba(0,0,0,.72); padding:3px 10px; border-radius:6px; margin:2px; font-size:15px; }
+  .panel { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin-bottom:12px; }
+  .obj { font-size:16px; font-weight:650; } .muted { color:var(--ink2); font-size:13px; }
+  label { display:flex; gap:8px; align-items:center; margin:6px 0; font-size:14px; }
+  button { font:inherit; cursor:pointer; border-radius:10px; border:1px solid var(--line); background:#132232; color:var(--ink); padding:9px 14px; }
+  button.primary { background:var(--beam); color:#231a00; border-color:var(--beam); font-weight:750; }
+  .meter { height:8px; background:#132232; border-radius:5px; overflow:hidden; } .meter i { display:block; height:100%; background:var(--beam); }
+  #start { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; background:rgba(0,0,0,.82); border-radius:12px; text-align:center; padding:20px; }
+  kbd { background:#132232; border:1px solid var(--line); border-radius:4px; padding:0 5px; font-size:12px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Low Tide <span class="sub">a short horror chapter in a flooded lighthouse</span></h1>
+  <span class="sub">Playable prototype of the <a href="../../showcase/04-codex-en-horror-lighthouse/">revised beat list</a> and its <a href="../../showcase/04-codex-en-horror-lighthouse/accessibility_checklist.md">accessibility checklist</a>, made with <a href="../../">ai-game-designer</a></span>
+</header>
+<main>
+  <section class="stage">
+    <canvas id="c" width="960" height="600" aria-label="Top-down view of the flooded lighthouse"></canvas>
+    <div id="captions" aria-live="polite"></div>
+    <div id="start"><h2 style="margin:0">Low Tide</h2><p class="muted" style="max-width:520px">Restore the pump, signal the rescue boat, and get out before the keeper drags you under.<br>
+      <kbd>WASD</kbd>/<kbd>arrows</kbd> move · <kbd>Shift</kbd> run (loud) · <kbd>E</kbd> interact · <kbd>F</kbd> lantern · Sound matters: headphones help, captions are on.</p>
+      <button class="primary" id="go">Begin (about 6–8 minutes)</button></div>
+  </section>
+  <aside>
+    <div class="panel"><div class="muted">Objective</div><div class="obj" id="obj"></div><div class="muted" id="where" style="margin-top:4px"></div></div>
+    <div class="panel"><div class="muted">Lantern battery</div><div class="meter"><i id="bat"></i></div><div class="muted" id="status" style="margin-top:6px"></div></div>
+    <div class="panel"><b>Accessibility</b>
+      <label><input type="checkbox" id="optCaptions" checked> Sound captions with direction</label>
+      <label><input type="checkbox" id="optFlash"> Reduce flashing (lighthouse beam)</label>
+      <label><input type="checkbox" id="optToggleRun"> Toggle run instead of hold</label>
+      <label>Volume <input type="range" id="optVol" min="0" max="1" step="0.05" value="0.6"></label>
+      <div class="muted">Checkpoints sit before every chase. Being caught sends you back a room, never further.</div></div>
+  </aside>
+</main>
+<pre id="selftest" hidden></pre>
+<script>
+"use strict";
+// ---- Map: rooms laid out in the order of the revised beat list ---------------------------------
+const W = 40, H = 25, TS = 24;
+const ROOMS = {
+  quay:    { x: 1,  y: 17, w: 9,  h: 7, name: "Service quay" },
+  gate:    { x: 1,  y: 9,  w: 9,  h: 7, name: "Gatehouse" },
+  intake:  { x: 11, y: 15, w: 12, h: 9, name: "Flooded intake" },
+  alcove:  { x: 24, y: 19, w: 6,  h: 5, name: "Maintenance alcove", checkpoint: true },
+  gallery: { x: 11, y: 9,  w: 19, h: 5, name: "Exposed gallery" },
+  chart:   { x: 31, y: 9,  w: 8,  h: 7, name: "Chart room" },
+  winch:   { x: 31, y: 17, w: 8,  h: 7, name: "Winch room", checkpoint: true },
+  lens:    { x: 24, y: 1,  w: 15, h: 7, name: "Lens room" },
+  roof:    { x: 11, y: 1,  w: 12, h: 7, name: "Roof" },
+  dock:    { x: 1,  y: 1,  w: 9,  h: 7, name: "Tether dock" },
+};
+const DOORS = [
+  { x: 5, y: 16, a: "quay", b: "gate" }, { x: 10, y: 15, a: "gate", b: "intake" }, { x: 23, y: 21, a: "intake", b: "alcove" },
+  { x: 16, y: 14, a: "intake", b: "gallery", lock: "pump" }, { x: 30, y: 11, a: "gallery", b: "chart" }, { x: 35, y: 16, a: "chart", b: "winch" },
+  { x: 35, y: 8, a: "chart", b: "lens", lock: "chart" }, { x: 23, y: 4, a: "lens", b: "roof", lock: "lens" }, { x: 10, y: 4, a: "roof", b: "dock", lock: "beacon" },
+];
+const SPOTS = { model: [5, 11, "gate"], pump: [20, 21, "intake"], callsign: [27, 22, "alcove"], chart: [35, 12, "chart"], lens: [31, 4, "lens"], beacon: [16, 3, "roof"], boat: [3, 3, "dock"] };
+const STEPS = [
+  { id: "model", text: "Learn the pump bypass on the dry model in the gatehouse." },
+  { id: "pump", text: "Reroute the lower pump in the intake (hold E). It is loud." },
+  { id: "chart", text: "Read the chart in the chart room." },
+  { id: "lens", text: "Work the lens shutter: press E as the needle crosses the gold arc (3 times)." },
+  { id: "beacon", text: "Turn the beacon offshore and send the call sign." },
+  { id: "boat", text: "RUN to the boat on the tether dock!" },
+  { id: "done", text: "You made it out." },
+];
+let rng = Math.random;
+function seeded(a) { return () => { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+const roomAt = (x, y) => Object.keys(ROOMS).find((k) => { const r = ROOMS[k]; return x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h; });
+const doorAt = (x, y) => DOORS.find((d) => d.x === x && d.y === y);
+function fresh() {
+  return { step: 0, flags: {}, px: 3.5, py: 20.5, lantern: false, battery: 100, running: false, toggleRun: false, checkpoint: [3.5, 20.5],
+    keeper: { x: 18.5, y: 19.5, mode: "patrol", wp: 0, tx: 0, ty: 0, lost: 0, on: true, zone: "intake" }, captions: [], t: 0, hold: 0,
+    lens: { a: 0, hits: 0, active: false }, surge: 0, nextSurge: 40, fade: 0, caught: 0, ended: false, intakeDrained: false, callsign: null, beam: 0 };
+}
+let S = fresh();
+function walkable(x, y) {
+  const ix = Math.floor(x), iy = Math.floor(y), d = doorAt(ix, iy);
+  if (d) return !d.lock || S.flags[d.lock];
+  return !!roomAt(ix, iy);
+}
+function isWater(x, y) {
+  const r = roomAt(Math.floor(x), Math.floor(y));
+  if (r === "intake") return !S.intakeDrained || y > 20 || S.surge > 0;
+  if (r === "quay") return x < 3.2 || (S.surge > 0 && x < 5);
+  if (r === "dock") return x < 4.5 && y > 4.5;
+  return false;
+}
+const PATROL = { intake: [[13, 17], [21, 17], [21, 22], [13, 22]], gallery: [[12, 11], [28, 11]], lens: [[25, 3], [37, 3], [37, 6], [25, 6]], roof: [[12, 3], [21, 5]] };
+
+// ---- Sound + captions (every audio cue has a visual caption with direction) ---------------------
+let audio = null, volume = 0.6;
+function tone(freq, dur, type = "sine", gain = 0.2, noise = false) {
+  if (!audio) return;
+  const t0 = audio.currentTime, g = audio.createGain(); g.gain.setValueAtTime(gain * volume, t0); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur); g.connect(audio.destination);
+  if (noise) { const b = audio.createBuffer(1, audio.sampleRate * dur, audio.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; const s = audio.createBufferSource(); s.buffer = b; const f = audio.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = freq; s.connect(f); f.connect(g); s.start(); }
+  else { const o = audio.createOscillator(); o.type = type; o.frequency.value = freq; o.connect(g); o.start(); o.stop(t0 + dur); }
+}
+function dirOf(x, y) {
+  const dx = x - S.px, dy = y - S.py;
+  if (Math.hypot(dx, dy) < 1.5) return "close";
+  return Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "below" : "above");
+}
+function caption(text, x, y) {
+  const label = x === undefined ? `[${text}]` : `[${text} — ${dirOf(x, y)}]`;
+  const last = S.captions[S.captions.length - 1];
+  if (last && last.text === label && S.t - last.t < 1.2) return;
+  S.captions.push({ text: label, t: S.t }); if (S.captions.length > 3) S.captions.shift();
+}
+// Noise: the keeper hears it. Returns true if the keeper was close enough to hear.
+function noise(x, y, radius, label) {
+  if (label) caption(label, x, y);
+  const k = S.keeper; if (!k.on || k.mode === "chase") return false;
+  if (Math.hypot(k.x - x, k.y - y) <= radius) { k.mode = "investigate"; k.tx = x; k.ty = y; return true; }
+  return false;
+}
+
+// ---- Simulation ---------------------------------------------------------------------------------
+const objective = () => STEPS[S.step].id;
+function tryInteract() {
+  const near = (id) => { const [x, y] = SPOTS[id]; return Math.hypot(S.px - x - .5, S.py - y - .5) < 1.6; };
+  if (near("callsign") && !S.callsign) { S.callsign = "MARLOW-7"; caption("You find a scrawled rescue call sign: MARLOW-7"); return "callsign"; }
+  const o = objective();
+  if (o === "model" && near("model")) { S.flags.model = true; S.step++; caption("Valve clicks — you learn the bypass"); tone(660, .15, "triangle"); return o; }
+  if (o === "chart" && near("chart")) { S.flags.chart = true; S.step++; caption("The chart shows the beacon pulled the drowned crew in. A hatch above unlocks"); tone(330, .4, "triangle"); return o; }
+  if (o === "lens" && near("lens")) { S.lens.active = true; return "lens-start"; }
+  if (o === "beacon" && near("beacon")) { S.flags.beacon = true; S.step++; S.keeper = { ...S.keeper, x: 21.5, y: 6.5, mode: "chase", zone: "roof", on: true }; caption(`Beacon turns offshore · you send ${S.callsign || "a guess"}`); caption("The keeper breaches the roof"); tone(110, 1.2, "sawtooth", .25); return o; }
+  if (o === "boat" && near("boat")) { S.step++; S.ended = true; caption("The boat's radio answers in a living voice"); return o; }
+  return null;
+}
+function lensPress() {
+  const inArc = Math.abs(((S.lens.a % 360) + 360) % 360 - 90) < 18;
+  if (inArc) { S.lens.hits++; tone(880, .12, "triangle"); caption(`Shutter clicks (${S.lens.hits}/3)`); if (S.lens.hits >= 3) { S.lens.active = false; S.flags.lens = true; S.step++; caption("Roof hatch unlocks"); } }
+  else { tone(90, .3, "square", .3); noise(S.px, S.py, 14, "Metal CLANG"); }
+  return inArc;
+}
+function respawn() {
+  S.caught++; [S.px, S.py] = S.checkpoint; S.lantern = false; S.hold = 0; S.lens.active = false; S.lens.hits = 0;
+  const z = S.step <= 1 ? "intake" : S.step <= 2 ? "gallery" : S.step <= 4 ? "lens" : "roof";
+  const p = PATROL[z][0]; S.keeper = { ...S.keeper, x: p[0] + .5, y: p[1] + .5, mode: S.step >= 5 ? "chase" : "patrol", wp: 0, zone: z, lost: 0 };
+  if (S.step >= 5) { S.keeper.x = 21.5; S.keeper.y = 6.5; }
+  caption("The tide takes you… you wake at the last safe room");
+}
+function update(dt, input) {
+  if (S.ended || S.fade > 0) { S.fade = Math.max(0, S.fade - dt); if (S.fade === 0 && S.pendingRespawn) { S.pendingRespawn = false; respawn(); } return; }
+  S.t += dt; S.beam += dt;
+  // movement
+  const run = S.toggleRun ? S.running : !!input.run;
+  let mx = (input.right ? 1 : 0) - (input.left ? 1 : 0), my = (input.down ? 1 : 0) - (input.up ? 1 : 0);
+  const moving = (mx || my) && !S.lens.active && S.hold === 0;
+  if (moving) {
+    const len = Math.hypot(mx, my); mx /= len; my /= len;
+    const wet = isWater(S.px, S.py), sp = (run ? 4.4 : 2.6) * (wet ? 0.6 : 1);
+    const nx = S.px + mx * sp * dt, ny = S.py + my * sp * dt;
+    if (walkable(nx, S.py)) S.px = nx; if (walkable(S.px, ny)) S.py = ny;
+    S.stepT = (S.stepT || 0) - dt;
+    if (S.stepT <= 0) { S.stepT = run ? 0.28 : 0.45;
+      if (run) { tone(70, .08, "sine", .12, true); noise(S.px, S.py, wet ? 9 : 7, wet ? "Your splashing run" : "Your running steps"); }
+      else if (wet) { tone(500, .1, "sine", .05, true); noise(S.px, S.py, 4, null); } }
+  }
+  // lantern
+  if (S.lantern) { S.battery = Math.max(0, S.battery - 1.6 * dt); if (S.battery === 0) { S.lantern = false; caption("Lantern sputters out"); } }
+  const room = roomAt(Math.floor(S.px), Math.floor(S.py));
+  if (room && ROOMS[room].checkpoint) { S.checkpoint = [S.px, S.py]; S.battery = Math.min(100, S.battery + 20 * dt); }
+  if (room === "gallery" && S.step >= 2 && S.checkpoint[1] > 15) S.checkpoint = [S.px, S.py];
+  // pump: hold E (loud)
+  if (input.interactHeld && objective() === "pump" && Math.hypot(S.px - SPOTS.pump[0] - .5, S.py - SPOTS.pump[1] - .5) < 1.6) {
+    S.hold += dt; if (Math.floor(S.hold * 2) !== Math.floor((S.hold - dt) * 2)) { tone(140, .25, "sawtooth", .15); noise(S.px, S.py, 12, "Pump grinding"); }
+    if (S.hold >= 3) { S.hold = 0; S.flags.pump = true; S.intakeDrained = true; S.step++; caption("Water drains · a door to the gallery opens"); S.keeper.zone = "gallery"; S.keeper.mode = "patrol"; S.keeper.wp = 0; }
+  } else S.hold = 0;
+  if (S.lens.active) S.lens.a += dt * 140;
+  // tide surges
+  S.nextSurge -= dt; if (S.nextSurge <= 0) { S.surge = 6; S.nextSurge = 45 + rng() * 15; tone(45, 2.5, "sine", .3); caption("Surge rumbles", 16, 23); }
+  S.surge = Math.max(0, S.surge - dt);
+  keeperUpdate(dt);
+}
+function keeperUpdate(dt) {
+  const k = S.keeper; if (!k.on) return;
+  const d = Math.hypot(k.x - S.px, k.y - S.py), sameRoom = roomAt(Math.floor(k.x), Math.floor(k.y)) === roomAt(Math.floor(S.px), Math.floor(S.py));
+  const sight = S.lantern ? 6 : 2.2;
+  if (k.mode !== "chase" && sameRoom && d < sight) { k.mode = "chase"; caption("The keeper sees you — RUN", k.x, k.y); tone(220, .5, "sawtooth", .25); }
+  let tx, ty, sp;
+  if (k.mode === "chase") { tx = S.px; ty = S.py; sp = 3.1; if (!sameRoom && d > 7 && S.step < 5) { k.lost += dt; if (k.lost > 4) { k.mode = "patrol"; k.lost = 0; caption("The keeper loses your trail", k.x, k.y); } } else k.lost = 0; }
+  else if (k.mode === "investigate") { tx = k.tx; ty = k.ty; sp = 2.0; if (Math.hypot(k.x - tx, k.y - ty) < .5) k.mode = "patrol"; }
+  else { const route = PATROL[k.zone] || PATROL.intake, w = route[k.wp % route.length]; tx = w[0] + .5; ty = w[1] + .5; sp = 1.3; if (Math.hypot(k.x - tx, k.y - ty) < .4) k.wp++; }
+  const a = Math.atan2(ty - k.y, tx - k.x), nx = k.x + Math.cos(a) * sp * dt, ny = k.y + Math.sin(a) * sp * dt;
+  // the keeper drifts through water and doors (it is part of the sea), but not through solid walls
+  if (walkable(nx, ny) || doorAt(Math.floor(nx), Math.floor(ny))) { k.x = nx; k.y = ny; } else { if (walkable(nx, k.y)) k.x = nx; else if (walkable(k.x, ny)) k.y = ny; }
+  k.stepT = (k.stepT || 0) - dt;
+  if (k.stepT <= 0) { k.stepT = k.mode === "chase" ? .4 : .9; if (d < 10) { caption(k.mode === "chase" ? "Wet footsteps, fast" : "Wet footsteps", k.x, k.y); tone(120, .12, "sine", .15 * Math.max(.2, 1 - d / 10), true); } }
+  if (d < 4 && Math.floor(S.t * 1.4) !== Math.floor((S.t - dt) * 1.4)) { caption("Your heartbeat pounds"); tone(55, .15, "sine", .25); }
+  if (d < 0.7) { S.fade = 1.2; S.pendingRespawn = true; tone(60, 1, "sawtooth", .3); }
+}
+
+// ---- Rendering -----------------------------------------------------------------------------------
+const cv = document.getElementById("c"), g = cv.getContext("2d"), $ = (id) => document.getElementById(id);
+function draw() {
+  g.fillStyle = "#020406"; g.fillRect(0, 0, cv.width, cv.height);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const r = roomAt(x, y), d = doorAt(x, y);
+    if (!r && !d) continue;
+    if (d) { g.fillStyle = d.lock && !S.flags[d.lock] ? "#5a2a2a" : "#3b4b5a"; }
+    else g.fillStyle = isWater(x + .5, y + .5) ? ((x + y + Math.floor(S.t * 2)) % 2 ? "#0f3550" : "#123e5c") : ((x + y) % 2 ? "#26313b" : "#2b3742");
+    g.fillRect(x * TS, y * TS, TS, TS);
+  }
+  for (const [id, [x, y]] of Object.entries(SPOTS)) {
+    const active = objective() === id || (id === "callsign" && !S.callsign);
+    g.fillStyle = id === "boat" ? "#c9a227" : active ? "#ffe8a3" : "#55606b";
+    g.fillRect(x * TS + 4, y * TS + 4, TS - 8, TS - 8);
+  }
+  // lighthouse beam (flashing unless reduced)
+  if (S.step >= 3) { const a = S.beam * 1.2, bx = SPOTS.lens[0] * TS, by = SPOTS.lens[1] * TS;
+    g.save(); g.globalAlpha = $("optFlash").checked ? .08 : .14 + .1 * Math.max(0, Math.sin(S.beam * 6)); g.fillStyle = "#ffe8a3"; g.beginPath(); g.moveTo(bx, by); g.arc(bx, by, 900, a, a + .25); g.fill(); g.restore(); }
+  const k = S.keeper;
+  // keeper silhouette
+  g.fillStyle = "#0b0f13"; g.strokeStyle = "#5fa8d3"; g.lineWidth = 2;
+  g.beginPath(); g.ellipse(k.x * TS, k.y * TS, 9, 13, 0, 0, 7); g.fill(); g.stroke();
+  g.fillStyle = k.mode === "chase" ? "#ff4d4d" : "#9ad1ff"; g.fillRect(k.x * TS - 5, k.y * TS - 6, 3, 3); g.fillRect(k.x * TS + 2, k.y * TS - 6, 3, 3);
+  // player
+  g.fillStyle = "#e7eef5"; g.beginPath(); g.arc(S.px * TS, S.py * TS, 7, 0, 7); g.fill();
+  // darkness with light radius
+  const rad = (S.lantern ? 6 : 2.4) * TS, dark = g.createRadialGradient(S.px * TS, S.py * TS, rad * .35, S.px * TS, S.py * TS, rad);
+  dark.addColorStop(0, "rgba(0,0,0,0)"); dark.addColorStop(1, "rgba(0,0,0,.94)"); g.fillStyle = dark; g.fillRect(0, 0, cv.width, cv.height);
+  if (S.lantern) { g.fillStyle = "rgba(255,232,163,.06)"; g.beginPath(); g.arc(S.px * TS, S.py * TS, rad, 0, 7); g.fill(); }
+  // keeper eyes visible at range when chasing (fair telegraph)
+  if (k.mode === "chase") { g.fillStyle = "#ff4d4d"; g.fillRect(k.x * TS - 5, k.y * TS - 6, 3, 3); g.fillRect(k.x * TS + 2, k.y * TS - 6, 3, 3); }
+  const dk = Math.hypot(k.x - S.px, k.y - S.py); if (dk < 4) { g.fillStyle = `rgba(120,0,0,${(.25 * (1 - dk / 4)).toFixed(3)})`; g.fillRect(0, 0, cv.width, cv.height); }
+  if (S.lens.active) { const cx = cv.width / 2, cy = cv.height / 2; g.fillStyle = "rgba(0,0,0,.6)"; g.fillRect(0, 0, cv.width, cv.height);
+    g.strokeStyle = "#3b4b5a"; g.lineWidth = 14; g.beginPath(); g.arc(cx, cy, 90, 0, 7); g.stroke(); g.strokeStyle = "#c9a227"; g.beginPath(); g.arc(cx, cy, 90, (90 - 18) * Math.PI / 180, (90 + 18) * Math.PI / 180); g.stroke();
+    const a = S.lens.a * Math.PI / 180; g.strokeStyle = "#ffe8a3"; g.lineWidth = 4; g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx + Math.cos(a) * 100, cy + Math.sin(a) * 100); g.stroke();
+    g.fillStyle = "#fff"; g.font = "18px system-ui"; g.textAlign = "center"; g.fillText(`Press E on the gold arc · ${S.lens.hits}/3`, cx, cy + 135); g.textAlign = "left"; }
+  if (S.hold > 0) { g.fillStyle = "#ffe8a3"; g.fillRect(S.px * TS - 20, S.py * TS - 22, 40 * S.hold / 3, 5); }
+  if (S.fade > 0) { g.fillStyle = `rgba(0,10,20,${Math.min(1, 1.3 - S.fade)})`; g.fillRect(0, 0, cv.width, cv.height); }
+  if (S.ended) { g.fillStyle = "rgba(0,0,0,.75)"; g.fillRect(0, 0, cv.width, cv.height); g.fillStyle = "#ffe8a3"; g.font = "700 38px system-ui"; g.textAlign = "center"; g.fillText("The boat clears the tower.", cv.width / 2, cv.height / 2 - 10); g.fillStyle = "#e7eef5"; g.font = "18px system-ui"; g.fillText(`${S.callsign ? "Rescue answers MARLOW-7." : "Someone answers your guess."} Times caught: ${S.caught}. Reload to play again.`, cv.width / 2, cv.height / 2 + 26); g.textAlign = "left"; }
+}
+function ui() {
+  $("obj").textContent = STEPS[S.step].text;
+  const r = roomAt(Math.floor(S.px), Math.floor(S.py)); $("where").textContent = r ? ROOMS[r].name + (ROOMS[r].checkpoint ? " · safe room (checkpoint, lantern recharges)" : "") : "";
+  $("bat").style.width = S.battery + "%";
+  $("status").textContent = `Keeper: ${S.keeper.mode}${S.lantern ? " · lantern ON (you are visible further)" : ""}${S.running && S.toggleRun ? " · running" : ""}`;
+  $("captions").innerHTML = $("optCaptions").checked ? S.captions.filter((c) => S.t - c.t < 3.5).map((c) => `<div>${c.text}</div>`).join("") : "";
+}
+const keys = {};
+addEventListener("keydown", (e) => {
+  const k = e.key.toLowerCase(); keys[k] = true;
+  if (["arrowup", "arrowdown", "arrowleft", "arrowright", " "].includes(k)) e.preventDefault();
+  if (k === "f") { if (S.battery > 0) { S.lantern = !S.lantern; tone(1200, .04, "square", .05); } }
+  if (k === "e" && !e.repeat) { if (S.lens.active) lensPress(); else tryInteract(); }
+  if (k === "shift" && S.toggleRun) S.running = !S.running;
+});
+addEventListener("keyup", (e) => { keys[e.key.toLowerCase()] = false; });
+const input = () => ({ up: keys.w || keys.arrowup, down: keys.s || keys.arrowdown, left: keys.a || keys.arrowleft, right: keys.d || keys.arrowright, run: keys.shift, interactHeld: keys.e });
+$("optToggleRun").onchange = (e) => { S.toggleRun = e.target.checked; S.running = false; };
+$("optVol").oninput = (e) => { volume = +e.target.value; };
+let started = false;
+$("go").onclick = () => { try { audio = new (window.AudioContext || window.webkitAudioContext)(); } catch (err) {} $("start").style.display = "none"; started = true; caption("A disconnected radio repeats your arrival words before you speak"); };
+
+// ---- Self-test (?test=1) and screenshot state (?shot=1) ------------------------------------------
+function bfs(sx, sy, tx, ty) {
+  const key = (x, y) => y * W + x, prev = new Map([[key(sx, sy), null]]), q = [[sx, sy]];
+  while (q.length) { const [x, y] = q.shift(); if (x === tx && y === ty) break;
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const nx = x + dx, ny = y + dy; if (nx < 0 || ny < 0 || nx >= W || ny >= H || prev.has(key(nx, ny)) || !walkable(nx + .5, ny + .5)) continue; prev.set(key(nx, ny), [x, y]); q.push([nx, ny]); } }
+  if (!prev.has(key(tx, ty))) return null;
+  const path = []; let c = [tx, ty]; while (c) { path.unshift(c); c = prev.get(key(c[0], c[1])); } return path;
+}
+function walkTo(tx, ty) {      // bot: follow BFS path with the real movement code
+  const path = bfs(Math.floor(S.px), Math.floor(S.py), tx, ty); if (!path) return false;
+  for (const [x, y] of path) { let guard = 0;
+    while (Math.hypot(S.px - x - .5, S.py - y - .5) > .25 && guard++ < 200) {
+      const inp = { right: S.px < x + .4, left: S.px > x + .6, down: S.py < y + .4, up: S.py > y + .6 }; update(1 / 30, inp); if (S.fade > 0 || S.pendingRespawn) return false; } }
+  return true;
+}
+function selftest() {
+  const out = [], ok = (name, cond, info = "") => out.push({ name, pass: !!cond, info });
+  S = fresh(); ok("gallery door starts locked", !walkable(16.5, 14.5));
+  ok("no path to the roof before the story unlocks it", bfs(3, 20, SPOTS.beacon[0], SPOTS.beacon[1]) === null);
+  // noise and hearing
+  S = fresh(); S.keeper.x = 18.5; S.keeper.y = 19.5; ok("running near the keeper draws it", noise(14.5, 19.5, 7, "test") && S.keeper.mode === "investigate");
+  S = fresh(); ok("quiet sounds far away go unheard", !noise(3.5, 20.5, 4, null) && S.keeper.mode === "patrol");
+  S = fresh(); caption("Wet footsteps", S.px + 5, S.py); ok("captions include direction", S.captions.some((c) => /right\]$/.test(c.text)), S.captions.map((c) => c.text).join("|"));
+  // catch and respawn at checkpoint, not further back
+  S = fresh(); S.step = 2; S.checkpoint = [27.5, 21.5]; S.keeper.x = S.px; S.keeper.y = S.py; keeperUpdate(0.01); for (let i = 0; i < 60; i++) update(1 / 30, {});
+  ok("being caught returns you to the last safe room", S.caught === 1 && Math.abs(S.px - 27.5) < .01);
+  // full chapter by a bot with the keeper disabled (progression and map connectivity)
+  rng = seeded(4); S = fresh(); S.keeper.on = false; let trace = [];
+  const go = (id) => { const [x, y] = SPOTS[id]; const r = walkTo(x, y); trace.push(`${id}:${r ? "ok" : "blocked"}`); return r; };
+  go("model"); tryInteract(); go("pump"); for (let i = 0; i < 100; i++) update(1 / 30, { interactHeld: true });
+  go("callsign"); tryInteract(); go("chart"); tryInteract(); go("lens"); tryInteract();
+  for (let i = 0; i < 2000 && S.lens.active; i++) { update(1 / 60, {}); const a = ((S.lens.a % 360) + 360) % 360; if (Math.abs(a - 90) < 8) lensPress(); }
+  go("beacon"); tryInteract(); S.keeper.on = false; go("boat"); tryInteract();
+  ok("bot can finish the chapter (all doors unlock in order)", S.ended && S.step === STEPS.length - 1, trace.join(" "));
+  ok("call sign from the alcove is used at the beacon", S.callsign === "MARLOW-7");
+  // reduce-flashing option exists and is honoured in draw()
+  ok("reduce-flashing option present", !!$("optFlash"));
+  const pass = out.every((o) => o.pass);
+  $("selftest").textContent = JSON.stringify({ game: "low-tide", pass, results: out }, null, 1);
+  $("selftest").hidden = false; document.title = `SELFTEST ${pass ? "PASS" : "FAIL"}`;
+  S = fresh(); rng = Math.random;
+}
+const params = new URLSearchParams(location.search);
+if (params.has("test")) { selftest(); }
+else if (params.has("shot")) {
+  $("start").style.display = "none"; started = true; S = fresh(); S.step = 3; S.flags = { model: true, pump: true, chart: true }; S.intakeDrained = true; S.callsign = "MARLOW-7";
+  S.px = 29.5; S.py = 4.5; S.lantern = true; S.battery = 64; S.keeper = { ...S.keeper, x: 34.5, y: 3.5, mode: "patrol", zone: "lens" }; S.t = 20; S.beam = 2.2;
+  caption("Wet footsteps", 34.5, 3.5); caption("Surge rumbles", 16, 23);
+}
+let last = performance.now();
+function frame(now) { const dt = Math.min(0.05, (now - last) / 1000); last = now; if (started && !params.has("shot") && !params.has("test")) update(dt, input()); draw(); ui(); requestAnimationFrame(frame); }
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

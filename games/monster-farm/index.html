@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>몬스터 팜 · Monster Farm</title>
+<style>
+  :root { --bg:#f3ead7; --panel:#fffaf0; --ink:#3d2c1e; --ink2:#7a6450; --accent:#e76f51; --leaf:#52b788; --line:#e3d5b8; --gold:#e9a23b; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.45 system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif; }
+  header { display:flex; flex-wrap:wrap; gap:6px 16px; align-items:baseline; padding:12px 16px; border-bottom:1px solid var(--line); background:#fbf3e2; }
+  header h1 { margin:0; font-size:20px; } .sub { color:var(--ink2); font-size:13px; } a { color:var(--accent); }
+  main { display:grid; grid-template-columns:minmax(0,1fr) 320px; gap:16px; padding:16px; max-width:1180px; margin:0 auto; }
+  @media (max-width:880px){ main { grid-template-columns:1fr; } }
+  canvas { width:100%; height:auto; display:block; border-radius:18px; box-shadow:0 6px 24px rgba(61,44,30,.15); touch-action:manipulation; }
+  .panel { background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:12px 14px; margin-bottom:12px; }
+  .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  button { font:inherit; cursor:pointer; border-radius:12px; border:1px solid var(--line); background:#fff; color:var(--ink); padding:8px 11px; }
+  button.on { background:#ffe8d6; border-color:var(--accent); font-weight:700; }
+  button.primary { background:var(--accent); color:#fff; border-color:var(--accent); font-weight:700; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .clock { font-size:22px; font-weight:800; } .muted { color:var(--ink2); font-size:13px; }
+  .mon { display:flex; gap:8px; align-items:center; padding:6px; border-radius:12px; border:1px solid var(--line); margin:6px 0; cursor:pointer; background:#fff; }
+  .mon.on { border-color:var(--accent); background:#ffe8d6; } .mon svg { flex:none; }
+  .modal { position:fixed; inset:0; background:rgba(61,44,30,.45); display:none; align-items:center; justify-content:center; padding:16px; z-index:5; }
+  .modal.show { display:flex; } .modal .panel { max-width:520px; width:100%; margin:0; }
+  ul.report { padding-left:18px; margin:8px 0; } ul.report li { margin:5px 0; }
+</style>
+</head>
+<body>
+<header>
+  <h1>몬스터 팜 <span class="sub">Monster Farm · cozy farming with monsters</span></h1>
+  <span class="sub"><a href="../../showcase/01-claude-ko-monster-farm/">쇼케이스 기획</a>을 그대로 옮긴 그레이박스 (밭 6×6 · 몬스터 3종 · 3일) · made with <a href="../../">ai-game-designer</a></span>
+  <button id="lang" style="margin-left:auto">English</button>
+</header>
+<main>
+  <section>
+    <canvas id="c" width="840" height="720" aria-label="farm field"></canvas>
+    <p class="muted" id="hint"></p>
+  </section>
+  <aside>
+    <div class="panel"><div class="row" style="justify-content:space-between"><span class="clock" id="clock"></span><span id="gold" style="font-weight:800"></span></div>
+      <div class="muted" id="phase"></div>
+      <div class="row" style="margin-top:8px"><button id="pause"></button><button id="speed"></button><button class="primary" id="sleep"></button></div></div>
+    <div class="panel"><div class="row" id="tools"></div><div class="muted" id="seedInfo" style="margin-top:6px"></div></div>
+    <div class="panel"><b id="monTitle"></b><div id="mons"></div><div class="muted" id="monHelp"></div></div>
+    <div class="panel"><b id="binTitle"></b><div id="bin" class="muted"></div></div>
+  </aside>
+</main>
+<div class="modal" id="modal"><div class="panel" id="modalBody"></div></div>
+<pre id="selftest" hidden></pre>
+<script>
+"use strict";
+// Rebuild DOM only when the markup changes (ui() runs every frame; rebuilding would eat clicks).
+const setHTML = (el, html) => { if (el._html !== html) { el._html = html; el.innerHTML = html; } };
+// ---- Text (Korean first, English toggle) -------------------------------------------------------
+const TXT = {
+  ko: { day: "일차", pause: "일시정지", resume: "계속", speed: "속도", sleep: "잠자기", gold: "골드", tools: { till: "괭이", seed: "순무 씨앗 (20G)", water: "물뿌리개", harvest: "수확", move: "몬스터 배치" },
+        phases: { morning: "아침 · 밤사이 무슨 일이 있었는지 둘러보세요", noon: "정오 · 숲 가장자리에 누군가 있어요", afternoon: "오후 · 몬스터 조합을 시험해 보세요", evening: "저녁 · 출하 정산 시간", night: "밤 · 잠자리에 들 시간" },
+        monTitle: "몬스터 (클릭 후 밭 칸에 배치)", monHelp: "몬스터의 영향 범위가 밭에 표시됩니다. 서로 이웃하면 조합 효과가 생겨요.",
+        bin: "출하 상자", empty: "비어 있음", hintSeed: "순무는 물을 준 날마다 한 단계 자랍니다. 물을 안 줘도 시들지 않아요. 성장만 멈춥니다.",
+        report: "밤사이 변화", ok: "좋아요", ship: "저녁 출하 정산", total: "합계", next: "다음 날로", wild: "야생 몬스터 · 굴파기 두더지", feed: "무엇을 줄까요?", carrot: "당근", berry: "산딸기", turnip: "순무",
+        wildClue: (c) => `발자국 옆에 ${c} 조각이 떨어져 있었어요.`, joined: "두더지가 식구가 되었어요! 이제 밭에 물길을 파 줍니다.", sniff: "킁킁… 이건 아닌가 봐요. 다른 걸 줘 볼까요? (실패는 없어요)",
+        end: "3일 체험 끝!", endBody: (g, m, f) => `번 골드 ${g}G · 발견한 변이 작물 ${m}개 · 친해진 몬스터 ${f}마리. 그레이박스 검증 질문: 2일차에 몬스터 배치를 바꿔 보셨나요?`, again: "처음부터" },
+  en: { day: "Day", pause: "Pause", resume: "Resume", speed: "Speed", sleep: "Sleep", gold: "gold", tools: { till: "Hoe", seed: "Turnip seed (20G)", water: "Watering can", harvest: "Harvest", move: "Place monster" },
+        phases: { morning: "Morning · look around for what changed overnight", noon: "Noon · someone is at the forest edge", afternoon: "Afternoon · try monster combinations", evening: "Evening · shipping payout", night: "Night · time for bed" },
+        monTitle: "Monsters (click, then a field tile)", monHelp: "Each monster's area shows on the field. Neighbours create combo effects.",
+        bin: "Shipping bin", empty: "empty", hintSeed: "Turnips grow one stage on each watered day. Unwatered crops never wilt; they just pause.",
+        report: "Overnight changes", ok: "Nice", ship: "Evening shipping", total: "Total", next: "Next day", wild: "Wild monster · Burrowmole", feed: "What will you offer?", carrot: "carrot", berry: "wild berry", turnip: "turnip",
+        wildClue: (c) => `A bit of ${c} lay next to the footprints.`, joined: "The mole joins the farm! It will dig water channels.", sniff: "Sniff… not this one. Try something else? (There is no failing.)",
+        end: "That's the 3-day demo!", endBody: (g, m, f) => `Gold earned ${g}G · mutations found ${m} · monsters befriended ${f}. Greybox question: did you rearrange your monsters on day 2?`, again: "Play again" },
+};
+let lang = "ko"; const T = () => TXT[lang];
+
+// ---- Rules (one-page design: monsters change the land; no failure, only detours) ---------------
+const N = 6, DAY_START = 6, DAY_END = 20, REAL_SECONDS_PER_DAY = 210;
+const MONSTERS = {
+  moss: { ko: "모슬링", en: "Mossling", job: { ko: "주변 3×3에 아침 이슬(물 주기)", en: "waters its 3×3 every morning" }, color: "#74c69d", shape: "drop" },
+  paw:  { ko: "포포", en: "Pawpaw", job: { ko: "주변 3×3을 밤사이 갈아 줌", en: "tills its 3×3 overnight" }, color: "#e9a23b", shape: "paw" },
+  glow: { ko: "반딧몽", en: "Glowbug", job: { ko: "주변 3×3 작물 +1 성장 (밤)", en: "+1 growth to its 3×3 at night" }, color: "#ffd166", shape: "glow" },
+  mole: { ko: "굴파기 두더지", en: "Burrowmole", job: { ko: "자기 줄 전체에 물길 (항상 촉촉)", en: "keeps its whole row watered" }, color: "#a98467", shape: "mole" },
+};
+const PRICE = { turnip: 60, glimmer: 180 };   // glimmer = mutated turnip (Mossling + Glowbug overlap)
+const fresh = () => ({ day: 1, hour: DAY_START, gold: 100, tiles: Array.from({ length: N * N }, () => ({ till: false, crop: 0, wet: false, mut: false })),
+  mons: { moss: { x: 1, y: 1 }, paw: { x: 4, y: 1 }, glow: null, mole: null }, bin: [], found: 0, earned: 0, friends: 3, wildDone: false, wildShown: false,
+  clue: "berry", tool: "till", pick: null, paused: false, speed: 1, modal: null, shipped: false, report: [] });
+let S = fresh();
+const tile = (x, y) => (x >= 0 && y >= 0 && x < N && y < N ? S.tiles[y * N + x] : null);
+const inArea = (m, x, y) => m && Math.abs(m.x - x) <= 1 && Math.abs(m.y - y) <= 1;
+const adjacent = (a, b) => a && b && Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y)) <= 2;   // areas overlap
+
+function act(x, y) {
+  const t = tile(x, y); if (!t || S.modal) return false;
+  if (S.tool === "move") { if (!S.pick) return false; S.mons[S.pick] = { x, y }; return true; }
+  if (S.tool === "till" && !t.till) { t.till = true; return true; }
+  if (S.tool === "seed" && t.till && !t.crop && S.gold >= 20) { S.gold -= 20; t.crop = 1; t.mut = false; return true; }
+  if (S.tool === "water" && t.crop) { t.wet = true; return true; }
+  if (S.tool === "harvest" && t.crop >= 4) { S.bin.push(t.mut ? "glimmer" : "turnip"); t.crop = 0; t.wet = false; t.mut = false; return true; }
+  return false;
+}
+function morningDew() {
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    const t = tile(x, y);
+    if (t.crop && (inArea(S.mons.moss, x, y) || (S.mons.mole && S.mons.mole.y === y))) t.wet = true;
+  }
+}
+function overnight() {
+  const rep = [];
+  let grown = 0, tilled = 0, mutated = 0;
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    const t = tile(x, y);
+    if (inArea(S.mons.paw, x, y) && !t.till) { t.till = true; tilled++; }
+    if (t.crop && t.crop < 4) {
+      let g = t.wet ? 1 : 0;                                  // no water: growth pauses, never wilts
+      if (inArea(S.mons.glow, x, y)) g += 1;
+      if (g) { t.crop = Math.min(4, t.crop + g); grown++; }
+      if (!t.mut && inArea(S.mons.moss, x, y) && inArea(S.mons.glow, x, y)) { t.mut = true; mutated++; }
+    }
+    t.wet = false;
+  }
+  S.found += mutated;
+  if (grown) rep.push(lang === "ko" ? `작물 ${grown}칸이 자랐어요.` : `${grown} crop tiles grew.`);
+  if (tilled) rep.push(lang === "ko" ? `포포가 ${tilled}칸을 갈아 두었어요.` : `Pawpaw tilled ${tilled} tiles.`);
+  if (mutated) rep.push(lang === "ko" ? `✨ 모슬링과 반딧몽의 범위가 겹친 곳에 반짝 순무 싹 ${mutated}개! (값 3배)` : `✨ ${mutated} glimmer sprouts where Mossling and Glowbug overlap! (3× value)`);
+  if (!S.wildDone) rep.push((lang === "ko" ? "숲 쪽으로 이어진 작은 발자국. " : "Small footprints lead to the forest. ") + T().wildClue(T()[S.clue]));
+  if (S.day === 2 && !S.mons.glow) { S.mons.glow = { x: 2, y: 4 }; rep.push(lang === "ko" ? "반딧몽이 밤사이 날아와 밭에 자리를 잡았어요!" : "A Glowbug flew in overnight and settled on the field!"); S.friends++; }
+  morningDew();
+  return rep.length ? rep : [lang === "ko" ? "조용한 밤이었어요." : "A quiet night."];
+}
+function feed(item) {
+  if (S.wildDone) return "done";
+  if (item === S.clue) { S.wildDone = true; S.mons.mole = { x: 0, y: 3 }; S.friends++; return "joined"; }
+  return "sniff";
+}
+function ship() {
+  const total = S.bin.reduce((s, k) => s + PRICE[k], 0); S.gold += total; S.earned += total;
+  const lines = Object.entries(S.bin.reduce((m, k) => ((m[k] = (m[k] || 0) + 1), m), {})).map(([k, n]) => `${k === "glimmer" ? "✨ " : ""}${k === "glimmer" ? (lang === "ko" ? "반짝 순무" : "glimmer turnip") : T().turnip} × ${n} = ${n * PRICE[k]}G`);
+  S.bin = []; S.shipped = true; return { total, lines };
+}
+function nextDay() {
+  if (!S.shipped) ship();
+  if (S.day >= 3) { S.modal = "end"; return; }
+  S.day++; S.hour = DAY_START; S.shipped = false; S.wildShown = false; S.report = overnight(); S.modal = "report";
+}
+function advance(realDt) {
+  if (S.paused || S.modal) return;                    // time stops while a panel is open
+  S.hour = Math.min(DAY_END, S.hour + realDt * (DAY_END - DAY_START) / REAL_SECONDS_PER_DAY * S.speed);
+  if (S.hour >= 12 && !S.wildShown && !S.wildDone) { S.wildShown = true; S.modal = "wild"; }
+  if (S.hour >= 18 && !S.shipped) { S.modal = "ship"; }
+}
+
+// ---- Rendering ---------------------------------------------------------------------------------
+const cv = document.getElementById("c"), g = cv.getContext("2d"), $ = (id) => document.getElementById(id);
+const OX = 120, OY = 90, CELL = 100;
+function monsterArt(kind, size) {
+  const m = MONSTERS[kind], c = m.color;
+  const extra = { drop: `<path d="M50 4 Q66 26 62 36 Q50 30 38 36 Q34 26 50 4 Z" fill="#40916c"/>`, paw: `<ellipse cx="22" cy="74" rx="14" ry="10" fill="#bc6c25"/><ellipse cx="78" cy="74" rx="14" ry="10" fill="#bc6c25"/>`,
+    glow: `<path d="M38 24 Q30 6 22 10 M62 24 Q70 6 78 10" stroke="#5c4033" stroke-width="3" fill="none"/><circle cx="22" cy="10" r="6" fill="#fff3b0"/><circle cx="78" cy="10" r="6" fill="#fff3b0"/>`,
+    mole: `<ellipse cx="50" cy="66" rx="10" ry="7" fill="#ffb4a2"/><path d="M24 80 L14 92 M76 80 L86 92" stroke="#6f4e37" stroke-width="5"/>` }[m.shape];
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="${size}" height="${size}" aria-label="${m[lang]}">${extra}<circle cx="50" cy="56" r="30" fill="${c}" stroke="#3d2c1e" stroke-width="2.5"/><circle cx="40" cy="52" r="4" fill="#3d2c1e"/><circle cx="60" cy="52" r="4" fill="#3d2c1e"/><path d="M43 64 Q50 69 57 64" stroke="#3d2c1e" stroke-width="2.5" fill="none" stroke-linecap="round"/><circle cx="34" cy="62" r="4" fill="#ff8fa3" opacity=".6"/><circle cx="66" cy="62" r="4" fill="#ff8fa3" opacity=".6"/></svg>`;
+}
+const monImgs = {};
+function drawMon(kind, cx, cy) {
+  const key = kind + lang;
+  if (!monImgs[key]) { const img = new Image(); img.src = "data:image/svg+xml;utf8," + encodeURIComponent(monsterArt(kind, 100)); monImgs[key] = img; }
+  if (monImgs[key].complete) g.drawImage(monImgs[key], cx - 34, cy - 40, 68, 68); else monImgs[key].onload = () => {};
+}
+function sky() {
+  const h = S.hour, t = (h - DAY_START) / (DAY_END - DAY_START);
+  const top = t < .75 ? "#bde0fe" : t < .9 ? "#ffcad4" : "#6d597a", bottom = t < .75 ? "#e9f5db" : "#fec89a";
+  const gr = g.createLinearGradient(0, 0, 0, cv.height); gr.addColorStop(0, top); gr.addColorStop(1, bottom); g.fillStyle = gr; g.fillRect(0, 0, cv.width, cv.height);
+  g.fillStyle = "#95d5b2"; g.beginPath(); g.ellipse(cv.width / 2, cv.height + 40, cv.width, 240, 0, 0, 7); g.fill();
+}
+function draw() {
+  sky();
+  g.fillStyle = "#2d6a4f"; for (let i = 0; i < 9; i++) { g.beginPath(); g.arc(30 + i * 100, 50 + (i % 2) * 10, 40, 0, 7); g.fill(); }   // forest edge
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    const t = tile(x, y), px = OX + x * CELL, py = OY + y * CELL;
+    g.fillStyle = t.till ? (t.wet ? "#6b4226" : "#a47148") : "#b7e4c7"; g.beginPath(); g.roundRect(px + 4, py + 4, CELL - 8, CELL - 8, 14); g.fill();
+    if (S.mons.mole && S.mons.mole.y === y) { g.fillStyle = "rgba(72,149,239,.35)"; g.fillRect(px + 4, py + CELL - 16, CELL - 8, 8); }
+    if (t.crop) {
+      const s = [0, 8, 14, 20, 26][t.crop];
+      g.fillStyle = "#40916c"; for (let k = -1; k <= 1; k++) { g.beginPath(); g.ellipse(px + 50 + k * 10, py + 52 - s * .4, 6 + s * .2, 3 + s * .5, k * .5, 0, 7); g.fill(); }
+      if (t.crop >= 4) { g.fillStyle = t.mut ? "#c77dff" : "#f8f9fa"; g.beginPath(); g.arc(px + 50, py + 66, 14, 0, 7); g.fill(); g.fillStyle = "#e5989b"; g.beginPath(); g.arc(px + 50, py + 60, 9, Math.PI, 0); g.fill(); }
+      if (t.mut) { g.fillStyle = "#fff3b0"; g.font = "18px system-ui"; g.fillText("✨", px + 70, py + 28); }
+    }
+  }
+  for (const [k, m] of Object.entries(S.mons)) {
+    if (!m) continue;
+    g.fillStyle = MONSTERS[k].color + "33"; g.strokeStyle = MONSTERS[k].color; g.lineWidth = 3; g.setLineDash([6, 6]);
+    if (k === "mole") { g.strokeRect(OX + 4, OY + m.y * CELL + 4, N * CELL - 8, CELL - 8); }
+    else { g.beginPath(); g.roundRect(OX + (m.x - 1) * CELL + 2, OY + (m.y - 1) * CELL + 2, CELL * 3 - 4, CELL * 3 - 4, 18); g.stroke(); }
+    g.setLineDash([]);
+  }
+  for (const [k, m] of Object.entries(S.mons)) if (m) drawMon(k, OX + m.x * CELL + 50, OY + m.y * CELL + 50);
+  g.fillStyle = "#8d6e63"; g.fillRect(OX + N * CELL + 20, OY + 4 * CELL, 70, 56); g.fillStyle = "#fff"; g.font = "14px system-ui"; g.fillText(`📦 ${S.bin.length}`, OX + N * CELL + 32, OY + 4 * CELL + 34);
+}
+const fmtHour = (h) => `${String(Math.floor(h)).padStart(2, "0")}:${String(Math.floor((h % 1) * 60)).padStart(2, "0")}`;
+function phase() { const h = S.hour; return h < 11 ? "morning" : h < 13 ? "noon" : h < 18 ? "afternoon" : h < 19.5 ? "evening" : "night"; }
+function ui() {
+  const t = T();
+  $("clock").textContent = `${S.day}${lang === "ko" ? "일차" : ""} ${lang === "en" ? t.day + " " + S.day + " · " : "· "}${fmtHour(S.hour)}`;
+  $("gold").textContent = `${S.gold}G`; $("phase").textContent = t.phases[phase()];
+  $("pause").textContent = S.paused ? t.resume : t.pause; $("speed").textContent = `${t.speed} ${S.speed}×`; $("sleep").textContent = t.sleep;
+  setHTML($("tools"), Object.entries(t.tools).map(([k, v]) => `<button data-tool="${k}" class="${S.tool === k ? "on" : ""}">${v}</button>`).join(""));
+  $("seedInfo").textContent = t.hintSeed;
+  $("monTitle").textContent = t.monTitle; $("monHelp").textContent = t.monHelp;
+  setHTML($("mons"), Object.entries(S.mons).filter(([, m]) => m).map(([k]) => `<div class="mon ${S.pick === k ? "on" : ""}" data-mon="${k}">${monsterArt(k, 40)}<div><b>${MONSTERS[k][lang]}</b><div class="muted">${MONSTERS[k].job[lang]}</div></div></div>`).join(""));
+  $("binTitle").textContent = t.bin; $("bin").textContent = S.bin.length ? S.bin.map((k) => (k === "glimmer" ? "✨" : "🥔")).join(" ") : t.empty;
+  $("lang").textContent = lang === "ko" ? "English" : "한국어";
+  $("hint").textContent = lang === "ko" ? "괭이로 밭을 갈고 → 씨앗 → 물. 몬스터를 옮겨 범위를 겹치면 조합 효과가 생깁니다. 패널이 열려 있는 동안 시간은 멈춰요." : "Till → seed → water. Move monsters so their areas overlap for combos. Time stops while a panel is open.";
+  modal();
+}
+function modal() {
+  const t = T(), m = $("modal"), b = $("modalBody");
+  if (!S.modal) { m.classList.remove("show"); return; }
+  if (m.dataset.kind === S.modal + S.day && m.classList.contains("show")) return;
+  m.dataset.kind = S.modal + S.day; m.classList.add("show");
+  if (S.modal === "report") b.innerHTML = `<h2>🌅 ${S.day}${lang === "ko" ? "일차" : ""} ${t.report}</h2><ul class="report">${S.report.map((r) => `<li>${r}</li>`).join("")}</ul><button class="primary" id="mOk">${t.ok}</button>`;
+  else if (S.modal === "wild") b.innerHTML = `<div class="row">${monsterArt("mole", 80)}<h2>${t.wild}</h2></div><p>${t.wildClue(t[S.clue])}</p><p>${t.feed}</p><div class="row"><button data-feed="carrot">🥕 ${t.carrot}</button><button data-feed="berry">🫐 ${t.berry}</button></div><p class="muted" id="feedMsg"></p><button id="mOk">${lang === "ko" ? "나중에" : "Later"}</button>`;
+  else if (S.modal === "ship") { const r = ship(); b.innerHTML = `<h2>🌇 ${t.ship}</h2><ul class="report">${r.lines.map((l) => `<li>${l}</li>`).join("") || `<li>${t.empty}</li>`}</ul><p><b>${t.total}: ${r.total}G</b></p><button class="primary" id="mOk">${t.ok}</button>`; }
+  else if (S.modal === "end") b.innerHTML = `<h2>🌙 ${t.end}</h2><p>${t.endBody(S.earned, S.found, S.friends)}</p><button class="primary" id="mAgain">${t.again}</button>`;
+  const ok = $("mOk"); if (ok) ok.onclick = () => { S.modal = null; ui(); };
+  const again = $("mAgain"); if (again) again.onclick = () => { S = fresh(); ui(); };
+  b.querySelectorAll("[data-feed]").forEach((el) => el.onclick = () => { const r = feed(el.dataset.feed); $("feedMsg").textContent = r === "joined" ? t.joined : t.sniff; if (r === "joined") setTimeout(() => { S.modal = null; ui(); }, 1200); });
+}
+$("tools").onclick = (e) => { const el = e.target.closest("[data-tool]"); if (el) { S.tool = el.dataset.tool; ui(); } };
+$("mons").onclick = (e) => { const el = e.target.closest("[data-mon]"); if (el) { S.pick = el.dataset.mon; S.tool = "move"; ui(); } };
+cv.addEventListener("click", (e) => { const r = cv.getBoundingClientRect(), x = Math.floor(((e.clientX - r.left) / r.width * cv.width - OX) / CELL), y = Math.floor(((e.clientY - r.top) / r.height * cv.height - OY) / CELL); if (act(x, y)) ui(); });
+$("pause").onclick = () => { S.paused = !S.paused; ui(); };
+$("speed").onclick = () => { S.speed = S.speed === 1 ? 2 : S.speed === 2 ? 4 : 1; ui(); };
+$("sleep").onclick = () => { if (!S.modal) { nextDay(); ui(); } };
+$("lang").onclick = () => { lang = lang === "ko" ? "en" : "ko"; document.documentElement.lang = lang; $("modal").dataset.kind = ""; ui(); };
+
+// ---- Self-test (?test=1) and screenshot state (?shot=1) ----------------------------------------
+function selftest() {
+  const out = [], ok = (name, cond, info = "") => out.push({ name, pass: !!cond, info });
+  S = fresh(); S.tool = "till"; act(3, 3); S.tool = "seed"; act(3, 3); ok("till then seed (20G)", tile(3, 3).crop === 1 && S.gold === 80);
+  S.tool = "water"; act(3, 3); overnight(); ok("watered crop grows one stage", tile(3, 3).crop === 2);
+  overnight(); ok("unwatered crop pauses and never wilts", tile(3, 3).crop === 2);
+  S = fresh(); S.mons.glow = { x: 3, y: 3 }; tile(3, 3).till = true; tile(3, 3).crop = 1; overnight(); ok("Glowbug adds growth even without water", tile(3, 3).crop === 2);
+  S = fresh(); S.mons.moss = { x: 2, y: 2 }; S.mons.glow = { x: 3, y: 3 }; tile(2, 2).till = true; tile(2, 2).crop = 1; tile(5, 5).till = true; tile(5, 5).crop = 1; overnight();
+  ok("mutation only where Mossling and Glowbug areas overlap", tile(2, 2).mut && !tile(5, 5).mut);
+  S = fresh(); S.mons.paw = { x: 1, y: 1 }; overnight(); ok("Pawpaw tills its 3×3 overnight", [0, 1, 2].every((y) => [0, 1, 2].every((x) => tile(x, y).till)));
+  S = fresh(); ok("wrong food: no failure, the mole waits", feed("carrot") === "sniff" && !S.wildDone);
+  ok("right food from the clue always works (no randomness)", feed(S.clue) === "joined" && S.wildDone && S.mons.mole);
+  S.tiles[3 * N + 4].crop = 2; morningDew(); ok("mole channel waters its whole row", tile(4, 3).wet);
+  S = fresh(); S.bin = ["turnip", "glimmer"]; ok("shipping pays 60 + 180", ship().total === 240 && S.gold === 340);
+  S = fresh(); S.modal = "report"; const h = S.hour; advance(30); ok("time stops while a panel is open", S.hour === h);
+  S = fresh(); advance(REAL_SECONDS_PER_DAY * 0.45); ok("noon brings the wild monster panel", S.modal === "wild");
+  // 3-day bot: till/seed/water every morning, feed the clue, ship and sleep.
+  let err = "";
+  try { S = fresh(); for (let d = 0; d < 3; d++) { S.modal = null;
+      for (let i = 0; i < N * N; i++) { const x = i % N, y = Math.floor(i / N); S.tool = "till"; act(x, y); S.tool = "seed"; act(x, y); S.tool = "water"; act(x, y); S.tool = "harvest"; act(x, y); }
+      for (let k = 0; k < 400 && S.hour < DAY_END; k++) { advance(2); if (S.modal === "wild") { feed(S.clue); S.modal = null; } if (S.modal === "ship") S.modal = null; }
+      nextDay(); }
+  } catch (e) { err = String(e); }
+  ok("3-day bot reaches the end without errors", !err && S.modal === "end", err || `earned ${S.earned}G, mutations ${S.found}`);
+  const pass = out.every((o) => o.pass);
+  $("selftest").textContent = JSON.stringify({ game: "monster-farm", pass, results: out }, null, 1);
+  $("selftest").hidden = false; document.title = `SELFTEST ${pass ? "PASS" : "FAIL"}`;
+  S = fresh();
+}
+const params = new URLSearchParams(location.search);
+if (params.has("lang") && TXT[params.get("lang")]) lang = params.get("lang");
+if (params.has("test")) selftest();
+else if (params.has("shot")) {
+  S = fresh(); S.day = 2; S.hour = 7.2; S.mons.glow = { x: 2, y: 4 }; S.mons.moss = { x: 2, y: 3 }; S.friends = 4; S.gold = 140;
+  for (let y = 1; y < 6; y++) for (let x = 0; x < 6; x++) { const t = tile(x, y); t.till = true; t.crop = 1 + ((x * 7 + y * 3) % 4); t.wet = (x + y) % 3 === 0; }
+  [[1, 3], [2, 4], [3, 3]].forEach(([x, y]) => { tile(x, y).mut = true; tile(x, y).crop = 4; }); S.found = 3; S.bin = ["turnip", "turnip"];
+  S.report = [lang === "ko" ? "작물 17칸이 자랐어요." : "17 crop tiles grew.", lang === "ko" ? "✨ 모슬링과 반딧몽의 범위가 겹친 곳에 반짝 순무 싹 3개! (값 3배)" : "✨ 3 glimmer sprouts where Mossling and Glowbug overlap! (3× value)", lang === "ko" ? "숲 쪽으로 이어진 작은 발자국. 발자국 옆에 산딸기 조각이 떨어져 있었어요." : "Small footprints lead to the forest. A bit of wild berry lay next to the footprints."];
+  S.modal = params.get("shot") === "report" ? "report" : null;
+}
+let last = performance.now();
+function frame(now) { const dt = Math.min(0.1, (now - last) / 1000); last = now; if (!params.has("test")) advance(dt); draw(); ui(); requestAnimationFrame(frame); }
+ui(); requestAnimationFrame(frame);
+</script>
+</body>
+</html>
